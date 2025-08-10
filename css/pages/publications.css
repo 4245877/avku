@@ -1,0 +1,280 @@
+
+/* ==========================================
+   Основной контейнер публикаций 
+   ========================================== */
+
+/* Основной контейнер публикаций */
+.publications-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 30px 15px;
+}
+
+
+/* Сетка публикаций */
+.publications-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 30px;
+}
+
+/* Стили карточки публикации */
+.publication-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.3s, box-shadow 0.3s;
+  background-color: #fff;
+}
+
+.publication-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Миниатюра публикации */
+.publication-thumbnail {
+  height: 200px;
+  background-color: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.publication-thumbnail i {
+  font-size: 48px;
+  color: #e74c3c;
+}
+
+.publication-thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Информация о публикации */
+.publication-info {
+  padding: 20px;
+}
+
+.publication-title {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.publication-date {
+  color: #777;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.publication-description {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 15px;
+}
+
+/* Кнопки действий для публикаций */
+.publication-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.publication-preview-btn,
+.publication-download-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.publication-preview-btn {
+  background-color: #3498db;
+  color: white;
+  border: none;
+}
+
+.publication-preview-btn:hover {
+  background-color: #2980b9;
+}
+
+.publication-download-btn {
+  background-color: #e74c3c;
+  color: white;
+  text-decoration: none;
+}
+
+.publication-download-btn:hover {
+  background-color: #c0392b;
+}
+
+.publication-preview-btn i,
+.publication-download-btn i {
+  margin-right: 5px;
+}
+
+/* Фильтр публикаций */
+.publications-filter {
+  margin-bottom: 30px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.filter-btn {
+  padding: 8px 15px;
+  background-color: #f5f5f5;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.filter-btn.active {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.filter-btn:hover:not(.active) {
+  background-color: #e0e0e0;
+}
+
+/* Поисковая строка */
+.publications-search {
+  margin-bottom: 30px;
+  width: 100%;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+/* Модальное окно просмотра PDF */
+.pdf-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 9999;
+}
+
+.pdf-modal-content {
+  position: relative;
+  width: 90%;
+  height: 90%;
+  margin: 2% auto;
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.pdf-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.pdf-modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.pdf-modal-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.pdf-action-btn {
+  padding: 8px 12px;
+  background-color: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.3s;
+}
+
+.pdf-action-btn:hover {
+  background-color: #e0e0e0;
+}
+
+#downloadPdfBtn {
+  background-color: #3498db;
+  color: white;
+  border: none;
+}
+
+#downloadPdfBtn:hover {
+  background-color: #2980b9;
+}
+
+.pdf-action-btn i {
+  margin-right: 5px;
+}
+
+.pdf-modal-body {
+  flex: 1;
+  overflow: hidden;
+}
+
+#pdfViewer {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+main.publications-page {
+  padding-top: 70px;
+}
+
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .publications-grid {
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 20px;
+  }
+  
+  .publications-filter {
+      justify-content: center;
+  }
+  
+  .pdf-modal-content {
+      width: 95%;
+      height: 95%;
+      margin: 2.5% auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .publications-grid {
+      grid-template-columns: 1fr;
+  }
+  
+  .publication-actions {
+      flex-direction: column;
+  }
+  
+  .publication-preview-btn,
+  .publication-download-btn {
+      width: 100%;
+  }
+}

@@ -385,3 +385,26 @@ function initPublicationsPage() {
     
     initializeFilters();
 }
+
+
+
+
+
+
+// для управления классом .has-value.
+
+document.querySelectorAll('.form-group input').forEach(input => {
+  // Проверяем при загрузке страницы
+  if (input.value) {
+    input.closest('.form-group').classList.add('has-value');
+  }
+
+  // Добавляем обработчики событий
+  input.addEventListener('blur', (e) => {
+    if (e.target.value) {
+      e.target.closest('.form-group').classList.add('has-value');
+    } else {
+      e.target.closest('.form-group').classList.remove('has-value');
+    }
+  });
+});

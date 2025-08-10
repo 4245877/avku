@@ -27,7 +27,13 @@
   <title data-translate="page_title">АВКУ - Головна</title>
 
   <!-- Стилі -->
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/utils.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/pages/home.css">
+  <link rel="stylesheet" href="css/responsive.css">
 </head>
 <body>
   <!-- Шапка і навігація -->
@@ -76,27 +82,79 @@
     </section>
 
 
-    <!-- Огляд діяльності -->
-    <section class="overview">
+  <!-- <section id="donate" class="urgent-fundraising">
       <div class="container">
-        <div class="overview-flex">
-          <!-- Логотип організації (слева) -->
-          <div class="overview-logo">
-            <img src="images/ШЕВРОН-АВКУ-1.png" alt="Логотип Асоціації волонтерських команд України" class="logo">
+          <h2 class="section-title" data-translate="urgent_title">Терміновий збір</h2>
+          <div class="fundraising-card">
+              <h3 data-translate="urgent_goal_title">Збір на 3 FPV-дрони для 93-ї бригади</h3>
+              <p class="fundraising-description" data-translate="urgent_description">
+                  Ці дрони — наші очі в небі, які допомагають зберегти життя наших захисників та ефективно виконувати бойові завдання. Кожен ваш внесок наближає нас до мети!
+              </p>
+              
+              <div class="progress-bar-container">
+                  <div class="progress-bar" style="width: 48%;"></div> </div>
+              
+              <div class="fundraising-status">
+                  <span class="raised" data-translate="urgent_raised">Зібрано: 120 000 ₴</span>
+                  <span class="goal" data-translate="urgent_goal">Ціль: 250 000 ₴</span>
+              </div>
+              
+              <a href="contacts.html#payment-details" class="btn btn-primary btn-large" data-translate="urgent_donate_btn">Підтримати збір</a>
           </div>
-          
-          <!-- Информация (справа) -->
-          <div class="overview-content">
-            <h2 data-translate="overview_header">ВОЛОНТЕРСЬКІ КОМАНДИ І НАШІ ПАРТНЕРИ</h2>
-            <p data-translate="overview_text">
-              Під цим визначенням будуть розміщені логотипи команд з їх назвами і посиланнями на їх сайти або групи або сторінки
-            </p>
-          </div>
-        </div>
       </div>
-    </section>
+  </section> -->
+<section id="donate" class="urgent-fundraising">
+    <div class="container">
+        <h2 class="section-title" data-translate="urgent_title">Терміновий збір</h2>
+        <div class="fundraising-card">
+            <p class="fundraising-description">
+                Наразі активних зборів немає.
+            </p>
+        </div>
+    </div>
+</section>
 
 
+
+<!-- Огляд діяльності -->
+<section class="activities">
+  <div class="container">
+    <h2 class="section-title" data-translate="activities_title">Напрями нашої діяльності</h2>
+
+    <div class="activities-grid">
+      <div class="activity-card">
+        <h3 data-translate="activity_zsu">Підтримка Збройних Сил України</h3>
+        <p data-translate="activity_zsu_desc">
+          Збір, закупівля та доставка необхідного спорядження на передові підрозділи: FPV-дрони (зокрема 13 FPV-дронів за результатами благодійного ярмарку та додаткові партії, наприклад 7 дронів), військове харчування, нашоломники, маскувальні сітки, окопні свічки, хімічні грілки та інше спорядження. Допомагаємо 68-му батальйону, 3-й штурмовій бригаді, 131-му батальйону, 100-й бригаді, добровольчим формуванням і іншим підрозділам за запитами.
+        </p>
+      </div>
+
+      <div class="activity-card">
+        <h3 data-translate="activity_humanitarian">Гуманітарна допомога</h3>
+        <p data-translate="activity_humanitarian_desc">
+          Регулярні відправки гуманітарних вантажів для воїнів і цивільного населення: продукти, ліки, засоби гігієни, подушки/сідушки, теплі речі. Частина допомоги спрямовується на Сумський та інші напрямки, також співпрацюємо з благодійними організаціями для координації доставок.
+        </p>
+      </div>
+
+      <div class="activity-card">
+        <h3 data-translate="activity_manufacturing">Виробництво та волонтерські майстерні</h3>
+        <p data-translate="activity_manufacturing_desc">
+          Організовуємо плетіння маскувальних сіток волонтерами, виготовлення окопних свічок та іншої дрібної продукції для підвищення комфорту на позиціях. Працюємо в партнерстві з місцевими ініціативами (наприклад, «Святошинські маскувальні сіточки») та залучаємо шкільні, громадські та духовні спільноти.
+        </p>
+      </div>
+
+      <div class="activity-card">
+        <h3 data-translate="activity_veterans">Освіта, соціальна підтримка та партнерства</h3>
+        <p data-translate="activity_veterans_desc">
+          Підтримка ветеранів і їхніх родин, проведення реабілітаційних і соціальних ініціатив, благодійні ярмарки та освітні заходи. Підписуємо меморандуми про співпрацю (наприклад з Київською Православною Богословською Академією), співпрацюємо з ліцеями (Ліцей «ЕКО» №198), організуємо фото-музеї, культурні й спортивні події для виховання патріотизму та збору коштів.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+  
   <!-- Партнери -->
   <section class="partners">
     <div class="container">
@@ -114,21 +172,6 @@
           <a href=" " target="_blank">Відвідати сайт</a>
         </div>
         <div class="partner">
- 
-          <h3>Військова частина А7297 Святошинська районна в м. Києві адміністрація</h3>
-          <a href=" " target="_blank">Відвідати сайт</a>
-        </div>
-        <div class="partner">
- 
-          <h3>Добровольче формування Територіальної громади м. Києва №10</h3>
-          <a href=" " target="_blank">Відвідати сайт</a>
-        </div>
-        <div class="partner">
- 
-          <h3>Окремий підрозділ Добровольчого Формування Територіально громади м. Києва № 42 "Легіон Оболонь"</h3>
-          <a href="https://www.facebook.com/people/%D0%94%D0%BE%D0%B1%D1%80%D0%BE%D0%B2%D0%BE%D0%BB%D1%8C%D1%87%D0%B5-%D0%A4%D0%BE%D1%80%D0%BC%D1%83%D0%B2%D0%B0%D0%BD%D0%BD%D1%8F-%D0%9B%D0%B5%D0%B3%D1%96%D0%BE%D0%BD-%D0%9E%D0%B1%D0%BE%D0%BB%D0%BE%D0%BD%D1%8C/pfbid02M33rr5fJuYokVfiY41GpZLNr9z2TeRTGvZzqj7DNfoNDrLyu1YkqHztD9JP9KNfwl/" target="_blank">Відвідати сайт</a>
-        </div>
-        <div class="partner">
           <img src="images/partner4-logo.png" alt="Логотип партнера 2">
           <h3>Благодійна організація "Сила єдності"</h3>
           <a href="https://www.facebook.com/Syla.Ednosti/" target="_blank">Відвідати сайт</a>
@@ -143,6 +186,29 @@
           <h3>Благодійний фонд "Слава Україні"</h3>
           <a href="https://glory2ukraine.rada.gov.ua/ua/" target="_blank">Відвідати сайт</a>
         </div>
+        <div class="partner">
+          <img src="images/partner17-logo.png" alt="Логотип партнера 2">
+          <h3>Київська православна богословська академія</h3>
+          <a href="https://kpba.edu.ua/" target="_blank">Відвідати сайт</a>
+        </div>
+        <div class="partner">
+          <img src="images/partner7-logo.png" alt="Логотип партнера 6">
+          <h3>Українська Асоціація Гуманітарного Розмінування</h3>
+          <a href="https://deminingua.com/" target="_blank">Відвідати сайт</a>
+        </div>
+        <div class="partner">
+          <h3>Військова частина А7297 Святошинська районна в м. Києві адміністрація</h3>
+          <a href=" " target="_blank">Відвідати сайт</a>
+        </div>
+        <div class="partner">
+          <h3>Добровольче формування Територіальної громади м. Києва №10</h3>
+          <a href=" " target="_blank">Відвідати сайт</a>
+        </div>
+        <div class="partner">
+          <h3>Окремий підрозділ Добровольчого Формування Територіально громади м. Києва № 42 "Легіон Оболонь"</h3>
+          <a href="https://www.facebook.com/people/%D0%94%D0%BE%D0%B1%D1%80%D0%BE%D0%B2%D0%BE%D0%BB%D1%8C%D1%87%D0%B5-%D0%A4%D0%BE%D1%80%D0%BC%D1%83%D0%B2%D0%B0%D0%BD%D0%BD%D1%8F-%D0%9B%D0%B5%D0%B3%D1%96%D0%BE%D0%BD-%D0%9E%D0%B1%D0%BE%D0%BB%D0%BE%D0%BD%D1%8C/pfbid02M33rr5fJuYokVfiY41GpZLNr9z2TeRTGvZzqj7DNfoNDrLyu1YkqHztD9JP9KNfwl/" target="_blank">Відвідати сайт</a>
+        </div>
+
         <div class="partner">
  
           <h3>Громадська спілка "Святошинські маскувальні сіточки"</h3>
@@ -168,26 +234,8 @@
           <h3>КНП КОР "Київський обласний центр ментального здоров'я"</h3>
           <a href="https://kopnl.com.ua/" target="_blank">Відвідати сайт</a>
         </div>
-        <div class="partner">
-          <img src="images/partner17-logo.png" alt="Логотип партнера 2">
-          <h3>Київська православна богословська академія</h3>
-          <a href="https://kpba.edu.ua/" target="_blank">Відвідати сайт</a>
-        </div>
-        <div class="partner">
-          <img src="images/partner7-logo.png" alt="Логотип партнера 6">
-          <h3>Українська Асоціація Гуманітарного Розмінування</h3>
-          <a href="https://deminingua.com/" target="_blank">Відвідати сайт</a>
-        </div>
-
-
-
-
-
-
-
 
         <div class="partner">
- 
           <h3>Комунальорганізація виконавчого органу київської міської ради (Київської міської державної адміністрації) "Муніцпальна охорона"</h3>
           <a href="https://kyivcity.gov.ua/bezpeka_ta_pravoporiadok/munitsipalna_okhorona/" target="_blank">Відвідати сайт</a>
         </div>
@@ -202,6 +250,71 @@
     </div>
   </section>
 
+<section class="trust-block">
+    <div class="container">
+      <h2 class="section-title" data-translate="results_title">Наші результати в цифрах</h2>
+      <div class="counters-container">
+        <div class="counter-item">
+          <div class="counter" data-target="5250000">-</div>
+          <p class="counter-label" data-translate="funds_raised">Зібрано коштів (₴)</p>
+        </div>
+        <div class="counter-item">
+          <div class="counter" data-target="86">-</div>
+          <p class="counter-label" data-translate="cars_purchased">Закуплено автомобілів</p>
+        </div>
+        <div class="counter-item">
+          <div class="counter" data-target="215">-</div>
+          <p class="counter-label" data-translate="drones_delivered">Передано дронів</p>
+        </div>
+        <div class="counter-item">
+          <div class="counter" data-target="1500">-</div>
+          <p class="counter-label" data-translate="nets_made">Сплетено маск. сіток</p>
+        </div>
+      </div>
+
+      <h2 class="section-title" data-translate="photo_reports_title">Фотозвіти</h2>
+      <div class="photo-gallery">
+        <a href="gallery.html" class="gallery-card">
+          <img src="images/gallery/Фото звіт 2025/41.jpg" alt="Передача допомоги військовим">
+          <div class="card-overlay">
+            <p>23 липня 2025 року Допомогаємо тим, хто боронить нас щодня. Гуманітарна підтримка для наших воїнів — це найменше, що ми можемо зробити. Разом – до Перемоги! Слава Україні!</p>
+          </div>
+        </a>
+        <a href="gallery.html" class="gallery-card">
+          <img src="images/gallery/Фото звіт 2025/39.jpg" alt="Передаємо допомогу на передову!">
+          <div class="card-overlay">
+            <p>12 липня 2025 року Передаємо допомогу на передову! Сьогодні через наших надійних колег-волонтерів відправляємо гуманітарну допомогу для наших воїнів, які тримають найгарячіші позиції.</p>
+          </div>
+        </a>
+        <a href="gallery.html" class="gallery-card">
+          <img src="images/gallery/Фото звіт 2025/38.jpg" alt="Завантаження машини">
+          <div class="card-overlay">
+            <p>15 червня 2025 року Сьогодні передали гуманітарну допомогу Головному управлінню розвідки — підрозділу “Братство”.</p>
+          </div>
+        </a>
+      </div>
+      <div class="view-more-container">
+          <a href="gallery.html" class="btn" data-translate="view_gallery_btn">Більше фото</a>
+      </div>
+
+
+      <h2 class="section-title" data-translate="testimonials_title">Відгуки</h2>
+      <div class="testimonials-container">
+        <div class="testimonial">
+          <blockquote>
+            "Дякуємо за 13 FPV-дронів — вони вже в бойових підрозділах і рятують життя щодня. Ваша підтримка безцінна."
+          </blockquote>
+          <cite>– Воїни 3-ї штурмової бригади</cite>
+        </div>
+        <div class="testimonial">
+          <blockquote>
+            "Отримана допомога (маскувальні сітки, одяг та засоби гігієни) значно підвищує комфорт і безпеку на позиціях. Велика подяка всім, хто долучився."
+          </blockquote>
+          <cite>– Бійці 68-го окремого батальйону</cite>
+        </div>
+      </div>
+    </div>
+  </section>
 
 
 
@@ -225,22 +338,6 @@
       </div>
     </section>
 
-    <!-- Карта -->
-    <section class="map">
-      <div class="container">
-        <h2 data-translate="map_header">Наше місце розташування</h2>
-        <iframe
-          src="https://maps.google.com/maps?q=50.430748412292225,30.3647021950271&hl=uk&z=15&output=embed"
-          width="100%"
-          height="450"
-          style="border:0;"
-          allowfullscreen=""
-          loading="lazy"
-          referrerpolicy="no-referrer-when-downgrade">
-        </iframe>
-      </div>
-    </section>
-  </main>
 
   <!-- Підвал -->
   <footer>

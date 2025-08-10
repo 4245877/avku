@@ -1,0 +1,215 @@
+/* МОБИЛЬНЫЕ УСТРОЙСТВА */
+@media (max-width: 768px) {
+  .navbar {
+    padding: 0 var(--spacing-sm);
+  }
+  
+  .nav-links {
+    display: none;
+  }
+  
+  .hamburger {
+    display: block;
+  }
+  
+  .hero h1 {
+    font-size: 2.5rem;
+    padding: 0 var(--spacing-sm);
+  }
+  
+  .hero p {
+    font-size: 1.125rem;
+    padding: 0 var(--spacing-sm);
+  }
+  
+  .section-title {
+    font-size: 2rem;
+  }
+  
+  .activities-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-lg);
+  }
+  
+  .activity-card {
+    padding: var(--spacing-lg);
+  }
+  
+  .fundraising-card {
+    padding: var(--spacing-lg);
+    margin: 0 var(--spacing-sm);
+  }
+  
+  .fundraising-card h3 {
+    font-size: 1.5rem;
+  }
+  
+  .fundraising-status {
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    text-align: center;
+  }
+  
+  .trust-block {
+    padding: var(--spacing-2xl) 0 var(--spacing-xl);
+  }
+  
+  .counters-container {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+    margin: var(--spacing-xl) 0 var(--spacing-2xl);
+  }
+  
+  .counter-item {
+    padding: var(--spacing-lg) var(--spacing-sm);
+  }
+  
+  .counter {
+    font-size: 2.8rem;
+  }
+  
+  .counter-label {
+    font-size: 1rem;
+  }
+  
+  .photo-gallery {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+  
+  .gallery-card {
+    height: 250px;
+  }
+  
+  .view-more-container .btn {
+    padding: 0.9rem var(--spacing-lg);
+    font-size: 1rem;
+  }
+  
+  .testimonials-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .partners-list {
+    grid-template-columns: 1fr;
+  }
+  
+  .about-section {
+    padding: var(--spacing-2xl) var(--spacing-sm);
+  }
+  
+  .about-section h1 {
+    font-size: 2.6rem;
+    padding-top: var(--spacing-2xl);
+  }
+  
+  .about-section p {
+    padding-left: 0;
+    font-size: 1.05rem;
+  }
+  
+  .about-section p::before {
+    display: none;
+  }
+  
+  .about-section ul {
+    grid-template-columns: 1fr;
+    gap: 1.8rem;
+  }
+  
+  .news-items {
+    grid-template-columns: 1fr;
+  }
+  
+  footer {
+    padding: var(--spacing-lg) 0 var(--spacing-md);
+  }
+  
+  .social-links {
+    gap: var(--spacing-sm);
+  }
+  
+  .social-links a {
+    width: 45px;
+    height: 45px;
+  }
+  
+  .social-links a img {
+    width: 20px;
+    height: 20px;
+  }
+  
+  footer p {
+    font-size: 0.8rem;
+    padding-top: var(--spacing-sm);
+  }
+}
+
+/* МАЛЕНЬКИЕ МОБИЛЬНЫЕ УСТРОЙСТВА */
+@media (max-width: 480px) {
+  .container {
+    padding: var(--spacing-sm) var(--spacing-xs);
+  }
+  
+  .hero h1 {
+    font-size: 2rem;
+  }
+  
+  .hero p {
+    font-size: 1rem;
+  }
+  
+  .btn {
+    padding: 0.875rem var(--spacing-md);
+    font-size: 0.9rem;
+  }
+  
+  .section-title {
+    font-size: 1.75rem;
+  }
+  
+  .counter {
+    font-size: 2.5rem;
+  }
+  
+  .counter-item {
+    padding: var(--spacing-md) var(--spacing-sm);
+  }
+  
+  .gallery-card {
+    height: 220px;
+  }
+  
+  .card-overlay {
+    padding: var(--spacing-sm);
+  }
+  
+  .view-more-container .btn {
+    width: 100%;
+    max-width: 280px;
+  }
+  
+  .fundraising-card {
+    padding: var(--spacing-sm);
+  }
+  
+  footer .container {
+    gap: var(--spacing-md);
+  }
+  
+  .social-links {
+    gap: 0.8rem;
+  }
+  
+  .social-links a {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .social-links a img {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+

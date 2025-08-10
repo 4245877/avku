@@ -1,0 +1,103 @@
+
+
+/* ==========================================
+   Секция "О нас" — оставлена логика и стили из Кода1
+   с улучшениями из Кода2 (padding/spacing)
+   ========================================== */
+.about-section {
+  padding: calc(var(--spacing-3xl) + 3.5rem) 0 var(--spacing-3xl);
+  margin-top: -3.5rem;
+  background: linear-gradient(45deg, var(--gray-100) 0%, var(--white) 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.about-section::before {
+  content: '';
+  position: absolute;
+  top: -10%;
+  left: -10%;
+  width: 120%;
+  height: 120%;
+  background: radial-gradient(circle at 50% 50%, rgba(25, 113, 194, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.about-section h1 {
+  font-size: 3.6rem;
+  margin-bottom: 2.5rem;
+  text-align: center;
+  color: var(--dark);
+  font-weight: 700;
+  letter-spacing: -0.05em;
+  line-height: 1.1;
+  position: relative;
+  display: inline-block;
+  background: linear-gradient(45deg, #212121, #4a4a4a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0px 2px 3px rgba(0,0,0,0.1);
+}
+
+.about-section h1::after {
+  content: '';
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90px;
+  height: 4px;
+  background: linear-gradient(90deg, #0066cc, #00c3ff);
+  border-radius: 4px;
+}
+
+.about-section p {
+  margin-bottom: 1.8rem;
+  line-height: 1.8;
+  color: #333333;
+  font-size: 1.15rem;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  position: relative;
+  padding-left: var(--spacing-lg);
+}
+
+.about-section p::before {
+  content: '▹';
+  position: absolute;
+  left: 0;
+  color: #0066cc;
+  font-size: 1.4rem;
+  top: 0.2em;
+}
+
+.about-section ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2.2rem;
+  padding: 0;
+  margin: 3.5rem auto;
+  max-width: 1200px;
+  list-style: none;
+}
+
+.about-section ul li {
+  background: var(--white);
+  padding: 1.8rem;
+  border-radius: 18px;
+  box-shadow: var(--shadow-lg);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  border: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+.about-section ul li:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-xl);
+  border-color: rgba(0, 123, 255, 0.1);
+}
+
+
+
