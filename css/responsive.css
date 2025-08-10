@@ -145,8 +145,8 @@
     justify-content: flex-start;
     flex-wrap: nowrap;
     padding: 0.75rem 1rem;
-    border-top: 1px solid rgba(0,0,0,0.06);
-    margin-top: auto;
+
+   
     background: transparent;
   }
 
@@ -275,3 +275,4 @@
     .language-selector .lang-btn { padding: 0.5rem 0.8rem; font-size: 0.9rem; min-width: 48px; }
   }
 }
+
