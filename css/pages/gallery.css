@@ -113,12 +113,6 @@
 
 
 
-
-
-
-
-
-
 @media (max-width: 768px) {
   .gallery-grid {
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -165,24 +159,59 @@
 
 /* Стили для пагинации */
 .pagination-inner {
-  text-align: center;
-  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-xs); /* Используем переменную для отступа */
+  margin-top: var(--spacing-2xl); /* Используем переменную для отступа */
+  padding: 0 var(--spacing-sm);
 }
 
-.pagination-inner .page-link {
-  margin: 0 5px; /* Расстояние между кнопками */
-  padding: 6px 12px;
-  border: none;
-  background-color: #f0f0f0;
+.page-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--gray-300); /* Светлая рамка из палитры */
+  background: var(--white); /* Чистый белый фон */
+  border-radius: var(--radius-sm); /* Стандартизированный радиус */
+  color: var(--secondary); /* Вторичный цвет для текста */
+  font-weight: 500;
   cursor: pointer;
+  transition: all 0.3s ease; /* Упрощенная анимация */
+  box-shadow: var(--shadow-sm); /* Легкая тень по умолчанию */
 }
 
-.pagination-inner .page-link.active {
-  background-color: #333;
-  color: #fff;
+.page-link:hover:not(:disabled) {
+  /* При наведении используем основной цвет темы */
+  background: rgba(var(--primary-rgb), 0.1); /* Полупрозрачный фон из --primary */
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg); /* Более выраженная тень при наведении */
 }
 
-.pagination-inner .page-link:disabled {
+.page-link.active {
+  /* Активное состояние использует главный градиент и цвета */
+  background: var(--gradient);
+  color: var(--white);
+  border-color: transparent; /* Рамка не нужна, когда есть градиент */
+  box-shadow: 0 10px 15px -3px rgba(var(--primary-rgb), 0.4); /* Красивая тень с цветом --primary */
+  transform: translateY(-1px);
+}
+
+/* Стили для неактивных (отключенных) кнопок */
+.page-link:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  transform: none; /* Убираем смещение */
+  box-shadow: var(--shadow-sm); /* Возвращаем базовую тень */
+}
+
+.page-link:disabled:hover {
+  /* Убеждаемся, что при наведении на неактивную кнопку ничего не меняется */
+  background: var(--white);
+  border-color: var(--gray-300);
+  color: var(--secondary);
 }

@@ -43,6 +43,10 @@
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
   --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+
+  --primary-rgb: 44, 206, 229;   /* #2cade5 */
+  --secondary-rgb: 77, 122, 188; /* #4d7abc */
+  --dark-rgb: 15, 23, 42;        /* #0F172A */
 }
 
 
