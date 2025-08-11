@@ -22,13 +22,24 @@
   overflow-wrap: anywhere;
 }
 
-.hero .hero-header,
-.hero .hero-header * {
-  white-space: normal !important;
-  overflow-wrap: anywhere;
-  word-break: break-word;   /* для старых браузеров */
-  hyphens: auto;
+.hero .hero-header {
+  font-size: 4rem;
+  margin-bottom: var(--spacing-md);
+  line-height: 1.2;
+  font-weight: 800;
+
+  /* перенос слов и защита от выхода за границы */
+  overflow-wrap: anywhere;        /* лучшее для современных браузеров */
+  word-wrap: break-word;          /* старые браузеры */
+  word-break: break-word;         /* для очень длинных «слов» */
+  hyphens: auto;                  /* автоматические переносы (если есть lang) */
+  -webkit-hyphens: auto;
+  -ms-hyphens: auto;
+  white-space: normal;            /* убедиться, что переносы разрешены */
+  max-width: 100%;
+  box-sizing: border-box;
 }
+
 
 .hero-content p {
   font-size: 1.25rem;

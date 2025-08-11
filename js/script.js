@@ -101,8 +101,14 @@ function applyTranslations(translations) {
     document.querySelectorAll("[data-translate]").forEach(elem => {
         const key = elem.getAttribute("data-translate");
         if (Object.prototype.hasOwnProperty.call(translations, key)) {
-            elem.innerHTML = translations[key];
+            // Заменяем неразрывные пробелы на обычные пробелы,
+            // можно добавить другие фильтры при необходимости
+            const safeHtml = String(translations[key])
+                            .replace(/\u00A0/g, ' ')
+                            .replace(/&nbsp;/g, ' ');
+            elem.innerHTML = safeHtml;
         }
+
 
     });
 }
