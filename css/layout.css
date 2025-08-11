@@ -200,7 +200,7 @@ footer p::before {
 
 .nav-links a:hover::after {
   width: 100%;
-}
+} 
 
 /* ПЕРЕКЛЮЧАТЕЛЬ ЯЗЫКОВ */
 .language-selector {
