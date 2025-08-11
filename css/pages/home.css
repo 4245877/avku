@@ -15,11 +15,9 @@
 }
 
 .hero-content {
-  box-sizing: border-box;
   max-width: 800px;
   margin: 0 auto;
-  padding: 0 1rem;
-  overflow-wrap: anywhere;
+  padding: 0 var(--spacing-lg);
 }
 
 .hero .hero-header {
@@ -27,19 +25,7 @@
   margin-bottom: var(--spacing-md);
   line-height: 1.2;
   font-weight: 800;
-
-  /* перенос слов и защита от выхода за границы */
-  overflow-wrap: anywhere;        /* лучшее для современных браузеров */
-  word-wrap: break-word;          /* старые браузеры */
-  word-break: break-word;         /* для очень длинных «слов» */
-  hyphens: auto;                  /* автоматические переносы (если есть lang) */
-  -webkit-hyphens: auto;
-  -ms-hyphens: auto;
-  white-space: normal;            /* убедиться, что переносы разрешены */
-  max-width: 100%;
-  box-sizing: border-box;
 }
-
 
 .hero-content p {
   font-size: 1.25rem;
