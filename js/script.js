@@ -104,9 +104,13 @@ function applyTranslations(translations) {
             // Заменяем неразрывные пробелы на обычные пробелы,
             // можно добавить другие фильтры при необходимости
             const safeHtml = String(translations[key])
-                            .replace(/\u00A0/g, ' ')
-                            .replace(/&nbsp;/g, ' ');
+                .replace(/\u00A0/g, ' ')           // NBSP
+                .replace(/&nbsp;/g, ' ')
+                .replace(/[\u200B\u200C\u2009\u202F]/g, ' ') // zero-width / narrow spaces
+                .replace(/\u2011/g, '-')           // non-breaking hyphen -> normal hyphen (если есть)
+                .trim();
             elem.innerHTML = safeHtml;
+
         }
 
 

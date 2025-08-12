@@ -16,16 +16,29 @@
 
 .hero-content {
   max-width: 800px;
+  width: 100%;                 /* обязательно: не даёт элементу оставаться фиксированной ширины */
+  box-sizing: border-box;      /* padding уже учитывается в ширине */
   margin: 0 auto;
-  padding: 0 var(--spacing-lg);
+  padding: 0 var(--spacing-sm); /* можно уменьшить на мобильных устройствах, или оставить переменную */
+  overflow-wrap: break-word;   /* перенос длинных слов */
+  word-break: break-word;      /* ещё один запасной вариант для некоторых браузеров */
+  -webkit-hyphens: auto;
+  -ms-hyphens: auto;
+  hyphens: auto;               /* автоматический перенос слов при необходимости */
 }
 
+
 .hero .hero-header {
-  font-size: 4rem;
+  font-size: clamp(1.6rem, 6vw, 4rem); /* гибкий размер: уменьшится на узких экранах */
   margin-bottom: var(--spacing-md);
-  line-height: 1.2;
+  line-height: 1.15;
   font-weight: 800;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+  text-wrap: balance; /* современный, опционально */
 }
+
 
 .hero-content p {
   font-size: 1.25rem;
