@@ -530,7 +530,7 @@ function initFormInputs() {
   })();
 
   // Налаштування
-  const API_URL = `/api/server?sendId=${encodeURIComponent(sendId || '')}`;
+  const API_BASE = window.API_BASE || ''; 
 
   const nfUAH = new Intl.NumberFormat('uk-UA', { style: 'currency', currency: 'UAH', maximumFractionDigits: 0 });
 
