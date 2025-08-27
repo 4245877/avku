@@ -193,4 +193,8 @@ if (require.main === module) {
     });
 
     // root diagnostic
-    app.get('/', (req, res) => res.send('API is running. Use /api/send-telegram (POST) and /api/monob
+    app.get('/', (req, res) => res.send('API is running. Use /api/send-telegram (POST) and /api/monobank-jar?sendId=... (GET)'));
+
+    app.listen(port, () => console.log(`API ready on http://localhost:${port}`));
+  })();
+}
