@@ -536,7 +536,7 @@ function initFormInputs() {
 
   // Тимчасово (ДЕМО): розкоментуйте, щоб показати 5650 ₴ без бекенду
   // const DEMO_RAISED_UAH = 5650;
-
+ 
   function updateUI(raisedUAH, goalUAH) {
     const safeGoal = goalUAH > 0 ? goalUAH : goalUAHFromDOM || goalUAH || 0;
     const pct = safeGoal ? Math.min(100, Math.round((raisedUAH / safeGoal) * 100)) : 0;
