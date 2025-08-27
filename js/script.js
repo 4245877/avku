@@ -509,3 +509,62 @@ function initFormInputs() {
     control.addEventListener('blur', check);
   });
 }
+
+
+(() => {
+  const section = document.querySelector('#donate');
+  if (!section) return;
+
+  const jarLink = section.querySelector('a[href*="monobank.ua/jar/"]');
+  const raisedEl = section.querySelector('.fundraising-status .raised');
+  const goalEl   = section.querySelector('.fundraising-status .goal');
+  const barEl    = section.querySelector('.progress-bar');
+
+  // Парсимо ціль з DOM (наприклад "80 000 ₴" -> 80000)
+  const parseUAH = txt => Number((txt || '').replace(/[^\d]/g, '')) || 0;
+  const goalUAHFromDOM = parseUAH(goalEl?.textContent);
+
+  // Отримаємо sendId з вашого посилання на Банку
+  const sendId = (() => {
+    try { return new URL(jarLink.href).pathname.split('/').pop(); } catch { return null; }
+  })();
+
+  // Налаштування
+  const API_URL = `/api/monobank-jar?sendId=${encodeURIComponent(sendId || '')}`;
+  const nfUAH = new Intl.NumberFormat('uk-UA', { style: 'currency', currency: 'UAH', maximumFractionDigits: 0 });
+
+  // Тимчасово (ДЕМО): розкоментуйте, щоб показати 5650 ₴ без бекенду
+  // const DEMO_RAISED_UAH = 5650;
+
+  function updateUI(raisedUAH, goalUAH) {
+    const safeGoal = goalUAH > 0 ? goalUAH : goalUAHFromDOM || goalUAH || 0;
+    const pct = safeGoal ? Math.min(100, Math.round((raisedUAH / safeGoal) * 100)) : 0;
+
+    if (barEl) barEl.style.width = pct + '%';
+    if (raisedEl) raisedEl.textContent = `Зібрано: ${nfUAH.format(raisedUAH)}`;
+    if (goalEl && safeGoal) goalEl.textContent = `Ціль: ${nfUAH.format(safeGoal)}`;
+  }
+
+  async function run() {
+    try {
+      if (!sendId) throw new Error('No sendId');
+      const res = await fetch(API_URL, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`API ${res.status}`);
+      const data = await res.json(); // { balance, goal, currencyCode, title, sendId }
+
+      // Monobank повертає суми в мінімальних одиницях (копійки) — ділимо на 100. :contentReference[oaicite:1]{index=1}
+      const raisedUAH = Math.floor((data.balance ?? 0) / 100);
+      const goalUAH   = Math.floor((data.goal ?? 0) / 100) || goalUAHFromDOM;
+
+      updateUI(raisedUAH, goalUAH);
+    } catch (e) {
+      // Fallback: або лишається 0, або увімкніть демо-рядок вище
+      // if (typeof DEMO_RAISED_UAH === 'number') updateUI(DEMO_RAISED_UAH, goalUAHFromDOM);
+      // else updateUI(0, goalUAHFromDOM);
+      updateUI(0, goalUAHFromDOM);
+      console.warn('Monobank jar fetch failed:', e);
+    }
+  }
+
+  run();
+})();
