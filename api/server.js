@@ -131,8 +131,10 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+  res.statusCode = 200;
+  return res.end();
   }
+
 
   // Parse URL to determine route & query
   let parsed;
@@ -189,8 +191,12 @@ if (require.main === module) {
 
     // Monobank endpoint (GET)
     app.get('/api/monobank-jar', async (req, res) => {
-      await handleMonobank(req, res, req.query ? new URLSearchParams(req.query) : null);
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    await handleMonobank(req, res, req.query ? new URLSearchParams(req.query) : null);
     });
+
 
     // root diagnostic
     app.get('/', (req, res) => res.send('API is running. Use /api/send-telegram (POST) and /api/monobank-jar?sendId=... (GET)'));

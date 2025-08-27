@@ -530,7 +530,8 @@ function initFormInputs() {
   })();
 
   // Налаштування
-  const API_URL = `/api/monobank-jar?sendId=${encodeURIComponent(sendId || '')}`;
+  const API_URL = `/api/server?sendId=${encodeURIComponent(sendId || '')}`;
+
   const nfUAH = new Intl.NumberFormat('uk-UA', { style: 'currency', currency: 'UAH', maximumFractionDigits: 0 });
 
   // Тимчасово (ДЕМО): розкоментуйте, щоб показати 5650 ₴ без бекенду
