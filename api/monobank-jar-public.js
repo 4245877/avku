@@ -1,64 +1,76 @@
-// api/monobank-jar-public.js
-const cache = new Map(); // sendId -> { ts, data }
+// api/monobank-jar-public.js (headless-версія для Vercel)
+const chromium = require('@sparticuz/chromium');
+const puppeteer = require('puppeteer-core');
+
+const cache = new Map();
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   const { sendId } = req.query || {};
   if (!sendId) return res.status(400).json({ error: 'Missing sendId' });
 
-  // 1 хв кєш
   const cached = cache.get(sendId);
   if (cached && Date.now() - cached.ts < 60_000) {
     res.setHeader('Cache-Control', 'public, max-age=30, s-maxage=60');
     return res.status(200).json(cached.data);
   }
 
+  let browser;
   try {
-    const url = `https://send.monobank.ua/jar/${encodeURIComponent(sendId)}`;
-    const r = await fetch(url, {
-      headers: {
-        // даємо UA щоб сторінка коректно рендерилась на стороні монобанку
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
-          '(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-        'Accept-Language': 'uk-UA,uk;q=0.9,en;q=0.8'
-      }
+    const executablePath =
+      process.env.CHROME_EXECUTABLE_PATH || (await chromium.executablePath());
+
+    browser = await puppeteer.launch({
+      args: chromium.args,
+      executablePath,
+      headless: chromium.headless,
+      defaultViewport: { width: 1200, height: 900 }
     });
 
-    const html = await r.text();
+    const page = await browser.newPage();
+    await page.goto(`https://send.monobank.ua/jar/${encodeURIComponent(sendId)}`, {
+      waitUntil: 'networkidle2',
+      timeout: 30000
+    });
 
-    // ---- Грубий парс: шукаємо всі суми у форматі «12 345 ₴» чи «грн»
-    // Далі беремо мінімальне як "зібрано", максимальне як "ціль"
-    const amounts = Array.from(
-      html.matchAll(/(\d[\d\s\u00A0.,]*)\s*(?:₴|грн)/gi)
-    )
-      .map(m => Number(m[1].replace(/[\s\u00A0]/g, '').replace(',', '.')))
-      .filter(n => Number.isFinite(n) && n > 0);
+    // Чекаємо появи валютних сум або кнопки «Поповнити банку»
+    await page.waitForFunction(
+      () =>
+        /₴|грн/i.test(document.body.innerText) ||
+        /Поповнити банку|Пополнить банку/i.test(document.body.innerText),
+      { timeout: 15000 }
+    );
 
-    let balanceUAH = 0, goalUAH = null;
+    const { balanceUAH, goalUAH } = await page.evaluate(() => {
+      const text = document.body.innerText;
 
-    if (amounts.length >= 2) {
-      amounts.sort((a, b) => a - b);
-      balanceUAH = Math.round(amounts[0]);                  // менше — зазвичай «зібрано»
-      goalUAH    = Math.round(amounts[amounts.length - 1]); // більше — «ціль»
-    } else if (amounts.length === 1) {
-      balanceUAH = Math.round(amounts[0]);
-    } else {
-      // Якщо нічого не знайшли — скажемо фронту, що невдача
-      return res.status(502).json({ error: 'Parse failed' });
-    }
+      const nums = Array.from(text.matchAll(/(\d[\d\s\u00A0.,]*)\s*(?:₴|грн)/gi))
+        .map(m => Number(m[1].replace(/[\s\u00A0]/g, '').replace(',', '.')))
+        .filter(n => Number.isFinite(n) && n > 0);
 
-    const data = { sendId, source: 'scrape-html', balanceUAH, goalUAH };
+      let balance = 0, goal = null;
+      if (nums.length >= 2) {
+        nums.sort((a, b) => a - b);
+        balance = Math.round(nums[0]);
+        goal    = Math.round(nums[nums.length - 1]);
+      } else if (nums.length === 1) {
+        balance = Math.round(nums[0]);
+      }
+      return { balanceUAH: balance, goalUAH: goal };
+    });
+
+    const data = { sendId, source: 'scrape-headless', balanceUAH, goalUAH };
     cache.set(sendId, { ts: Date.now(), data });
 
     res.setHeader('Cache-Control', 'public, max-age=30, s-maxage=60');
     return res.status(200).json(data);
   } catch (e) {
-    return res.status(500).json({ error: 'Server error', details: String(e) });
+    return res.status(502).json({ error: 'Scrape failed', details: String(e) });
+  } finally {
+    try { if (browser) await browser.close(); } catch {}
   }
 };
