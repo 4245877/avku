@@ -176,7 +176,6 @@ function updateGallery() {
         return;
     }
 
-
     // Фильтруем по activeFilter
     const filteredItems = (activeFilter === 'all') ?
         allItems :
@@ -201,7 +200,6 @@ function updateGallery() {
     // Генерируем и отрисовываем пагинацию
     renderPagination();
 }
-
 
 function renderPagination() {
     const galleryContainer = document.querySelector('.gallery-container');
@@ -276,15 +274,13 @@ function renderPagination() {
     container.appendChild(nextButton);
 }
 
-
-
 /**
  * =================================================================
  * 3. МОДАЛЬНОЕ ОКНО ДЛЯ ГАЛЕРЕИ (ПРОСМОТР ИЗОБРАЖЕНИЙ)
  * =================================================================
  */
 /**
- * Настройка модального окна: навешиваем обработчики кликов на изображения и на кнопку закрытия.
+ * Настройка модального окна: навешиваем обработчики кликов на карточки и на кнопку закрытия.
  */
 function setupModal() {
     const modal = document.querySelector('.gallery-modal');
@@ -300,22 +296,34 @@ function setupModal() {
     }
     // modalCaption можно оставить опциональным; при отсутствии используем пустую строку
 
-
-
     let lastFocusedElement = null;
-    // Открытие модального окна по клику на изображение
-    // Делегируем клик по изображению через контейнер галереи (работает для динамических элементов)
+
+    // Открытие модального окна по клику на КАРТОЧКУ (а не только на <img>)
+    // Делегирование клика через контейнер галереи (работает для динамических элементов)
     const galleryContainer = document.querySelector('.gallery-container') || document;
     galleryContainer.addEventListener('click', (e) => {
-        const img = (e.target instanceof Element) ? e.target.closest('.gallery-item img') : null;
+        // Если клик пришёлся по интерактивному элементу внутри карточки — не открываем модалку
+        const interactive = (e.target instanceof Element)
+          ? e.target.closest('a, button, [role="button"], input, textarea, select')
+          : null;
+        if (interactive && interactive.closest('.gallery-item')) return;
 
+        const card = (e.target instanceof Element) ? e.target.closest('.gallery-item') : null;
+        if (!card) return;
+
+        const img = card.querySelector('img');
         if (!img) return;
+
         lastFocusedElement = document.activeElement;
         modal.style.display = 'block';
         // Используйте data-full для полноразмерного изображения, если доступно, иначе src
         modalImg.src = img.dataset.full || img.src;
-        const fig = img.closest('figure');
-        modalCaption.textContent = fig && fig.querySelector('figcaption') ? fig.querySelector('figcaption').textContent : '';
+
+        const fig = card.querySelector('figure');
+        modalCaption.textContent = fig && fig.querySelector('figcaption')
+            ? fig.querySelector('figcaption').textContent
+            : '';
+
         if (modalClose) modalClose.focus();
         document.body.style.overflow = 'hidden';
     });
@@ -344,7 +352,6 @@ function setupModal() {
         }
     });
 
-
     // Закрытие модального окна по клику на крестик
     if (modalClose) {
         modalClose.addEventListener('click', () => {
@@ -353,8 +360,8 @@ function setupModal() {
             document.body.style.overflow = '';
         });
     }
-    
 }
+
 
 
 /**
