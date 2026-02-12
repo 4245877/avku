@@ -1,6 +1,6 @@
-import { defineConfig } from 'astro/config';
+import { defineConfig } from "astro/config";
 
 export default defineConfig({
-  site: 'https://4245877.github.io',
-  base: '/avku',
+  site: "https://avku.org",
+  base: "/",
 });
