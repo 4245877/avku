@@ -3,7 +3,7 @@
   const storageKey = "avku_lang";
   const defaultLang = document.documentElement.lang || "uk";
 
-  // Базовый путь из мета-тега (Astro BASE_URL), например "/avku_test/"
+  // Базовый путь из мета-тега (Astro BASE_URL), например "/avku/"
   const BASE =
     document
       .querySelector('meta[name="app-base"]')

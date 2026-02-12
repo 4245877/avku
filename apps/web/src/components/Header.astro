@@ -2,7 +2,7 @@
 // apps/web/src/components/Header.astro
 import styles from "./Header.module.css";
 
-const base = import.meta.env.BASE_URL; // ожидаем "/avku_test/" (со слэшем в конце)
+const base = import.meta.env.BASE_URL; // ожидаем "/avku/" (со слэшем в конце)
 
 const join = (path) => {
   if (/^https?:\/\//i.test(path)) return path;

@@ -6,7 +6,7 @@ import newsData from "../data/news.json";
 
 const lang = "uk";
 
-// Для GitHub Pages (base=/avku_test).
+// Для GitHub Pages (base=/avku).
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const encodePath = (p) => p.split("/").map((seg) => encodeURIComponent(seg)).join("/");
 const url = (path) => {
@@ -17,7 +17,7 @@ const url = (path) => {
 };
 
 // SEO
-const siteUrl = "https://4245877.github.io/avku_test";
+const siteUrl = "https://4245877.github.io/avku";
 const canonicalUrl = `${siteUrl}/news`;
 
 const title = "Новини — АВКУ | допомога ЗСУ, гуманітарні ініціативи, партнерства";
