@@ -1,18 +1,21 @@
 ---
 // src/pages/about.astro
 import Base from "../layouts/Base.astro";
-
 import "../styles/pages/about.css";
+import { join } from "node:path/posix";
 
 const lang = "uk";
 const title = "АВКУ - Про нас";
 const description = "Про нас — Асоціація Волонтерських Команд України";
+
+const base = import.meta.env.BASE_URL ?? "/";
+const withBase = (p: string) => join(base, p.replace(/^\//, ""));
 ---
 
 <Base lang={lang} title={title} description={description}>
   <Fragment slot="head">
-    <link rel="icon" href="/logo.png" type="image/png" />
-    <link rel="shortcut icon" href="/logo.png" type="image/png" />
+    <link rel="icon" href={withBase("logo.png")} type="image/png" />
+    <link rel="shortcut icon" href={withBase("logo.png")} type="image/png" />
 
     <link
       rel="stylesheet"
@@ -20,26 +23,30 @@ const description = "Про нас — Асоціація Волонтерськ
       crossorigin="anonymous"
       referrerpolicy="no-referrer"
     />
+
+    <!--
+      ВАЖЛИВО:
+      app.js (судячи з поведінки) підставляє переклади через textContent.
+      Тому HTML у перекладах (наприклад <strong>...</strong>) буде показаний як текст.
+      Рішення:
+      - не класти HTML у строки перекладу;
+      - виділення робити тегами у верстці (як нижче);
+      - додатково: нижній скрипт прибирає випадково залишені HTML-теги з перекладів.
+    -->
   </Fragment>
 
   <main class="container">
     <section class="about-section">
       <h1 data-translate="nav_about">Про нас</h1>
 
-      <!--
-        ВАЖЛИВО:
-        app.js (судячи з поведінки) підставляє переклади через textContent.
-        Тому HTML у перекладах (наприклад <strong>...</strong>) буде показаний як текст.
-        Рішення: не класти HTML у строки перекладу, а розбивати на частини й виділення робити тегами.
-      -->
-
       <p>
         <span data-translate="about_text_1_1">Громадська спілка «</span
-        ><strong data-translate="about_text_1_2">АСОЦІАЦІАЦІЯ ВОЛОНТЕРСЬКИХ КОМАНД УКРАЇНИ</strong
+        ><strong data-translate="about_text_1_2"
+          >АСОЦІАЦІАЦІЯ ВОЛОНТЕРСЬКИХ КОМАНД УКРАЇНИ</strong
         ><span data-translate="about_text_1_3">
-          » — це спільнота, яка включає як юридичні організації, що займаються активною
-          волонтерською діяльністю, волонтерські команди незалежно від кількості їх активістів,
-          так і окремих волонтерів.
+          » — це спільнота, яка включає як юридичні організації, що займаються активною волонтерською
+          діяльністю, волонтерські команди незалежно від кількості їх активістів, так і окремих
+          волонтерів.
         </span>
       </p>
 
@@ -76,11 +83,10 @@ const description = "Про нас — Асоціація Волонтерськ
       </p>
 
       <p>
-        <span data-translate="about_text_5_1">Об’єднуючим фундаментом і співзасновниками для створення ГС «</span
+        <span data-translate="about_text_5_1">
+          Об’єднуючим фундаментом і співзасновниками для створення ГС «</span
         ><strong data-translate="about_text_5_2">АВКУ</strong
-        ><span data-translate="about_text_5_3">
-          » у доленосному 2022 році стали:
-        </span>
+        ><span data-translate="about_text_5_3"> » у доленосному 2022 році стали: </span>
       </p>
 
       <ul>
@@ -104,7 +110,9 @@ const description = "Про нас — Асоціація Волонтерськ
         <li><strong data-translate="about_list_10">Державна установа «Центр пробації»</strong></li>
 
         <li><strong data-translate="about_list_11">Українська Асоціація Гуманітарного Розмінування</strong></li>
-        <li><strong data-translate="about_list_12">КНП КОР «Київський обласний центр ментального здоров'я»</strong></li>
+        <li>
+          <strong data-translate="about_list_12">КНП КОР «Київський обласний центр ментального здоров'я»</strong>
+        </li>
         <li><strong data-translate="about_list_13">Благодійний фонд «Слава Україні»</strong></li>
 
         <li>
@@ -123,7 +131,8 @@ const description = "Про нас — Асоціація Волонтерськ
 
         <li>
           <strong data-translate="about_list_16">
-            Окремий підрозділ Добровольчого Формування Територіальної громади м. Києва №42 «Легіон Оболонь»
+            Окремий підрозділ Добровольчого Формування Територіальної громади м. Києва №42 «Легіон
+            Оболонь»
           </strong>
         </li>
 
@@ -144,5 +153,42 @@ const description = "Про нас — Асоціація Волонтерськ
         <li><strong data-translate="about_list_21">Київська православна богословська академія</strong></li>
       </ul>
     </section>
+
+    <!-- Санітизація: якщо у перекладах випадково залишилися теги типу "<strong>...</strong>",
+         вони не будуть показуватись як текст. -->
+    <script is:inline>
+      (() => {
+        const stripTags = (s) => s.replace(/<[^>]*>/g, "");
+
+        const sanitize = () => {
+          document.querySelectorAll("[data-translate]").forEach((el) => {
+            const t = el.textContent || "";
+            if (t.includes("<") && t.includes(">")) {
+              const cleaned = stripTags(t);
+              if (cleaned !== t) el.textContent = cleaned;
+            }
+          });
+        };
+
+        let scheduled = false;
+        const schedule = () => {
+          if (scheduled) return;
+          scheduled = true;
+          requestAnimationFrame(() => {
+            scheduled = false;
+            sanitize();
+          });
+        };
+
+        document.addEventListener("DOMContentLoaded", () => {
+          schedule();
+          new MutationObserver(schedule).observe(document.body, {
+            subtree: true,
+            childList: true,
+            characterData: true,
+          });
+        });
+      })();
+    </script>
   </main>
 </Base>
