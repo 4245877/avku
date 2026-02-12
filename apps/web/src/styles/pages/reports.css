@@ -1224,3 +1224,58 @@ html {
     display: none;
   }
 }
+
+
+
+/* ========== REPORTS: prevent horizontal overflow ========== */
+
+/* 1) не даём странице раздуваться по X */
+#reports {
+  max-width: 100%;
+  overflow-x: clip; /* современно и безопасно */
+}
+
+/* 2) важное: в flex/grid дети по умолчанию могут не сжиматься из-за min-width:auto */
+.reports-controls__row,
+.trust-widget__head,
+.trust-widget__meta,
+.report-card__meta,
+.report-card__actions,
+.media-lightbox__content {
+  min-width: 0;
+}
+
+.report-card > article,
+.report-card__header,
+.report-card__title,
+.report-card__summary,
+.trust-widget__title,
+.trust-widget__meta > span,
+.report-docs a {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* 3) на мобилке твой nowrap у фильтров может упираться в “min-content” и давать перелив */
+@media (max-width: 640px) {
+  .reports-filters {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2);
+  }
+
+  .filter-btn {
+    min-width: 0;
+    max-width: 100%;
+    white-space: normal; /* переопределяем nowrap */
+  }
+}
+
+/* 4) на всякий случай: медиа не расширяет контейнер */
+.report-media__link,
+.report-media__item,
+.report-media__item figure,
+.report-media__item img {
+  max-width: 100%;
+}
