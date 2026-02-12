@@ -1,0 +1,12 @@
+{
+  "name": "avku-bot",
+  "private": true,
+  "version": "1.0.0",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@upstash/redis": "^1.36.2"
+  }
+}

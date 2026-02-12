@@ -1,0 +1,846 @@
+ /* ============================================
+   PUBLICATIONS PAGE — Сучасний динамічний дизайн
+   ============================================ */
+
+/* ========== ОСНОВНИЙ КОНТЕЙНЕР ========== */
+
+.publications-page {
+  min-height: 100vh;
+  padding-top: calc(var(--navbar-height) + var(--space-8));
+  padding-bottom: var(--space-20);
+  background: linear-gradient(
+    180deg,
+    var(--light-50) 0%,
+    var(--white) 100%
+  );
+  position: relative;
+  overflow: hidden;
+}
+
+/* Декоративный фоновый элемент */
+.publications-page::before {
+  content: '';
+  position: absolute;
+  top: -200px;
+  right: -200px;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(
+    circle,
+    rgba(44, 173, 229, 0.08) 0%,
+    transparent 70%
+  );
+  border-radius: var(--radius-full);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.publications-page::after {
+  content: '';
+  position: absolute;
+  bottom: -300px;
+  left: -300px;
+  width: 700px;
+  height: 700px;
+  background: radial-gradient(
+    circle,
+    rgba(77, 122, 188, 0.06) 0%,
+    transparent 70%
+  );
+  border-radius: var(--radius-full);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.publications-container {
+  max-width: var(--container-xl);
+  margin: 0 auto;
+  padding: 0 var(--container-padding);
+  position: relative;
+  z-index: 1;
+}
+
+
+/* ========== ЗАГОЛОВОК СЕКЦИИ ========== */
+
+.section-title {
+  font-size: clamp(var(--text-4xl), 5vw, var(--text-6xl));
+  font-weight: var(--font-extrabold);
+  color: var(--dark-900);
+  text-align: center;
+  margin-bottom: var(--space-12);
+  letter-spacing: var(--tracking-tight);
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.section-title::after {
+  content: '';
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 4px;
+  background: var(--gradient);
+  border-radius: var(--radius-full);
+  animation: expandWidth var(--duration-slow) var(--ease-smooth) forwards;
+}
+
+@keyframes expandWidth {
+  from {
+    width: 0;
+  }
+  to {
+    width: 120px;
+  }
+}
+
+
+/* ========== ПОИСК ПУБЛИКАЦИЙ ========== */
+
+.publications-search {
+  max-width: 600px;
+  margin: 0 auto var(--space-8);
+  position: relative;
+  animation: fadeInUp var(--duration-medium) var(--ease-smooth) 0.1s backwards;
+}
+
+.search-input {
+  width: 100%;
+  padding: var(--space-4) var(--space-6) var(--space-4) var(--space-12);
+  font-size: var(--text-base);
+  font-weight: var(--font-regular);
+  color: var(--dark-900);
+  background: var(--white);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--duration-medium) var(--ease-smooth);
+  outline: none;
+}
+
+.search-input::placeholder {
+  color: var(--dark-400);
+  font-weight: var(--font-regular);
+}
+
+.search-input:hover {
+  border-color: var(--primary-light);
+  box-shadow: var(--shadow-base);
+}
+
+.search-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-lightest), var(--shadow-base);
+  transform: translateY(-2px);
+}
+
+/* Иконка поиска */
+.publications-search::before {
+  content: '\f002';
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
+  position: absolute;
+  left: var(--space-5);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--dark-400);
+  font-size: var(--text-lg);
+  pointer-events: none;
+  transition: color var(--duration-base) var(--ease-out);
+}
+
+.search-input:focus ~ .publications-search::before,
+.publications-search:has(.search-input:focus)::before {
+  color: var(--primary);
+}
+
+
+/* ========== ФИЛЬТРЫ ПУБЛИКАЦИЙ ========== */
+
+.publications-filter {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-12);
+  animation: fadeInUp var(--duration-medium) var(--ease-smooth) 0.2s backwards;
+}
+
+.filter-btn {
+  padding: var(--space-3) var(--space-6);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--dark-600);
+  background: var(--white);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all var(--duration-medium) var(--ease-smooth);
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-xs);
+}
+
+.filter-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: var(--gradient);
+  border-radius: var(--radius-full);
+  transform: translate(-50%, -50%);
+  transition: width var(--duration-medium) var(--ease-smooth),
+              height var(--duration-medium) var(--ease-smooth);
+  opacity: 0.1;
+  z-index: 0;
+}
+
+.filter-btn:hover::before {
+  width: 200px;
+  height: 200px;
+}
+
+.filter-btn:hover {
+  color: var(--primary);
+  border-color: var(--primary-light);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-2px);
+}
+
+.filter-btn.active {
+  color: var(--white);
+  background: var(--gradient);
+  border-color: transparent;
+  box-shadow: var(--shadow-primary);
+  font-weight: var(--font-semibold);
+}
+
+.filter-btn.active::before {
+  display: none;
+}
+
+.filter-btn span {
+  position: relative;
+  z-index: 1;
+}
+
+
+/* ========== СЕТКА ПУБЛИКАЦИЙ ========== */
+
+.publications-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--space-8);
+  animation: fadeIn var(--duration-medium) var(--ease-smooth) 0.3s backwards;
+}
+
+@media (max-width: 640px) {
+  .publications-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+  }
+}
+
+@media (min-width: 1280px) {
+  .publications-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+
+/* ========== КАРТОЧКА ПУБЛИКАЦИИ ========== */
+
+.publication-card {
+  background: var(--white);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-base);
+  transition: all var(--duration-medium) var(--ease-smooth);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  cursor: pointer;
+  border: 1px solid var(--border-color-light);
+}
+
+/* Декоративная линия сверху */
+.publication-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--gradient);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--duration-medium) var(--ease-smooth);
+}
+
+.publication-card:hover::before {
+  transform: scaleX(1);
+}
+
+.publication-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--primary-lighter);
+}
+
+/* Анимация появления карточек */
+.publication-card {
+  animation: scaleIn var(--duration-medium) var(--ease-smooth) backwards;
+}
+
+.publication-card:nth-child(1) { animation-delay: 0.1s; }
+.publication-card:nth-child(2) { animation-delay: 0.15s; }
+.publication-card:nth-child(3) { animation-delay: 0.2s; }
+.publication-card:nth-child(4) { animation-delay: 0.25s; }
+.publication-card:nth-child(5) { animation-delay: 0.3s; }
+.publication-card:nth-child(6) { animation-delay: 0.35s; }
+
+
+/* ========== ПРЕВЬЮ ПУБЛИКАЦИИ ========== */
+
+.publication-thumbnail {
+  width: 100%;
+  height: 200px;
+  background: linear-gradient(
+    135deg,
+    var(--primary-lightest) 0%,
+    var(--secondary-lightest) 100%
+  );
+  border-radius: var(--radius-xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-5);
+  position: relative;
+  overflow: hidden;
+  transition: all var(--duration-medium) var(--ease-smooth);
+}
+
+.publication-thumbnail::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.3) 0%,
+    transparent 70%
+  );
+  transform: translate(-100%, -100%);
+  transition: transform var(--duration-slow) var(--ease-smooth);
+}
+
+.publication-card:hover .publication-thumbnail::before {
+  transform: translate(0, 0);
+}
+
+.publication-thumbnail i {
+  font-size: 4rem;
+  color: var(--primary);
+  transition: all var(--duration-medium) var(--ease-smooth);
+  position: relative;
+  z-index: 1;
+}
+
+.publication-card:hover .publication-thumbnail i {
+  transform: scale(1.1) rotate(-5deg);
+  color: var(--secondary);
+}
+
+
+/* ========== ИНФОРМАЦИЯ О ПУБЛИКАЦИИ ========== */
+
+.publication-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.publication-title {
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  color: var(--dark-900);
+  margin-bottom: var(--space-3);
+  line-height: var(--leading-tight);
+  transition: color var(--duration-base) var(--ease-out);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.publication-card:hover .publication-title {
+  color: var(--primary);
+}
+
+.publication-date {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--dark-500);
+  margin-bottom: var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.publication-date::before {
+  content: '\f133';
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 400;
+  color: var(--primary-light);
+}
+
+.publication-description {
+  font-size: var(--text-base);
+  color: var(--dark-600);
+  line-height: var(--leading-relaxed);
+  margin-bottom: var(--space-5);
+  flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+
+/* ========== ДЕЙСТВИЯ С ПУБЛИКАЦИЕЙ ========== */
+
+.publication-actions {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: auto;
+}
+
+.publication-preview-btn,
+.publication-download-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--duration-medium) var(--ease-smooth);
+  position: relative;
+  overflow: hidden;
+  white-space: nowrap;
+  text-decoration: none;
+  border: none;
+  font-family: var(--font-primary);
+}
+
+/* Кнопка просмотра */
+.publication-preview-btn {
+  background: var(--gradient);
+  color: var(--white);
+  box-shadow: var(--shadow-sm);
+}
+
+.publication-preview-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-full);
+  transform: translate(-50%, -50%);
+  transition: width var(--duration-medium) var(--ease-out),
+              height var(--duration-medium) var(--ease-out);
+}
+
+.publication-preview-btn:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.publication-preview-btn:hover {
+  box-shadow: var(--shadow-primary);
+  transform: translateY(-2px);
+}
+
+.publication-preview-btn:active {
+  transform: translateY(0);
+}
+
+/* Кнопка загрузки */
+.publication-download-btn {
+  background: var(--white);
+  color: var(--primary);
+  border: 2px solid var(--primary);
+  box-shadow: var(--shadow-xs);
+}
+
+.publication-download-btn:hover {
+  background: var(--primary-lightest);
+  border-color: var(--primary-hover);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-2px);
+}
+
+.publication-download-btn:active {
+  transform: translateY(0);
+}
+
+.publication-preview-btn i,
+.publication-download-btn i {
+  font-size: var(--text-base);
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+.publication-preview-btn:hover i {
+  transform: scale(1.2);
+}
+
+.publication-download-btn:hover i {
+  transform: translateY(-2px);
+}
+
+
+/* ========== МОДАЛЬНОЕ ОКНО PDF ========== */
+
+.pdf-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg-overlay-dark);
+  backdrop-filter: var(--backdrop-blur-lg);
+  -webkit-backdrop-filter: var(--backdrop-blur-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-modal);
+  padding: var(--space-6);
+  opacity: 0;
+  visibility: hidden;
+  transition: all var(--duration-medium) var(--ease-smooth);
+}
+
+.pdf-modal.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.pdf-modal-content {
+  background: var(--white);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-2xl);
+  width: 100%;
+  max-width: 1200px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform: scale(0.9) translateY(20px);
+  transition: transform var(--duration-medium) var(--ease-smooth);
+}
+
+.pdf-modal.active .pdf-modal-content {
+  transform: scale(1) translateY(0);
+}
+
+
+/* ========== ЗАГОЛОВОК МОДАЛЬНОГО ОКНА ========== */
+
+.pdf-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-6);
+  border-bottom: 2px solid var(--border-color-light);
+  background: linear-gradient(
+    to bottom,
+    var(--white) 0%,
+    var(--light-50) 100%
+  );
+}
+
+.pdf-modal-header h3 {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+  color: var(--dark-900);
+  margin: 0;
+  flex: 1;
+}
+
+.pdf-modal-actions {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.pdf-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--dark-700);
+  background: var(--white);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--duration-base) var(--ease-out);
+  text-decoration: none;
+  font-family: var(--font-primary);
+}
+
+.pdf-action-btn:hover {
+  color: var(--primary);
+  border-color: var(--primary-light);
+  background: var(--primary-lightest);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.pdf-action-btn:active {
+  transform: translateY(0);
+}
+
+.pdf-action-btn i {
+  font-size: var(--text-base);
+}
+
+
+/* ========== ТЕЛО МОДАЛЬНОГО ОКНА ========== */
+
+.pdf-modal-body {
+  flex: 1;
+  overflow: hidden;
+  background: var(--light-100);
+  position: relative;
+}
+
+#pdfViewer {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+
+/* ========== АДАПТИВНОСТЬ ========== */
+
+@media (max-width: 768px) {
+  .publications-page {
+    padding-top: calc(var(--navbar-height) + var(--space-6));
+    padding-bottom: var(--space-12);
+  }
+
+  .section-title {
+    font-size: var(--text-3xl);
+    margin-bottom: var(--space-8);
+  }
+
+  .publications-search {
+    margin-bottom: var(--space-6);
+  }
+
+  .publications-filter {
+    gap: var(--space-2);
+    margin-bottom: var(--space-8);
+  }
+
+  .filter-btn {
+    padding: var(--space-2) var(--space-4);
+    font-size: var(--text-xs);
+  }
+
+  .publication-card {
+    padding: var(--space-5);
+  }
+
+  .publication-thumbnail {
+    height: 160px;
+    margin-bottom: var(--space-4);
+  }
+
+  .publication-thumbnail i {
+    font-size: 3rem;
+  }
+
+  .publication-title {
+    font-size: var(--text-lg);
+  }
+
+  .publication-actions {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .publication-preview-btn,
+  .publication-download-btn {
+    width: 100%;
+  }
+
+  .pdf-modal {
+    padding: var(--space-4);
+  }
+
+  .pdf-modal-content {
+    max-height: 85vh;
+    border-radius: var(--radius-xl);
+  }
+
+  .pdf-modal-header {
+    padding: var(--space-4);
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+
+  .pdf-modal-header h3 {
+    font-size: var(--text-xl);
+  }
+
+  .pdf-modal-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 480px) {
+  .search-input {
+    padding: var(--space-3) var(--space-5) var(--space-3) var(--space-10);
+    font-size: var(--text-sm);
+  }
+
+  .publications-search::before {
+    left: var(--space-4);
+    font-size: var(--text-base);
+  }
+}
+
+
+/* ========== СОСТОЯНИЯ ЗАГРУЗКИ ========== */
+
+.publication-card.loading {
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.publication-card.loading .publication-thumbnail {
+  background: linear-gradient(
+    90deg,
+    var(--light-200) 25%,
+    var(--light-100) 50%,
+    var(--light-200) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+
+/* ========== ПУСТОЕ СОСТОЯНИЕ ========== */
+
+.publications-empty {
+  text-align: center;
+  padding: var(--space-16) var(--space-6);
+  color: var(--dark-500);
+}
+
+.publications-empty i {
+  font-size: 4rem;
+  color: var(--dark-300);
+  margin-bottom: var(--space-4);
+  opacity: 0.5;
+}
+
+.publications-empty h3 {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-semibold);
+  color: var(--dark-600);
+  margin-bottom: var(--space-2);
+}
+
+.publications-empty p {
+  font-size: var(--text-base);
+  color: var(--dark-500);
+}
+
+
+/* ========== ACCESSIBILITY ========== */
+
+.publication-preview-btn:focus-visible,
+.publication-download-btn:focus-visible,
+.filter-btn:focus-visible,
+.pdf-action-btn:focus-visible,
+.search-input:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Для скринридеров */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+
+/* ========== PRINT STYLES ========== */
+
+@media print {
+  .publications-filter,
+  .publications-search,
+  .publication-actions,
+  .pdf-modal {
+    display: none;
+  }
+
+  .publication-card {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid var(--border-color);
+  }
+}
+
+
+/* ========== АНИМАЦИИ ========== */
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}

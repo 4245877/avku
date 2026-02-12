@@ -1,0 +1,426 @@
+// apps/bot/api/tg-reports-webhook.js
+const crypto = require("crypto");
+const { Redis } = require("@upstash/redis");
+
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+});
+
+const REPORTS_JSON_PATH =
+  process.env.REPORTS_JSON_PATH || "apps/web/src/data/reports.json";
+const GALLERY_FOLDER = process.env.GALLERY_FOLDER || "Фото звіт 2026";
+const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
+const GITHUB_BRANCH = process.env.GITHUB_BRANCH || "main";
+
+function encGhPath(path) {
+  return path.split("/").map(encodeURIComponent).join("/");
+}
+
+function kyivDateISO(ts) {
+  const fmt = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Kiev",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  return fmt.format(new Date(ts));
+}
+
+function pickCategory(text) {
+  const t = (text || "").toLowerCase();
+  const m = t.match(/#category\s+([a-z0-9_-]+)/i);
+  if (m) return m[1];
+  if (t.includes("#partners")) return "partners";
+  if (t.includes("#events")) return "events";
+  if (t.includes("#aid")) return "aid";
+  return "reports";
+}
+
+function stripMeta(text) {
+  return (text || "")
+    .split("\n")
+    .filter((l) => !l.trim().toLowerCase().startsWith("#category"))
+    .join("\n")
+    .trim();
+}
+
+function slugifyUA(str) {
+  const map = {
+    а:"a",б:"b",в:"v",г:"h",ґ:"g",д:"d",е:"e",є:"ie",ж:"zh",з:"z",и:"y",і:"i",ї:"i",й:"i",
+    к:"k",л:"l",м:"m",н:"n",о:"o",п:"p",р:"r",с:"s",т:"t",у:"u",ф:"f",х:"kh",ц:"ts",ч:"ch",
+    ш:"sh",щ:"shch",ь:"",ю:"iu",я:"ia",
+    А:"a",Б:"b",В:"v",Г:"h",Ґ:"g",Д:"d",Е:"e",Є:"ie",Ж:"zh",З:"z",И:"y",І:"i",Ї:"i",Й:"i",
+    К:"k",Л:"l",М:"m",Н:"n",О:"o",П:"p",Р:"r",С:"s",Т:"t",У:"u",Ф:"f",Х:"kh",Ц:"ts",Ч:"ch",
+    Ш:"sh",Щ:"shch",Ь:"",Ю:"iu",Я:"ia",
+  };
+  const tr = (str || "")
+    .split("")
+    .map((c) => (map[c] !== undefined ? map[c] : c))
+    .join("");
+  return tr
+    .toLowerCase()
+    .replace(/['"`]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 70);
+}
+
+async function tgSend(chatId, text) {
+  const token = process.env.TG_REPORTS_BOT_TOKEN;
+  await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      chat_id: chatId,
+      text,
+      disable_web_page_preview: true,
+    }),
+  });
+}
+
+async function tgGetFileUrl(fileId) {
+  const token = process.env.TG_REPORTS_BOT_TOKEN;
+  const r = await fetch(`https://api.telegram.org/bot${token}/getFile`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ file_id: fileId }),
+  });
+  const j = await r.json();
+  if (!j.ok) throw new Error(`Telegram getFile failed: ${j.description || "?"}`);
+  const filePath = j.result.file_path;
+  const url = `https://api.telegram.org/file/bot${token}/${filePath}`;
+  const ext = (filePath.split(".").pop() || "jpg").toLowerCase();
+  return { url, ext: ["jpg","jpeg","png","webp"].includes(ext) ? ext : "jpg" };
+}
+
+async function openaiTransform({ text, nPhotos }) {
+  const key = process.env.OPENAI_API_KEY;
+  if (!key) throw new Error("Missing OPENAI_API_KEY");
+
+  const system = [
+    "Ти редактор сайту АВКУ.",
+    "Зроби заголовок і короткий підсумок українською.",
+    "Без хештегів. Тон нейтральний, ввічливий.",
+    "Поверни СУВОРО JSON без markdown.",
+    `Схема: {"title":"...","summary":"...","media":[{"alt":"...","caption":"..."}]}`,
+    `Масив media має бути довжини ${nPhotos}.`,
+  ].join("\n");
+
+  const r = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${key}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      model: OPENAI_MODEL,
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: text || "" },
+      ],
+    }),
+  });
+
+  const data = await r.json().catch(() => null);
+  if (!r.ok) throw new Error(`OpenAI error: ${data?.error?.message || r.status}`);
+
+  let obj = {};
+  try { obj = JSON.parse(data?.choices?.[0]?.message?.content || "{}"); } catch {}
+
+  const title = String(obj.title || "").trim() || "Фото звіт";
+  const summary = String(obj.summary || "").trim() || "Короткий опис події.";
+  const media = Array.isArray(obj.media) ? obj.media : [];
+  while (media.length < nPhotos) media.push({ alt: "Фото звіт", caption: "" });
+
+  return { title, summary, media: media.slice(0, nPhotos) };
+}
+
+async function ghRequest(method, urlPath, body) {
+  const owner = process.env.GITHUB_OWNER;
+  const repo = process.env.GITHUB_REPO;
+  const token = process.env.GITHUB_TOKEN;
+  if (!owner || !repo || !token) throw new Error("Missing GitHub env");
+
+  const url = `https://api.github.com/repos/${owner}/${repo}${urlPath}`;
+  const r = await fetch(url, {
+    method,
+    headers: {
+      authorization: `Bearer ${token}`,
+      accept: "application/vnd.github+json",
+      "x-github-api-version": "2022-11-28",
+      ...(body ? { "content-type": "application/json" } : {}),
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+
+  const text = await r.text();
+  let json = null;
+  try { json = text ? JSON.parse(text) : null; } catch {}
+  if (!r.ok) throw new Error(`GitHub API error: ${json?.message || text || r.status}`);
+  return json;
+}
+
+async function ghGetFile(path, ref) {
+  const p = encGhPath(path);
+  const q = ref ? `?ref=${encodeURIComponent(ref)}` : "";
+  const data = await ghRequest("GET", `/contents/${p}${q}`);
+  const buf = Buffer.from(data.content || "", "base64");
+  return { sha: data.sha, text: buf.toString("utf8") };
+}
+
+async function ghCommitMany({ branch, message, files }) {
+  const ref = await ghRequest("GET", `/git/ref/heads/${encodeURIComponent(branch)}`);
+  const headSha = ref.object.sha;
+
+  const headCommit = await ghRequest("GET", `/git/commits/${headSha}`);
+  const baseTreeSha = headCommit.tree.sha;
+
+  const blobs = [];
+  for (const f of files) {
+    const blob = await ghRequest("POST", `/git/blobs`, {
+      content: f.contentBase64,
+      encoding: "base64",
+    });
+    blobs.push({ path: f.path, sha: blob.sha });
+  }
+
+  const tree = await ghRequest("POST", `/git/trees`, {
+    base_tree: baseTreeSha,
+    tree: blobs.map((b) => ({
+      path: b.path,
+      mode: "100644",
+      type: "blob",
+      sha: b.sha,
+    })),
+  });
+
+  const commit = await ghRequest("POST", `/git/commits`, {
+    message,
+    tree: tree.sha,
+    parents: [headSha],
+  });
+
+  await ghRequest("PATCH", `/git/refs/heads/${encodeURIComponent(branch)}`, {
+    sha: commit.sha,
+    force: false,
+  });
+
+  return commit.sha;
+}
+
+function nextIndex(reports, folderName) {
+  const prefix = `images/gallery/${folderName}/`;
+  let max = 0;
+  for (const r of reports) {
+    for (const m of r.media || []) {
+      const src = String(m.src || "");
+      if (!src.startsWith(prefix)) continue;
+      const name = src.slice(prefix.length);
+      const n = parseInt(name.split(".")[0], 10);
+      if (!Number.isNaN(n)) max = Math.max(max, n);
+    }
+  }
+  return max + 1;
+}
+
+async function loadDraft(chatId) {
+  return (await redis.get(`draft:reports:${chatId}`)) || null;
+}
+
+async function saveDraft(chatId, draft) {
+  await redis.set(`draft:reports:${chatId}`, draft, { ex: 60 * 60 * 24 });
+}
+
+async function clearDraft(chatId) {
+  await redis.del(`draft:reports:${chatId}`);
+}
+
+function allowedUser(fromId) {
+  const s = (process.env.TG_ALLOWED_USER_IDS || "").trim();
+  if (!s) return true;
+  const set = new Set(s.split(",").map((x) => x.trim()).filter(Boolean));
+  return set.has(String(fromId));
+}
+
+module.exports = async (req, res) => {
+  // Telegram secret header check
+  const secretHeader = req.headers["x-telegram-bot-api-secret-token"];
+  if (process.env.TG_WEBHOOK_SECRET && secretHeader !== process.env.TG_WEBHOOK_SECRET) {
+    res.status(401).send("Unauthorized");
+    return;
+  }
+
+  if (req.method !== "POST") {
+    res.status(200).send("OK");
+    return;
+  }
+
+  let update;
+  try {
+    const chunks = [];
+    for await (const c of req) chunks.push(c);
+    update = JSON.parse(Buffer.concat(chunks).toString("utf8"));
+  } catch {
+    res.status(400).send("Bad JSON");
+    return;
+  }
+
+  res.status(200).send("OK");
+
+  const msg = update.message || update.channel_post;
+  if (!msg) return;
+
+  const chatId = msg.chat?.id;
+  const fromId = msg.from?.id;
+  if (!chatId || !fromId) return;
+
+  if (!allowedUser(fromId)) {
+    await tgSend(chatId, "Вибач, у тебе немає доступу до публікації.");
+    return;
+  }
+
+  const text = (msg.text || msg.caption || "").trim();
+
+  // команды
+  if (text === "/start" || text === "/help") {
+    await tgSend(
+      chatId,
+      [
+        "Як користуватись:",
+        "1) Надішли текст звіту (можна з #category partners) і фото (альбомом).",
+        "2) Потім надішли /publish — я додам звіт на сайт.",
+        "Команди: /publish, /cancel",
+      ].join("\n")
+    );
+    return;
+  }
+
+  if (text === "/cancel") {
+    await clearDraft(chatId);
+    await tgSend(chatId, "Добре. Чернетку скасовано.");
+    return;
+  }
+
+  if (text === "/publish") {
+    const draft = await loadDraft(chatId);
+    if (!draft || !draft.photos?.length) {
+      await tgSend(chatId, "Я не бачу чернетки з фото. Надішли текст і фото, будь ласка.");
+      return;
+    }
+
+    try {
+      const dateISO = kyivDateISO(draft.timestamp || Date.now());
+      const year = dateISO.slice(0, 4);
+
+      const cleanText = stripMeta(draft.text || "");
+      const category = pickCategory(draft.text || "");
+
+      const ai = await openaiTransform({
+        text: cleanText,
+        nPhotos: draft.photos.length,
+      });
+
+      const { text: jsonText } = await ghGetFile(REPORTS_JSON_PATH, GITHUB_BRANCH);
+
+      let root = {};
+      try { root = JSON.parse(jsonText); } catch {}
+      const reports = Array.isArray(root.reports) ? root.reports : [];
+
+      let idx = nextIndex(reports, GALLERY_FOLDER);
+
+      const filesToCommit = [];
+      const mediaEntries = [];
+
+      for (let i = 0; i < draft.photos.length; i++) {
+        const fileId = draft.photos[i];
+        const { url, ext } = await tgGetFileUrl(fileId);
+
+        const imgRes = await fetch(url);
+        if (!imgRes.ok) throw new Error(`Photo download failed: ${imgRes.status}`);
+        const buf = Buffer.from(await imgRes.arrayBuffer());
+
+        const fileName = `${idx}.${ext === "jpeg" ? "jpg" : ext}`;
+        idx++;
+
+        const repoPath = `apps/web/public/images/gallery/${GALLERY_FOLDER}/${fileName}`;
+        filesToCommit.push({
+          path: repoPath,
+          contentBase64: buf.toString("base64"),
+        });
+
+        const meta = ai.media[i] || {};
+        mediaEntries.push({
+          src: `images/gallery/${GALLERY_FOLDER}/${fileName}`,
+          alt: String(meta.alt || "Фото звіт").trim(),
+          caption: String(meta.caption || "").trim(),
+        });
+      }
+
+      const slug = slugifyUA(ai.title) || crypto
+        .createHash("sha1")
+        .update(ai.title + dateISO)
+        .digest("hex")
+        .slice(0, 10);
+
+      const id = `report-${year}-${slug}`;
+      const titleKey = `report_${year}_${slug}_title`;
+      const summaryKey = `report_${year}_${slug}_sum`;
+
+      const record = {
+        id,
+        dateISO,
+        category,
+        titleKey,
+        titleFallback: ai.title,
+        summaryKey,
+        summaryFallback: ai.summary,
+        media: mediaEntries,
+      };
+
+      const nextRoot = { ...root, reports: [record, ...reports] };
+      const nextText = JSON.stringify(nextRoot, null, 2) + "\n";
+
+      filesToCommit.push({
+        path: REPORTS_JSON_PATH,
+        contentBase64: Buffer.from(nextText, "utf8").toString("base64"),
+      });
+
+      const commitSha = await ghCommitMany({
+        branch: GITHUB_BRANCH,
+        message: `chore(reports): add ${id}`,
+        files: filesToCommit,
+      });
+
+      await clearDraft(chatId);
+      await tgSend(chatId, `Готово. Додано: ${id}\nCommit: ${commitSha}`);
+    } catch (e) {
+      await tgSend(chatId, `Сталася помилка: ${String(e.message || e)}`);
+    }
+
+    return;
+  }
+
+  // обычное сообщение: сохраняем черновик (текст + фото)
+  const photos = Array.isArray(msg.photo) ? msg.photo : [];
+  const largest = photos.length ? photos[photos.length - 1] : null;
+
+  const draft = (await loadDraft(chatId)) || {
+    text: "",
+    photos: [],
+    timestamp: msg.date ? msg.date * 1000 : Date.now(),
+  };
+
+  if (text) draft.text = text;
+  if (largest?.file_id) draft.photos.push(largest.file_id);
+  draft.timestamp = msg.date ? msg.date * 1000 : Date.now();
+
+  await saveDraft(chatId, draft);
+
+  const hint = draft.photos.length
+    ? `Чернетку збережено: фото=${draft.photos.length}. Надішли /publish.`
+    : "Текст збережено. Тепер додай фото і надішли /publish.";
+
+  await tgSend(chatId, hint);
+};

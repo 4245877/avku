@@ -1,0 +1,713 @@
+---
+import Base from "../layouts/Base.astro";
+import "../styles/pages/home.css";
+import fs from "node:fs";
+import reportsData from "../data/reports.json";
+
+const lang = "uk";
+const title =
+  'ГС «Асоціація волонтерських команд України» — допомога ЗСУ, гуманітарна підтримка, волонтерські ініціативи';
+
+const description =
+  "Асоціація волонтерських команд України (АВКУ) об’єднує волонтерів і партнерів для підтримки ЗСУ, гуманітарної допомоги та відновлення країни. Долучайся: підтримай донатом або стань волонтером.";
+
+/**
+ * ВАЖЛИВО:
+ * - Підтримуємо деплой у підпапку (BASE_URL), тому всі внутрішні лінки/асети — через join().
+ * - Логотипи партнерів читаємо з /public/images/partners (папка: web/public/images/partners).
+ */
+const base = import.meta.env.BASE_URL ?? "/";
+
+const join = (p) => {
+  if (!p) return base;
+  if (/^https?:\/\//i.test(p)) return p;
+  const clean = String(p).replace(/^\//, "");
+  const baseFixed = base.endsWith("/") ? base : `${base}/`;
+  return `${baseFixed}${clean}`;
+};
+
+const asset = (p) => join(encodeURI(p));
+
+// 1–3 актуальні потреби. Оновлюйте рідко, але завжди тримайте хоч 1 ціль.
+const urgentNeeds = [
+  {
+    title: "Актуальний збір на підсилення підрозділів",
+    desc:
+      "Підтримуємо закриття термінових запитів: спорядження, засоби зв’язку, живлення, дрони та інше за потребою.",
+    cta: "Підтримати зараз",
+    href: "/donate",
+  },
+  {
+    title: "Гуманітарні набори та підтримка пунктів незламності",
+    desc:
+      "Чай, кава, вода, засоби гігієни та найнеобхідніше для людей у складних умовах.",
+    cta: "Підтримати гуманітарний напрям",
+    href: "/donate",
+  },
+];
+
+// Напрями діяльності
+const activities = [
+  {
+    titleKey: "activity_zsu",
+    titleFallback: "Підтримка Збройних Сил України",
+    descKey: "activity_zsu_desc",
+    descFallback:
+      "Збираємо й доставляємо необхідне спорядження та матеріали на фронт — за запитами підрозділів.",
+  },
+  {
+    titleKey: "activity_humanitarian",
+    titleFallback: "Гуманітарна допомога",
+    descKey: "activity_humanitarian_desc",
+    descFallback:
+      "Регулярні відправки продуктів, ліків і засобів гігієни для військових і цивільних.",
+  },
+  {
+    titleKey: "activity_manufacturing",
+    titleFallback: "Виробництво та волонтерські майстерні",
+    descKey: "activity_manufacturing_desc",
+    descFallback:
+      "Маскувальні сітки, окопні свічки та інші необхідні речі — разом із волонтерами та партнерами.",
+  },
+  {
+    titleKey: "activity_veterans",
+    titleFallback: "Освіта, соціальна підтримка та партнерства",
+    descKey: "activity_veterans_desc",
+    descFallback:
+      "Підтримка ветеранів і родин, освітні та культурні ініціативи, благодійні події й співпраця з організаціями.",
+  },
+];
+
+// Показники (оновлюйте обережно: тільки реальні дані)
+const counters = [
+  { target: 5250000, labelKey: "funds_raised", labelFallback: "Зібрано коштів (₴)" },
+  { target: 86, labelKey: "cars_purchased", labelFallback: "Закуплено автомобілів" },
+  { target: 215, labelKey: "drones_delivered", labelFallback: "Передано дронів" },
+  { target: 1500, labelKey: "nets_made", labelFallback: "Сплетено маскувальних сіток" },
+];
+
+// Фотозвіти (беремо 3 останні пости з reports.json)
+const reports = Array.isArray(reportsData)
+  ? reportsData
+  : (reportsData?.reports ?? []);
+
+const formatDateUk = (iso) => {
+  if (!iso) return "";
+  const d = new Date(String(iso));
+  if (Number.isNaN(d.getTime())) return String(iso);
+  return new Intl.DateTimeFormat("uk-UA", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(d);
+};
+
+// 3 останні з файлу (за порядком у масиві), показуємо зверху найновіший з цих трьох
+const lastThree = reports.slice(-3).reverse();
+
+const photoReports = lastThree.map((r) => {
+  const title = r?.titleFallback || r?.titleKey || "Фотозвіт";
+  const dateLabel = formatDateUk(r?.dateISO);
+  const text = dateLabel ? `${dateLabel} — ${title}` : title;
+
+  const cover = Array.isArray(r?.media) && r.media.length ? r.media[0] : null;
+  const img = cover?.src
+    ? `/${String(cover.src).replace(/^\//, "")}`
+    : "/logo.png";
+
+  const alt = cover?.alt || title;
+
+  const href = r?.id
+    ? `/reports#${encodeURIComponent(String(r.id))}`
+    : "/reports";
+
+  return { img, alt, text, href };
+});
+
+// Відгуки (2–3 вистачає)
+const testimonials = [
+  {
+    quote:
+      "Дякуємо за FPV-дрони — вони вже в підрозділах і допомагають виконувати бойові задачі щодня.",
+    cite: "– Військові підрозділи (подяка)",
+  },
+  {
+    quote:
+      "Отримана допомога (сітки, одяг, гігієна) підсилює наші позиції та покращує умови служби. Дякуємо!",
+    cite: "– Захисники на напрямку",
+  },
+];
+
+// Читаємо файли логотипів з public/images/partners (щоб не ламалося на BASE_URL і через різні розширення)
+const partnersPublicDir = new URL("../../public/images/partners/", import.meta.url);
+
+let partnerFiles = [];
+try {
+  partnerFiles = fs
+    .readdirSync(partnersPublicDir, { withFileTypes: true })
+    .filter((d) => d.isFile())
+    .map((d) => d.name)
+    .filter((name) => /\.(png|jpg|jpeg|webp|svg)$/i.test(name));
+} catch {
+  partnerFiles = [];
+}
+
+const normalizeBaseName = (filename) =>
+  String(filename || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\.[a-z0-9]+$/i, "");
+
+const partnerFilesLower = new Map(partnerFiles.map((f) => [f.toLowerCase(), f]));
+
+const resolveLogoFile = (hint) => {
+  if (!hint) return null;
+  const wanted = String(hint).trim();
+  if (!wanted) return null;
+
+  const exact = partnerFilesLower.get(wanted.toLowerCase());
+  if (exact) return exact;
+
+  const baseName = normalizeBaseName(wanted);
+  const found = partnerFiles.find((f) => normalizeBaseName(f) === baseName);
+  return found || null;
+};
+
+const initials = (name) => {
+  const s = String(name || "").trim();
+  if (!s) return "•";
+  const words = s
+    .replace(/["«»“”„]/g, "")
+    .split(/\s+/)
+    .filter(Boolean);
+
+  const pick = [];
+  for (const w of words) {
+    const ch = w[0];
+    if (!ch) continue;
+    if (/[A-Za-zА-Яа-яІіЇїЄєҐґ0-9]/.test(ch)) pick.push(ch.toUpperCase());
+    if (pick.length >= 2) break;
+  }
+  return pick.join("") || "•";
+};
+
+// УСІ партнери зі старого файлу + логотипи (якщо є)
+const partners = [
+  {
+    name: "Святошинський РВК у м. Києві",
+    logoHint: "partner1-logo.png",
+    url: "https://www.facebook.com/SviatoshynskyTCK/",
+  },
+  {
+    name: 'Державна установа "Центр пробації"',
+    logoHint: "partner6-logo.png",
+    url: "",
+  },
+  {
+    name: 'Благодійна організація "Сила єдності"',
+    logoHint: "partner4-logo.png",
+    url: "https://www.facebook.com/Syla.Ednosti/",
+  },
+  {
+    name: 'Благодійний фонд "Наш промінь світла"',
+    logoHint: "partner5-logo.png",
+    url: "",
+  },
+  {
+    name: 'Благодійний фонд "Слава Україні"',
+    logoHint: "partner9-logo.png",
+    url: "https://glory2ukraine.rada.gov.ua/ua/",
+  },
+  {
+    name: "Київська православна богословська академія",
+    logoHint: "partner17-logo.png",
+    url: "https://kpba.edu.ua/",
+  },
+  {
+    name: "Українська Асоціація Гуманітарного Розмінування",
+    logoHint: "partner7-logo.png",
+    url: "https://deminingua.com/",
+  },
+  {
+    name: "Військова частина А7297 Святошинська районна в м. Києві адміністрація",
+    logoHint: "",
+    url: "",
+  },
+  {
+    name: "Добровольче формування Територіальної громади м. Києва №10",
+    logoHint: "",
+    url: "",
+  },
+  {
+    name:
+      'Окремий підрозділ Добровольчого Формування Територіально громади м. Києва № 42 "Легіон Оболонь"',
+    logoHint: "",
+    url:
+      "https://www.facebook.com/people/%D0%94%D0%BE%D0%B1%D1%80%D0%BE%D0%B2%D0%BE%D0%BB%D1%8C%D1%87%D0%B5-%D0%A4%D0%BE%D1%80%D0%BC%D1%83%D0%B2%D0%B0%D0%BD%D0%BD%D1%8F-%D0%9B%D0%B5%D0%B3%D1%96%D0%BE%D0%BD-%D0%9E%D0%B1%D0%BE%D0%BB%D0%BE%D0%BD%D1%8C/pfbid02M33rr5fJuYokVfiY41GpZLNr9z2TeRTGvZzqj7DNfoNDrLyu1YkqHztD9JP9KNfwl/",
+  },
+  {
+    name: 'Громадська спілка "Святошинські маскувальні сіточки"',
+    logoHint: "",
+    url: "https://www.facebook.com/groups/1206167250190364/",
+  },
+  {
+    name: 'Волонтерський гурт "Борщагівські Кікімори"',
+    logoHint: "",
+    url: "",
+  },
+  {
+    name: "Соціальний центр Перспектива Галаган і Нивок та захист прав учасників АТО",
+    logoHint: "",
+    url: "",
+  },
+  {
+    name: 'Київська міська дитяча клінічна туберкульозна лікарня',
+    logoHint: "",
+    url: "https://med.kyivcity.gov.ua/medportal/medview/174.html",
+  },
+  {
+    name: `КНП КОР "Київський обласний центр ментального здоров'я"`,
+    logoHint: "",
+    url: "https://kopnl.com.ua/",
+  },
+  {
+    name:
+      'Комунальорганізація виконавчого органу київської міської ради (Київської міської державної адміністрації) "Муніцпальна охорона"',
+    logoHint: "",
+    url: "https://kyivcity.gov.ua/bezpeka_ta_pravoporiadok/munitsipalna_okhorona/",
+  },
+  {
+    name:
+      'ГО "Святошинська районна в м. Києві організація інвалідів війни, збройних сил та учасників бойових дій"',
+    logoHint: "",
+    url: "",
+  },
+].map((p) => {
+  const file = resolveLogoFile(p.logoHint);
+  const logo = file ? asset(`/images/partners/${file}`) : null;
+  return { ...p, logo };
+});
+
+// Останні оновлення (2 картки на головній)
+const latestNews = [
+  {
+    title:
+      "Підтримали пункти незламності у Голосіївському районі: передали гуманітарну допомогу",
+    dateISO: "2026-01-12",
+    dateLabel: "12 січня 2026",
+    text:
+      "Передали чай, каву, бутильовану воду та найнеобхідніші речі. Дякуємо кожному, хто допомагає.",
+    href: "/publications",
+    linkText: "Детальніше",
+  },
+  {
+    title:
+      "Збір закрито: придбали тепловізійний приціл Defender для 638 ОЗКБ батальйону «Раптор»",
+    dateISO: "2026-01-11",
+    dateLabel: "11 січня 2026",
+    text:
+      "Завдяки вашим донатам придбали приціл Defender — важливе підсилення для виконання бойових завдань.",
+    href: "/publications",
+    linkText: "Детальніше",
+  },
+];
+
+// JSON-LD: Organization + WebSite (головна)
+const orgJsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://avku.org/#organization",
+      name: "ГС «Асоціація волонтерських команд України» (АВКУ)",
+      alternateName: "AVKU",
+      url: "https://avku.org/",
+      logo: "https://avku.org/logo.png",
+      description:
+        "ГС «АВКУ» — об’єднання волонтерських команд та громадських організацій України, що координує допомогу ЗСУ, гуманітарну підтримку постраждалим та ініціативи з відновлення.",
+      foundingDate: "2022",
+      contactPoint: [
+        {
+          "@type": "ContactPoint",
+          telephone: "+380636777050",
+          contactType: "customer support",
+          areaServed: "UA",
+          email: "volunteer_ukraine@ukr.net",
+        },
+      ],
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: "вул. Зодчих, 58-а",
+        addressLocality: "Київ",
+        postalCode: "03170",
+        addressCountry: "UA",
+      },
+      sameAs: [
+        "https://www.youtube.com/@avkuorg",
+        "https://www.facebook.com/share/g/1ErStWMBoP/",
+      ],
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://avku.org/#website",
+      url: "https://avku.org/",
+      name: "АВКУ — Асоціація волонтерських команд України",
+      publisher: { "@id": "https://avku.org/#organization" },
+    },
+  ],
+};
+---
+
+<Base lang={lang} title={title} description={description}>
+  <Fragment slot="head">
+    <!-- Primary meta -->
+    <meta name="author" content="ГС «Асоціація волонтерських команд України» (АВКУ)" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://avku.org/" />
+
+    <!-- Open Graph -->
+    <meta property="og:locale" content="uk_UA" />
+    <meta property="og:site_name" content="АВКУ — Асоціація волонтерських команд України" />
+    <meta property="og:title" content="АВКУ — Асоціація волонтерських команд України" />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content="https://avku.org/logo.png" />
+    <meta property="og:image:alt" content="Логотип АВКУ" />
+    <meta property="og:url" content="https://avku.org/" />
+    <meta property="og:type" content="website" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="АВКУ — Асоціація волонтерських команд України" />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content="https://avku.org/logo.png" />
+
+    <!-- Sitemap -->
+    <link rel="sitemap" type="application/xml" title="Sitemap" href={join("/sitemap.xml")} />
+
+    <!-- Structured data -->
+    <script type="application/ld+json" is:inline>
+      {JSON.stringify(orgJsonLd)}
+    </script>
+  </Fragment>
+
+  <!-- HERO: 3 CTA -->
+  <section class="hero">
+    <div class="container hero-content">
+      <h1 class="hero-header" data-translate="hero_header">
+        «АСОЦІАЦІАЦІЯ ВОЛОНТЕРСЬКИХ КОМАНД УКРАЇНИ»
+      </h1>
+
+      <p class="hero-slogan" data-translate="hero_slogan">
+        ВОЛОНТЕРИ ЗА ПОКЛИКОМ ДУШІ — АБО ВОЮЄШ, АБО ДОПОМАГАЄШ!
+      </p>
+
+      <p data-translate="hero_text">
+        Ми об’єднуємо волонтерські ініціативи та партнерів, щоб швидко закривати запити, підтримувати ЗСУ й допомагати людям.
+      </p>
+
+      <div class="hero-actions" style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+        <a href={join("/donate")} class="btn" aria-label="Перейти на сторінку підтримки донатом">
+          Підтримати
+        </a>
+        <a href={join("/join")} class="btn" aria-label="Перейти на сторінку для волонтерів">
+          Стати волонтером
+        </a>
+        <a href={join("/reports")} class="btn" aria-label="Перейти до звітів та прозорості">
+          Звіти / Прозорість
+        </a>
+      </div>
+
+      <p style="margin-top:16px; font-size:0.95rem; opacity:0.9;">
+        Офіційні реквізити для донату — лише на нашому сайті.
+      </p>
+    </div>
+  </section>
+
+  <!-- URGENT NEEDS -->
+  <section class="activities">
+    <div class="container">
+      <h2 class="section-title">Що потрібно зараз</h2>
+
+      <div class="activities-grid">
+        {urgentNeeds.map((n) => (
+          <div class="activity-card">
+            <h3>{n.title}</h3>
+            <p>{n.desc}</p>
+            <div style="margin-top:16px;">
+              <a class="btn" href={join(n.href)} aria-label={`Підтримати: ${n.title}`}>{n.cta}</a>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div class="view-more-container" style="margin-top:24px;">
+        <a href={join("/donate")} class="btn" aria-label="Підтримати діяльність АВКУ донатом">
+          Перейти до донату
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ACTIVITIES -->
+  <section class="activities">
+    <div class="container">
+      <h2 class="section-title" data-translate="activities_title">
+        Напрями нашої діяльності
+      </h2>
+
+      <div class="activities-grid">
+        {activities.map((a) => (
+          <div class="activity-card">
+            <h3 data-translate={a.titleKey}>{a.titleFallback}</h3>
+            <p data-translate={a.descKey}>{a.descFallback}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- RESULTS + PHOTO REPORTS + TESTIMONIALS -->
+  <section class="trust-block">
+    <div class="container">
+      <h2 class="section-title" data-translate="results_title">
+        Наші результати в цифрах
+      </h2>
+
+      <div class="counters-container">
+        {counters.map((c) => (
+          <div class="counter-item">
+            <div class="counter" data-target={String(c.target)}>-</div>
+            <p class="counter-label" data-translate={c.labelKey}>{c.labelFallback}</p>
+          </div>
+        ))}
+      </div>
+
+      <div class="view-more-container" style="margin-top:0;">
+        <a href={join("/reports")} class="btn" aria-label="Перейти до звітів">
+          Дивитися звіти
+        </a>
+      </div>
+
+      <h2 class="section-title" data-translate="photo_reports_title">Фотозвіти</h2>
+
+      <div class="photo-gallery">
+        {photoReports.map((r) => (
+          <a href={join(r.href)} class="gallery-card" aria-label={`Відкрити: ${r.text}`}>
+            <img src={asset(r.img)} alt={r.alt} loading="lazy" decoding="async" />
+            <div class="card-overlay">
+              <p>{r.text}</p>
+            </div>
+          </a>
+        ))}
+      </div>
+
+      <div class="view-more-container">
+        <a href={join("/gallery")} class="btn" aria-label="Перейти до галереї">
+          Більше фото
+        </a>
+      </div>
+
+      <h2 class="section-title" data-translate="testimonials_title">Відгуки</h2>
+
+      <div class="testimonials-container">
+        {testimonials.map((t) => (
+          <div class="testimonial">
+            <blockquote>"{t.quote}"</blockquote>
+            <cite>{t.cite}</cite>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- PARTNERS (УСІ партнери + коректні лого) -->
+  <section class="partners">
+    <div class="container">
+      <h2 data-translate="partners_header">Наші партнери</h2>
+
+      <div class="partners-list">
+        {partners.map((p) => (
+          <div class="partner">
+            {p.logo ? (
+              <img
+                src={p.logo}
+                alt={`Логотип партнера: ${p.name}`}
+                loading="lazy"
+                decoding="async"
+                style="width:100%; height:96px; object-fit:contain; display:block;"
+              />
+            ) : (
+              <div
+                aria-hidden="true"
+                style="
+                  width:100%;
+                  height:96px;
+                  display:flex;
+                  align-items:center;
+                  justify-content:center;
+                  border:1px solid rgba(255,255,255,0.12);
+                  border-radius:12px;
+                  opacity:0.9;
+                  font-weight:700;
+                  letter-spacing:0.04em;
+                "
+                title="Логотип відсутній"
+              >
+                {initials(p.name)}
+              </div>
+            )}
+
+            <h3>{p.name}</h3>
+
+            {p.url ? (
+              <a href={p.url} target="_blank" rel="noopener noreferrer">
+                Відвідати сайт
+              </a>
+            ) : (
+              <span style="opacity:0.65;">Сайт: —</span>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div class="view-more-container">
+        <a href={join("/about")} class="btn" aria-label="Дізнатися більше про АВКУ та партнерів">
+          Про нас
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- LATEST NEWS -->
+  <section class="news">
+    <div class="container">
+      <h2 data-translate="news_header">Останні оновлення</h2>
+
+      <div class="news-items">
+        {latestNews.map((n) => (
+          <article class="news-item">
+            <h3>{n.title}</h3>
+
+            <p class="news-meta">
+              <time datetime={n.dateISO} aria-label={n.dateLabel}>{n.dateLabel}</time>
+            </p>
+
+            <p>{n.text}</p>
+
+            <a href={join(n.href)} aria-label={n.title}>{n.linkText}</a>
+          </article>
+        ))}
+      </div>
+
+      <div class="view-more-container">
+        <a href={join("/publications")} class="btn" aria-label="Перейти до публікацій та новин">
+          Всі публікації
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FINAL CTA -->
+  <section class="activities">
+    <div class="container">
+      <h2 class="section-title">Долучайся до спільноти</h2>
+
+      <div class="activities-grid">
+        <div class="activity-card">
+          <h3>Підтримай донатом</h3>
+          <p>Кожен внесок перетворюється на конкретну допомогу за запитами.</p>
+          <div style="margin-top:16px;">
+            <a class="btn" href={join("/donate")} aria-label="Підтримати донатом">Підтримати</a>
+          </div>
+        </div>
+
+        <div class="activity-card">
+          <h3>Стань волонтером</h3>
+          <p>Заповни коротку анкету — ми підкажемо, як найкраще долучитися.</p>
+          <div style="margin-top:16px;">
+            <a class="btn" href={join("/join")} aria-label="Стати волонтером">Заповнити анкету</a>
+          </div>
+        </div>
+
+        <div class="activity-card">
+          <h3>Партнерство</h3>
+          <p>Бізнес і організації можуть підтримати конкретні цілі та отримати прозору звітність.</p>
+          <div style="margin-top:16px;">
+            <a class="btn" href={join("/contacts")} aria-label="Зв’язатися для партнерства">Зв’язатися</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Легкий скрипт для лічильників -->
+  <script is:inline>
+  {`
+    (function () {
+      function run() {
+        const els = Array.from(document.querySelectorAll('.counter[data-target]'));
+        if (!els.length) return;
+
+        const prefersReduced =
+          window.matchMedia &&
+          window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        const format = (n) => {
+          try { return Number(n).toLocaleString('uk-UA'); }
+          catch { return String(n); }
+        };
+
+        const setFinal = (el) => {
+          const target = Number(el.getAttribute('data-target') || '0');
+          el.textContent = Number.isFinite(target) && target > 0 ? format(target) : '-';
+        };
+
+        if (prefersReduced) {
+          els.forEach(setFinal);
+          return;
+        }
+
+        const animate = (el) => {
+          const target = Number(el.getAttribute('data-target') || '0');
+          if (!Number.isFinite(target) || target <= 0) {
+            el.textContent = '-';
+            return;
+          }
+
+          const duration = 1100;
+          const start = performance.now();
+
+          function tick(now) {
+            const t = Math.min(1, (now - start) / duration);
+            const eased = 1 - Math.pow(1 - t, 3);
+            const value = Math.floor(target * eased);
+            el.textContent = format(value);
+            if (t < 1) requestAnimationFrame(tick);
+            else el.textContent = format(target);
+          }
+
+          requestAnimationFrame(tick);
+        };
+
+        const io = new IntersectionObserver((entries, obs) => {
+          for (const e of entries) {
+            if (e.isIntersecting) {
+              animate(e.target);
+              obs.unobserve(e.target);
+            }
+          }
+        }, { threshold: 0.2 });
+
+        els.forEach((el) => io.observe(el));
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', run, { once: true });
+      } else {
+        run();
+      }
+    })();
+  `}
+</script>
+
+</Base>

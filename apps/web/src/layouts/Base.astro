@@ -1,0 +1,48 @@
+---
+import "../styles/tokens.css";
+import "../styles/global.css";
+
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+
+const {
+  title = "АВКУ",
+  lang = "uk",
+  description = "Асоціація Волонтерських Команд України",
+} = Astro.props;
+
+const base = import.meta.env.BASE_URL;
+const join = (path) => {
+  const clean = String(path).replace(/^\//, "");
+  const baseFixed = base.endsWith("/") ? base : base + "/";
+  return `${baseFixed}${clean}`;
+};
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+
+    <!-- важно для public/scripts/app.js -->
+    <meta name="app-base" content={base} />
+
+    <link rel="icon" href={join("/logo.png")} type="image/png" />
+    <slot name="head" />
+
+    <script src={join("/scripts/app.js")} defer></script>
+  </head>
+
+  <body>
+    <Header />
+
+    <main id="content" class="main">
+      <slot />
+    </main>
+
+    <Footer />
+  </body>
+</html>

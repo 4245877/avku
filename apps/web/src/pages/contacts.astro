@@ -1,0 +1,147 @@
+---
+// src/pages/contacts.astro
+import Base from "../layouts/Base.astro";
+
+import "../styles/pages/contacts.css";
+
+const lang = "uk";
+const title = "АВКУ - Контакти";
+const description = "Контакти — Асоціація Волонтерських Команд України";
+---
+
+<Base lang={lang} title={title} description={description}>
+  <Fragment slot="head">
+    <link rel="icon" href="/logo.png" type="image/png" />
+    <link rel="shortcut icon" href="/logo.png" type="image/png" />
+
+    <!-- Иконки (Font Awesome) -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+  </Fragment>
+
+  <div class="contacts-page">
+    <section class="contact-info">
+      <div class="container">
+        <h1 class="section-title" data-translate="contact_title">Зв'яжіться з нами</h1>
+
+        <div class="contact-grid">
+          <div class="contact-card">
+            <div class="contact-icon" aria-hidden="true">
+              <i class="fa-solid fa-location-dot"></i>
+            </div>
+            <h3 data-translate="address_title">Адреса</h3>
+            <p data-translate="address_text">
+              м. Київ,<br />вул. Зодчих, 58-а<br />03170
+            </p>
+          </div>
+
+          <div class="contact-card">
+            <div class="contact-icon" aria-hidden="true">
+              <i class="fa-solid fa-phone"></i>
+            </div>
+            <h3 data-translate="phones_title">Телефони</h3>
+            <p>
+              <a href="tel:+380688473401">+38 (068) 847-34-01</a><br />
+              <a href="tel:+3800636777050">+38 (063) 677-70-50</a>
+            </p>
+          </div>
+
+          <div class="contact-card">
+            <div class="contact-icon" aria-hidden="true">
+              <i class="fa-solid fa-envelope"></i>
+            </div>
+            <h3 data-translate="email_title">Email</h3>
+            <p>
+              <a href="mailto:volunteer_ukraine@ukr.net">volunteer_ukraine@ukr.net</a><br />
+            </p>
+          </div>
+
+          <div class="contact-card">
+            <div class="contact-icon" aria-hidden="true">
+              <i class="fa-brands fa-facebook-f"></i>
+            </div>
+            <h3 data-translate="facebook_title">Facebook</h3>
+            <p>
+              <a
+                href="https://www.facebook.com/groups/555103805361838"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Facebook
+              </a>
+              <br />
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="contact-form">
+      <div class="container">
+        <div class="form-wrapper">
+          <h2 data-translate="write_title">Написати нам</h2>
+
+          <form id="contactForm">
+            <div class="form-group">
+              <input
+                type="text"
+                id="name"
+                name="name"
+                required
+                placeholder=" "
+                autocomplete="name"
+              />
+              <label for="name" data-translate="name_label">Ваше ім'я</label>
+            </div>
+
+            <div class="form-group">
+              <input
+                type="email"
+                id="email"
+                name="email"
+                required
+                placeholder=" "
+                autocomplete="email"
+                inputmode="email"
+              />
+              <label for="email" data-translate="email_label">Ваш Email</label>
+            </div>
+
+            <div class="form-group">
+              <textarea
+                id="message"
+                name="message"
+                rows="5"
+                required
+                placeholder=" "
+              ></textarea>
+              <label for="message" data-translate="message_label">Повідомлення</label>
+            </div>
+
+            <button type="submit" class="btn btn-primary" data-translate="send_button">
+              Відправити
+              <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <section class="map">
+      <div class="container">
+        <h2 data-translate="map_header">Наше місцезнаходження</h2>
+
+        <iframe
+          title="Google Map"
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2540.652592073314!2d30.36245731592181!3d50.43072357947188!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNTDCsDI1JzUwLjYiTiAzMMKwMjEnNTIuNyJF!5e0!3m2!1suk!2sua!4v1677654321098!5m2!1suk!2sua"
+          style="border:0;"
+          allowfullscreen
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+        ></iframe>
+      </div>
+    </section>
+  </div>
+</Base>

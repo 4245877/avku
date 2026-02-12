@@ -1,0 +1,174 @@
+---
+// apps/web/src/components/Header.astro
+import styles from "./Header.module.css";
+
+const base = import.meta.env.BASE_URL; // ожидаем "/avku_test/" (со слэшем в конце)
+
+const join = (path) => {
+  if (/^https?:\/\//i.test(path)) return path;
+  const clean = String(path).replace(/^\//, "");
+  // Гарантируем наличие слэша в конце base перед склеиванием
+  const baseFixed = base.endsWith("/") ? base : base + "/";
+  return `${baseFixed}${clean}`;
+};
+
+const navItems = [
+  { href: "/", key: "nav_home", label: "Головна" },
+  { href: "/about", key: "nav_about", label: "Про нас" },
+  { href: "/events", key: "nav_events", label: "Події" },
+  { href: "/news", key: "nav_news", label: "Новини" },
+  { href: "/publications", key: "nav_publications", label: "Публікації" },
+  { href: "/reports", key: "nav_reports", label: "Звіти" },
+  { href: "/donate", key: "nav_donate", label: "Підтримати" },
+  { href: "/contacts", key: "nav_contacts", label: "Контакти" },
+];
+
+const normalize = (p) => (p.length > 1 && p.endsWith("/") ? p.slice(0, -1) : p);
+
+const current = normalize(Astro.url.pathname);
+const baseNoSlash = normalize(base);
+
+const isActive = (href) => {
+  const target = normalize(join(href));
+  // Головна не має бути активною на всіх сторінках, якщо ми не в корені base
+  if (href === "/") return current === baseNoSlash;
+  return current === target || current.startsWith(target + "/");
+};
+---
+
+<header class={`${styles.header} header`} id="main-header">
+  <nav class={`${styles.navbar} navbar`} aria-label="Primary navigation">
+    <div class={`${styles.logo} logo`}>
+      <a class={`${styles.logoLink} logo-link`} href={join("/")} data-translate="Association">АВКУ</a>
+    </div>
+
+    <ul class={`${styles.navLinks} nav-links`} id="primary-nav" data-visible="false" aria-hidden="true">
+      {navItems.map((item) => (
+        <li class={`${styles.navItem} nav-item`}>
+          <a
+            href={join(item.href)}
+            data-translate={item.key}
+            class={`${styles.navLink} nav-link ${isActive(item.href) ? styles.active : ""}`}
+            aria-current={isActive(item.href) ? "page" : undefined}
+          >
+            {item.label}
+          </a>
+        </li>
+      ))}
+    </ul>
+
+    <div class={styles.mobileControls}>
+      <div class={`${styles.languageSelector} language-selector`} aria-label="Language selector">
+        <button type="button" class={`${styles.langBtn} lang-btn`} data-lang="en">EN</button>
+        <button type="button" class={`${styles.langBtn} lang-btn`} data-lang="uk">UA</button>
+      </div>
+
+      <button
+        type="button"
+        class={`${styles.hamburger} hamburger`}
+        aria-label="Toggle menu"
+        aria-controls="primary-nav"
+        aria-expanded="false"
+      >
+        <span class={`${styles.hamburgerLine} hamburger-line`}></span>
+        <span class={`${styles.hamburgerLine} hamburger-line`}></span>
+        <span class={`${styles.hamburgerLine} hamburger-line`}></span>
+      </button>
+    </div>
+  </nav>
+</header>
+
+<script>
+  const setupNavigation = () => {
+    const header = document.querySelector('#main-header');
+    if (!header) return;
+
+    // Очистка предыдущих слушателей при переходе (View Transitions)
+    if (header.__navCleanup) {
+      header.__navCleanup();
+      header.__navCleanup = null;
+    }
+
+    const hamburger = header.querySelector('.hamburger');
+    const navLinks = header.querySelector('#primary-nav');
+    if (!hamburger || !navLinks) return;
+
+    const body = document.body;
+
+    const lockScroll = () => {
+      if (!body.dataset.prevOverflow) body.dataset.prevOverflow = body.style.overflow || '';
+      body.style.overflow = 'hidden';
+    };
+
+    const unlockScroll = () => {
+      body.style.overflow = body.dataset.prevOverflow || '';
+      delete body.dataset.prevOverflow;
+    };
+
+    const openMenu = () => {
+      hamburger.setAttribute('aria-expanded', 'true');
+      navLinks.setAttribute('data-visible', 'true');
+      navLinks.setAttribute('aria-hidden', 'false');
+      lockScroll();
+      header.classList.add('menu-open');
+    };
+
+    const closeMenu = () => {
+      hamburger.setAttribute('aria-expanded', 'false');
+      navLinks.setAttribute('data-visible', 'false');
+      navLinks.setAttribute('aria-hidden', 'true');
+      unlockScroll();
+      header.classList.remove('menu-open');
+    };
+
+    const isMenuOpen = () => hamburger.getAttribute('aria-expanded') === 'true';
+
+    // Убедимся, что меню закрыто при инициализации
+    closeMenu();
+
+    const onHamburgerClick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      isMenuOpen() ? closeMenu() : openMenu();
+    };
+
+    const onDocClick = (e) => {
+      if (!isMenuOpen()) return;
+      const target = e.target;
+      if (!target) return;
+      if (!navLinks.contains(target) && !hamburger.contains(target)) closeMenu();
+    };
+
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape' && isMenuOpen()) closeMenu();
+    };
+
+    const onLinkClick = () => closeMenu();
+
+    const mql = window.matchMedia('(max-width: 1024px)');
+    const onMqlChange = () => {
+      if (!mql.matches) closeMenu();
+    };
+
+    hamburger.addEventListener('click', onHamburgerClick);
+    document.addEventListener('click', onDocClick);
+    document.addEventListener('keydown', onKeyDown);
+    navLinks.querySelectorAll('a').forEach((a) => a.addEventListener('click', onLinkClick));
+
+    if (mql.addEventListener) mql.addEventListener('change', onMqlChange);
+    else if (mql.addListener) mql.addListener(onMqlChange);
+
+    header.__navCleanup = () => {
+      hamburger.removeEventListener('click', onHamburgerClick);
+      document.removeEventListener('click', onDocClick);
+      document.removeEventListener('keydown', onKeyDown);
+      navLinks.querySelectorAll('a').forEach((a) => a.removeEventListener('click', onLinkClick));
+
+      if (mql.removeEventListener) mql.removeEventListener('change', onMqlChange);
+      else if (mql.removeListener) mql.removeListener(onMqlChange);
+    };
+  };
+
+  setupNavigation();
+  document.addEventListener('astro:after-swap', setupNavigation);
+</script>

@@ -1,9 +1,0 @@
-{
-  "name": "telegram-form-backend",
-  "version": "1.0.0",
-  "description": "Serverless function to send Telegram messages",
-  "main": "api/server.js",
-  "dependencies": {
-    "node-fetch": "^2.6.7"
-  }
-}

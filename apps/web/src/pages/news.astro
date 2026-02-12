@@ -1,0 +1,444 @@
+---
+import Base from "../layouts/Base.astro";
+import "../styles/pages/news.css";
+
+import newsData from "../data/news.json";
+
+const lang = "uk";
+
+// Для GitHub Pages (base=/avku_test).
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const encodePath = (p) => p.split("/").map((seg) => encodeURIComponent(seg)).join("/");
+const url = (path) => {
+  if (!path) return "#";
+  if (path.startsWith("http")) return path;
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return `${base}${encodePath(normalizedPath)}`;
+};
+
+// SEO
+const siteUrl = "https://4245877.github.io/avku_test";
+const canonicalUrl = `${siteUrl}/news`;
+
+const title = "Новини — АВКУ | допомога ЗСУ, гуманітарні ініціативи, партнерства";
+const description =
+  "Офіційні оновлення АВКУ: передача допомоги, гуманітарні ініціативи, партнерства, події та відзнаки. Долучайся: донат, волонтерство, партнерство.";
+
+// Категорії (для фільтра)
+const categories = [
+  { key: "all", label: "Всі" },
+  { key: "zsu", label: "Підтримка ЗСУ" },
+  { key: "humanitarian", label: "Гуманітарна допомога" },
+  { key: "partnerships", label: "Партнерства" },
+  { key: "community", label: "Освіта / громада" },
+  { key: "awards", label: "Відзнаки" },
+  { key: "events", label: "Події" }
+];
+
+const categoryMap = Object.fromEntries(categories.map((c) => [c.key, c.label]));
+
+// Новини з JSON (сортуємо за датою, щоб “featured” був реально найновіший)
+const rawNews = Array.isArray(newsData) ? newsData : (newsData?.news ?? []);
+const news = rawNews
+  .slice()
+  .sort((a, b) => Date.parse(b?.dateISO || "") - Date.parse(a?.dateISO || ""));
+
+const featured = news[0] ?? null;
+
+// Документи
+const documents = [
+  {
+    title: "Потужний волонтерський рух у визвольній війні від військової агресії рф…",
+    label: "PDF · грудень 2024 (архів)",
+    href: "https://avku.org/publications/%D0%92%D0%9E%D0%9B%D0%9E%D0%9D%D0%A2%D0%95%D0%A0%D0%A1%D0%AC%D0%9A%D0%98%D0%99_%D0%A0%D0%A3%D0%A5_%D1%81%D1%82_%D0%9A%D0%BE%D0%BB%D0%BE%D0%B4%D1%96%D0%B9%2C%D0%93%D0%BE%D0%BB%D0%BE%D0%B2%D0%B0%D1%87.pdf"
+  }
+];
+
+const orgJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  name: title,
+  description,
+  url: canonicalUrl,
+  isPartOf: {
+    "@type": "WebSite",
+    name: "АВКУ — Асоціація волонтерських команд України",
+    url: siteUrl
+  },
+  mainEntity: {
+    "@type": "ItemList",
+    itemListElement: news.slice(0, 20).map((n, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      url: `${canonicalUrl}#${n.id}`,
+      name: n.title
+    }))
+  }
+};
+---
+
+<Base lang={lang} title={title} description={description}>
+  <Fragment slot="head">
+    <meta name="author" content="ГС «Асоціація Волонтерських Команд України» (АВКУ)" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href={canonicalUrl} />
+
+    <meta property="og:locale" content="uk_UA" />
+    <meta property="og:site_name" content="АВКУ — Асоціація Волонтерських Команд України" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={`${siteUrl}/logo.png`} />
+    <meta property="og:image:alt" content="Логотип АВКУ" />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:type" content="website" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={`${siteUrl}/logo.png`} />
+
+    <link rel="sitemap" type="application/xml" title="Sitemap" href={url("/sitemap.xml")} />
+
+    <script type="application/ld+json" is:inline>
+      {JSON.stringify(orgJsonLd)}
+    </script>
+  </Fragment>
+
+  <section class="hero">
+    <div class="container hero-content">
+      <h1 class="hero-header">Новини</h1>
+      <p class="hero-slogan">
+        Оновлення про допомогу, партнерства, події та звітність
+      </p>
+
+      <p class="muted">
+        Тут ми публікуємо короткі підсумки того, що зроблено. Якщо не трудно,
+        підтримай донатом або долучайся як волонтер — так ми зможемо робити більше.
+      </p>
+
+      <div class="hero-actions" style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+        <a href={url("/donate")} class="btn" aria-label="Перейти на сторінку донату">Підтримати</a>
+        <a href={url("/join")} class="btn" aria-label="Перейти на сторінку для волонтерів">Стати волонтером</a>
+        <a href={url("/reports")} class="btn" aria-label="Перейти до звітів">Звіти / Прозорість</a>
+      </div>
+    </div>
+  </section>
+
+  {featured ? (
+    <section class="container" style="margin-top:24px;">
+      <article class="featured" aria-label="Головна новина">
+        {featured.img ? (
+          <img
+            src={url(featured.img)}
+            alt={featured.imgAlt || featured.title}
+            loading="lazy"
+            decoding="async"
+          />
+        ) : null}
+
+        <div class="body">
+          <div class="meta">
+            <span class="pill">{featured.categoryLabel || categoryMap[featured.categoryKey] || "Новини"}</span>
+            <time datetime={featured.dateISO}>{featured.dateLabel || featured.dateISO}</time>
+            {featured.sourceLabel ? <span style="opacity:.8;">· {featured.sourceLabel}</span> : null}
+          </div>
+
+          <h2 style="margin:10px 0 8px;">{featured.title}</h2>
+          <p style="opacity:.95;">{featured.excerpt}</p>
+
+          <a href={url(featured.href)} class="btn" style="margin-top:14px;" aria-label={featured.title}>
+            Детальніше
+          </a>
+        </div>
+      </article>
+    </section>
+  ) : null}
+
+  <section class="container" style="margin-top:22px; margin-bottom:30px;">
+    <div class="news-layout">
+      <div>
+        <h2 class="section-title">Стрічка новин</h2>
+
+        <div class="news-controls" role="region" aria-label="Фільтри новин">
+          <div>
+            <label for="newsSearch">Пошук</label><br />
+            <input
+              id="newsSearch"
+              type="search"
+              placeholder="Наприклад: дрони, меморандум…"
+              autocomplete="off"
+            />
+          </div>
+
+          <div>
+            <label for="newsCategory">Категорія</label><br />
+            <select id="newsCategory" aria-label="Вибрати категорію">
+              {categories.map((c) => (
+                <option value={c.key}>{c.label}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label for="newsSort">Сортування</label><br />
+            <select id="newsSort" aria-label="Вибрати сортування">
+              <option value="new">Спочатку нові</option>
+              <option value="old">Спочатку старі</option>
+            </select>
+          </div>
+        </div>
+
+        <p class="news-count" id="newsCount" aria-live="polite"></p>
+
+        <div id="noResults" class="no-results" role="status" aria-live="polite">
+          Нічого не знайдено. Спробуй, будь ласка, інший запит або обери «Всі».
+        </div>
+
+        <div class="news-items" id="newsList" style="display:grid; gap:14px;">
+          {news.map((n) => (
+            <article
+              id={n.id}
+              class="news-card"
+              data-news-card="1"
+              data-cat={n.categoryKey || ""}
+              data-date={n.dateISO || ""}
+              data-title={(n.title || "").toLowerCase()}
+              data-text={(n.excerpt || "").toLowerCase()}
+            >
+              {n.img ? (
+                <a href={url(n.href)} aria-label={`Відкрити: ${n.title}`}>
+                  <img
+                    src={url(n.img)}
+                    alt={n.imgAlt || n.title}
+                    loading="lazy"
+                    decoding="async"
+                    style="width:100%; height:auto; display:block;"
+                  />
+                </a>
+              ) : null}
+
+              <div class="body">
+                <div class="meta">
+                  <span class="pill">{n.categoryLabel || categoryMap[n.categoryKey] || "Новини"}</span>
+                  <time datetime={n.dateISO} aria-label={n.dateLabel || n.dateISO}>
+                    {n.dateLabel || n.dateISO}
+                  </time>
+                  {n.sourceLabel ? <span style="opacity:.8;">· {n.sourceLabel}</span> : null}
+                </div>
+
+                <h3>{n.title}</h3>
+                <p style="opacity:.95;">{n.excerpt}</p>
+
+                <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
+                  <a href={url(n.href)} aria-label={`Відкрити: ${n.title}`}>Детальніше</a>
+                  {n.img ? (
+                    <a href={url("/gallery")} aria-label="Перейти до галереї">Фото</a>
+                  ) : null}
+                  <a href={`#${n.id}`} aria-label={`Скопіювати посилання на новину: ${n.title}`}>Лінк</a>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+
+        <div class="view-more-container" style="margin-top:16px;">
+          <button
+            id="loadMoreBtn"
+            type="button"
+            class="btn"
+            aria-label="Показати ще новини"
+          >
+            Показати ще
+          </button>
+        </div>
+
+        <noscript>
+          <p class="muted small" style="margin-top:12px;">
+            Пошук і фільтри працюють краще з увімкненим JavaScript.
+          </p>
+        </noscript>
+      </div>
+
+      <aside style="display:grid; gap:14px;">
+        <div class="aside-card">
+          <h3>Офіційні канали</h3>
+          <p class="muted small" style="margin:0 0 10px;">
+            Частину матеріалів ми публікуємо у соцмережах. Якщо не трудно, підпишись — це теж підтримка.
+          </p>
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <a
+              class="btn-secondary"
+              href="https://www.facebook.com/groups/555103805361838/?locale=ru_RU"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Відкрити Facebook-групу АВКУ"
+            >
+              Facebook-група
+            </a>
+            <a
+              class="btn-secondary"
+              href="https://avku.org/"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Відкрити старий сайт АВКУ"
+            >
+              Старий сайт (архів)
+            </a>
+            <a class="btn-secondary" href={url("/reports")} aria-label="Перейти до звітів">
+              Звіти / Прозорість
+            </a>
+          </div>
+        </div>
+
+        <div class="aside-card">
+          <h3>Як допомогти</h3>
+          <p class="muted small" style="margin:0 0 10px;">
+            Донат, волонтерство або партнерство — будь-який формат корисний.
+          </p>
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <a class="btn" href={url("/donate")} aria-label="Підтримати донатом">Підтримати</a>
+            <a class="btn-secondary" href={url("/join")} aria-label="Долучитися як волонтер або партнер">
+              Долучитися
+            </a>
+          </div>
+        </div>
+
+        <div class="aside-card">
+          <h3>Документи / публікації</h3>
+          {documents?.length ? (
+            <ul>
+              {documents.map((d) => (
+                <li style="margin-bottom:10px;">
+                  <a href={d.href} target="_blank" rel="noopener noreferrer" aria-label={d.title}>
+                    {d.title}
+                  </a>
+                  <div class="muted small">{d.label}</div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p class="muted small" style="margin:0;">Наразі немає додаткових публікацій у цьому блоці.</p>
+          )}
+          <div class="divider"></div>
+          <p class="muted small" style="margin:0;">
+            Якщо потрібно — цей блок легко винести в JSON/CMS.
+          </p>
+        </div>
+
+        <div class="aside-card">
+          <h3>Порада</h3>
+          <p class="muted small" style="margin:0;">
+            Для швидкого пошуку спробуй короткі ключові слова: «дрони», «меморандум», «сітка», «форум».
+          </p>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <script is:inline>
+    {`
+      (function () {
+        const $ = (s) => document.querySelector(s);
+
+        const listEl = $("#newsList");
+        const countEl = $("#newsCount");
+        const noResultsEl = $("#noResults");
+        const searchEl = $("#newsSearch");
+        const categoryEl = $("#newsCategory");
+        const sortEl = $("#newsSort");
+        const loadMoreBtn = $("#loadMoreBtn");
+
+        if (!listEl || !countEl || !searchEl || !categoryEl || !sortEl || !loadMoreBtn) return;
+
+        const allCards = Array.from(listEl.querySelectorAll('[data-news-card="1"]'));
+
+        const INITIAL_VISIBLE = 8;
+        const STEP = 8;
+
+        let visibleLimit = INITIAL_VISIBLE;
+
+        const norm = (s) => (s || "").toString().trim().toLowerCase();
+
+        const parseDate = (iso) => {
+          const t = Date.parse(iso || "");
+          return Number.isFinite(t) ? t : 0;
+        };
+
+        function matches(card, query, catKey) {
+          if (catKey && catKey !== "all") {
+            if ((card.getAttribute("data-cat") || "") !== catKey) return false;
+          }
+          if (!query) return true;
+
+          const title = card.getAttribute("data-title") || "";
+          const text = card.getAttribute("data-text") || "";
+          return title.includes(query) || text.includes(query);
+        }
+
+        function render() {
+          const query = norm(searchEl.value);
+          const cat = categoryEl.value;
+          const sortVal = sortEl.value;
+
+          // 1. Filter
+          const filtered = allCards.filter(c => matches(c, query, cat));
+
+          // 2. Sort
+          filtered.sort((a, b) => {
+            const da = parseDate(a.getAttribute("data-date"));
+            const db = parseDate(b.getAttribute("data-date"));
+            return sortVal === "old" ? da - db : db - da;
+          });
+
+          // 3. Update DOM
+          allCards.forEach(c => {
+             c.style.display = "none";
+          });
+
+          const toShow = filtered.slice(0, visibleLimit);
+          toShow.forEach(c => {
+            listEl.appendChild(c);
+            c.style.display = "";
+          });
+
+          const total = filtered.length;
+          if (total === 0) {
+            countEl.textContent = "";
+            noResultsEl.style.display = "block";
+            loadMoreBtn.style.display = "none";
+          } else {
+            noResultsEl.style.display = "none";
+            const visibleCount = toShow.length;
+            countEl.textContent = \`Показано \${visibleCount} із \${total}\`;
+
+            if (visibleCount < total) {
+              loadMoreBtn.style.display = "inline-flex";
+            } else {
+              loadMoreBtn.style.display = "none";
+            }
+          }
+        }
+
+        searchEl.addEventListener("input", () => {
+          visibleLimit = INITIAL_VISIBLE;
+          render();
+        });
+        categoryEl.addEventListener("change", () => {
+          visibleLimit = INITIAL_VISIBLE;
+          render();
+        });
+        sortEl.addEventListener("change", () => {
+          visibleLimit = INITIAL_VISIBLE;
+          render();
+        });
+
+        loadMoreBtn.addEventListener("click", () => {
+          visibleLimit += STEP;
+          render();
+        });
+
+        render();
+      })();
+    `}
+  </script>
+</Base>

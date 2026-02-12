@@ -1,0 +1,55 @@
+---
+// src/components/Footer.astro
+import styles from "./Footer.module.css";
+
+const year = new Date().getFullYear();
+const base = import.meta.env.BASE_URL;
+
+// Исправленная функция для формирования путей
+const join = (path) => {
+  const clean = String(path).replace(/^\//, "");
+  const baseFixed = base.endsWith("/") ? base : base + "/";
+  return `${baseFixed}${clean}`;
+};
+
+const social = [
+  { href: "https://t.me/+380688473401", icon: "/assets/telegram-icon.svg", label: "Telegram" },
+  { href: "https://www.instagram.com/avku_official/", icon: "/assets/instagram-icon.svg", label: "Instagram" },
+  { href: "https://www.facebook.com/groups/555103805361838", icon: "/assets/facebook-icon.svg", label: "Facebook" },
+  { href: "https://www.youtube.com/@avkuorg", icon: "/assets/youtube-icon.svg", label: "YouTube" },
+  {
+    href: "https://api.whatsapp.com/send/?phone=%2B380964095892&text&type=phone_number&app_absent=0",
+    icon: "/assets/whatsapp-icon.svg",
+    label: "WhatsApp",
+  },
+];
+---
+
+<footer class={`${styles.footer} footer`}>
+  <div class={`${styles.container} container`}>
+    <div class={`${styles.socialLinks} social-links`}>
+      {social.map((s) => (
+        <a
+          href={s.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          title={s.label}
+          aria-label={s.label}
+          class={`${styles.socialLink} social-link`}
+        >
+          <img
+            class={`${styles.socialIcon} social-icon`}
+            src={join(s.icon)}
+            alt={s.label}
+            loading="lazy"
+            decoding="async"
+          />
+        </a>
+      ))}
+    </div>
+
+    <p class={`${styles.copy} footer-copy`} data-translate="footer_text">
+      © {year} АВКУ. Усі права захищені.
+    </p>
+  </div>
+</footer>

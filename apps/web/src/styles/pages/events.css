@@ -1,0 +1,920 @@
+/* ============================================
+   EVENTS PAGE — Сучасний, динамічний дизайн
+   ============================================ */
+
+/* ========== HERO SECTION ========== */
+
+.hero {
+  position: relative;
+  min-height: 85vh;
+  display: flex;
+  align-items: center;
+  padding-top: calc(var(--navbar-height) + var(--space-8));
+  padding-bottom: var(--space-16);
+  overflow: hidden;
+}
+
+/* Анимированный градиентный фон */
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    var(--primary-lightest) 0%,
+    var(--secondary-lightest) 50%,
+    var(--light-50) 100%
+  );
+  opacity: 0.7;
+  z-index: -2;
+}
+
+/* Динамичные геометрические элементы */
+.hero::after {
+  content: '';
+  position: absolute;
+  top: 10%;
+  right: -5%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(
+    circle,
+    rgba(44, 173, 229, 0.15) 0%,
+    transparent 70%
+  );
+  border-radius: var(--radius-full);
+  animation: float 8s var(--ease-in-out) infinite;
+  z-index: -1;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+  opacity: 0;
+  animation: fadeInUp var(--duration-slow) var(--ease-smooth) 0.2s forwards;
+}
+
+.hero-header {
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-weight: var(--font-extrabold);
+  color: var(--dark-900);
+  margin-bottom: var(--space-6);
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  background: linear-gradient(135deg, var(--dark-900), var(--primary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  opacity: 0;
+  animation: fadeInUp var(--duration-slow) var(--ease-smooth) 0.3s forwards;
+}
+
+.hero-slogan {
+  font-size: clamp(1.125rem, 2vw, 1.5rem);
+  font-weight: var(--font-medium);
+  color: var(--dark-700);
+  margin-bottom: var(--space-4);
+  opacity: 0;
+  animation: fadeInUp var(--duration-slow) var(--ease-smooth) 0.4s forwards;
+}
+
+.hero-content > p {
+  font-size: clamp(1rem, 1.5vw, 1.125rem);
+  color: var(--dark-600);
+  max-width: 700px;
+  margin: 0 auto var(--space-6);
+  line-height: var(--leading-relaxed);
+  opacity: 0;
+  animation: fadeInUp var(--duration-slow) var(--ease-smooth) 0.5s forwards;
+}
+
+.hero-actions {
+  opacity: 0;
+  animation: fadeInUp var(--duration-slow) var(--ease-smooth) 0.6s forwards;
+}
+
+.hero-actions .btn {
+  min-width: 160px;
+  padding: var(--space-4) var(--space-6);
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  box-shadow: var(--shadow-md);
+  transition: all var(--duration-medium) var(--ease-smooth);
+}
+
+.hero-actions .btn:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Основная кнопка в hero */
+.hero-actions .btn:first-child {
+  background: var(--gradient);
+  color: var(--white);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-actions .btn:first-child::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transition: left var(--duration-slow) var(--ease-out);
+}
+
+.hero-actions .btn:first-child:hover::before {
+  left: 100%;
+}
+
+/* ========== SECTION TITLE ========== */
+
+.section-title {
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: var(--font-bold);
+  text-align: center;
+  margin-bottom: var(--space-12);
+  color: var(--dark-900);
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.section-title::after {
+  content: '';
+  display: block;
+  width: 80px;
+  height: 4px;
+  background: var(--gradient);
+  border-radius: var(--radius-full);
+  margin: var(--space-4) auto 0;
+  transition: width var(--duration-medium) var(--ease-smooth);
+}
+
+.section-title:hover::after {
+  width: 120px;
+}
+
+
+/* ========== ACTIVITIES GRID ========== */
+
+.activities {
+  background: var(--white);
+  position: relative;
+  overflow: hidden;
+}
+
+.activities::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -10%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(
+    circle,
+    rgba(77, 122, 188, 0.08) 0%,
+    transparent 70%
+  );
+  border-radius: var(--radius-full);
+  animation: float 10s var(--ease-in-out) infinite reverse;
+  pointer-events: none;
+}
+
+.activities-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: var(--space-6);
+  margin-bottom: var(--space-8);
+}
+
+@media (min-width: 768px) {
+  .activities-grid {
+    gap: var(--space-8);
+  }
+}
+
+@media (min-width: 1024px) {
+  .activities-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+
+/* ========== ACTIVITY CARD ========== */
+
+.activity-card {
+  background: var(--white);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-base);
+  border: 1px solid var(--border-color-light);
+  position: relative;
+  overflow: hidden;
+  transition: all var(--duration-medium) var(--ease-smooth);
+  cursor: pointer;
+}
+
+/* Верхний акцент-бордер */
+.activity-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--gradient);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--duration-medium) var(--ease-smooth);
+}
+
+/* Фоновый градиент при ховере */
+.activity-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(44, 173, 229, 0.03) 0%,
+    rgba(77, 122, 188, 0.03) 100%
+  );
+  opacity: 0;
+  transition: opacity var(--duration-medium) var(--ease-smooth);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.activity-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--primary-lighter);
+}
+
+.activity-card:hover::before {
+  transform: scaleX(1);
+}
+
+.activity-card:hover::after {
+  opacity: 1;
+}
+
+.activity-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.activity-card h3 {
+  font-size: clamp(1.25rem, 2vw, 1.5rem);
+  font-weight: var(--font-bold);
+  color: var(--dark-900);
+  margin-bottom: var(--space-3);
+  line-height: var(--leading-tight);
+  transition: color var(--duration-base) var(--ease-out);
+}
+
+.activity-card:hover h3 {
+  color: var(--primary);
+}
+
+.activity-card p {
+  font-size: var(--text-base);
+  color: var(--dark-600);
+  line-height: var(--leading-relaxed);
+  margin-bottom: var(--space-4);
+}
+
+.activity-card .btn {
+  margin-top: auto;
+  width: 100%;
+  justify-content: center;
+  background: var(--secondary);
+  color: var(--white);
+  font-weight: var(--font-medium);
+  transition: all var(--duration-medium) var(--ease-smooth);
+}
+
+.activity-card .btn:hover {
+  background: var(--secondary-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+
+/* ========== TAGS ========== */
+
+.tag {
+  display: inline-block;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--primary);
+  background: var(--primary-lightest);
+  border: 1px solid var(--primary-lighter);
+  border-radius: var(--radius-full);
+  transition: all var(--duration-base) var(--ease-out);
+}
+
+.tag:hover {
+  background: var(--primary-lighter);
+  border-color: var(--primary-light);
+  transform: translateY(-1px);
+}
+
+
+/* ========== TRUST BLOCK (альтернативные секції) ========== */
+
+.trust-block {
+  background: linear-gradient(
+    180deg,
+    var(--light-50) 0%,
+    var(--white) 100%
+  );
+  position: relative;
+  overflow: hidden;
+}
+
+.trust-block::before {
+  content: '';
+  position: absolute;
+  bottom: -10%;
+  right: -5%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(
+    circle,
+    rgba(44, 173, 229, 0.1) 0%,
+    transparent 70%
+  );
+  border-radius: var(--radius-full);
+  animation: float 12s var(--ease-in-out) infinite;
+  pointer-events: none;
+}
+
+
+/* ========== NEWS/ARCHIVE SECTION ========== */
+
+.news {
+  background: var(--white);
+  position: relative;
+}
+
+.news h2 {
+  font-size: clamp(2rem, 4vw, 3rem);
+  text-align: center;
+  margin-bottom: var(--space-4);
+  color: var(--dark-900);
+}
+
+.news > p {
+  text-align: center;
+  color: var(--dark-600);
+  margin-bottom: var(--space-8);
+}
+
+
+/* ========== FILTERS ========== */
+
+.filters {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: var(--space-8);
+  padding: var(--space-4);
+  background: var(--light-50);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-color-light);
+}
+
+.filter-btn {
+  padding: var(--space-3) var(--space-5);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--dark-700);
+  background: var(--white);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all var(--duration-base) var(--ease-out);
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+}
+
+.filter-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: var(--primary-lightest);
+  border-radius: var(--radius-full);
+  transform: translate(-50%, -50%);
+  transition: width var(--duration-medium) var(--ease-out),
+              height var(--duration-medium) var(--ease-out);
+  z-index: 0;
+}
+
+.filter-btn:hover::before {
+  width: 100%;
+  height: 100%;
+}
+
+.filter-btn:hover {
+  border-color: var(--primary-light);
+  color: var(--primary);
+  transform: translateY(-2px);
+}
+
+.filter-btn.is-active {
+  background: var(--gradient);
+  color: var(--white);
+  border-color: transparent;
+  box-shadow: var(--shadow-primary);
+  transform: translateY(-2px);
+}
+
+.filter-btn.is-active::before {
+  display: none;
+}
+
+.filter-btn > * {
+  position: relative;
+  z-index: 1;
+}
+
+
+/* ========== NEWS ITEMS ========== */
+
+.news-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 350px), 1fr));
+  gap: var(--space-6);
+  margin-bottom: var(--space-10);
+}
+
+@media (min-width: 768px) {
+  .news-items {
+    gap: var(--space-8);
+  }
+}
+
+.news-item {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  border: 1px solid var(--border-color-light);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--duration-medium) var(--ease-smooth);
+  position: relative;
+  overflow: hidden;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Анимація появи */
+.news-item {
+  animation: fadeInUp var(--duration-medium) var(--ease-smooth);
+}
+
+/* Ліва акцентна лінія */
+.news-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--gradient);
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition: transform var(--duration-medium) var(--ease-smooth);
+}
+
+.news-item:hover {
+  border-color: var(--primary-lighter);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-4px);
+}
+
+.news-item:hover::before {
+  transform: scaleY(1);
+  transform-origin: top;
+}
+
+.news-item h3 {
+  font-size: clamp(1.125rem, 2vw, 1.375rem);
+  font-weight: var(--font-semibold);
+  color: var(--dark-900);
+  margin-bottom: var(--space-3);
+  line-height: var(--leading-snug);
+  transition: color var(--duration-base) var(--ease-out);
+}
+
+.news-item:hover h3 {
+  color: var(--primary);
+}
+
+.news-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--dark-500);
+  margin-bottom: var(--space-4);
+  font-weight: var(--font-medium);
+}
+
+.news-meta time {
+  color: var(--primary);
+  font-weight: var(--font-semibold);
+}
+
+.news-item p {
+  color: var(--dark-600);
+  line-height: var(--leading-relaxed);
+  margin-bottom: var(--space-4);
+}
+
+.news-item a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--primary);
+  transition: all var(--duration-base) var(--ease-out);
+  position: relative;
+}
+
+.news-item a::after {
+  content: '→';
+  font-size: 1.2em;
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+.news-item a:hover {
+  color: var(--primary-hover);
+  gap: var(--space-3);
+}
+
+.news-item a:hover::after {
+  transform: translateX(4px);
+}
+
+/* Приховані елементи при фільтрації */
+.news-item[style*="display: none"] {
+  display: none !important;
+}
+
+
+/* ========== VIEW MORE CONTAINER ========== */
+
+.view-more-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin-top: var(--space-8);
+}
+
+.view-more-container .btn {
+  min-width: 160px;
+  padding: var(--space-4) var(--space-6);
+  background: transparent;
+  color: var(--primary);
+  border: 2px solid var(--primary);
+  font-weight: var(--font-semibold);
+  transition: all var(--duration-medium) var(--ease-smooth);
+}
+
+.view-more-container .btn:hover {
+  background: var(--primary);
+  color: var(--white);
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-primary);
+}
+
+
+/* ========== RESPONSIVE DESIGN ========== */
+
+@media (max-width: 640px) {
+  .hero {
+    min-height: auto;
+    padding-top: calc(var(--navbar-height) + var(--space-6));
+    padding-bottom: var(--space-12);
+  }
+  
+  .hero::after {
+    width: 300px;
+    height: 300px;
+    right: -20%;
+  }
+  
+  .hero-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .hero-actions .btn {
+    width: 100%;
+  }
+  
+  .section-title {
+    font-size: 2rem;
+    margin-bottom: var(--space-8);
+  }
+  
+  .activities-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-5);
+  }
+  
+  .activity-card {
+    padding: var(--space-5);
+  }
+  
+  .filters {
+    gap: var(--space-2);
+    padding: var(--space-3);
+  }
+  
+  .filter-btn {
+    padding: var(--space-2) var(--space-4);
+    font-size: var(--text-xs);
+  }
+  
+  .news-items {
+    grid-template-columns: 1fr;
+    gap: var(--space-5);
+  }
+  
+  .view-more-container {
+    flex-direction: column;
+  }
+  
+  .view-more-container .btn {
+    width: 100%;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1023px) {
+  .activities-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .news-items {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+
+/* ========== ACCESSIBILITY ========== */
+
+/* Покращена видимість фокуса */
+.filter-btn:focus-visible,
+.news-item a:focus-visible,
+.activity-card:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 3px;
+}
+
+/* Перехід для зменшення руху */
+@media (prefers-reduced-motion: reduce) {
+  .hero::after,
+  .activities::before,
+  .trust-block::before {
+    animation: none;
+  }
+  
+  .activity-card,
+  .news-item,
+  .filter-btn,
+  .btn {
+    transition: none;
+  }
+  
+  .hero-content,
+  .hero-header,
+  .hero-slogan,
+  .hero-content > p,
+  .hero-actions {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+/* Темна тема (якщо підключена) */
+@media (prefers-color-scheme: dark) {
+  .hero::before {
+    background: linear-gradient(
+      135deg,
+      rgba(44, 173, 229, 0.1) 0%,
+      rgba(77, 122, 188, 0.1) 50%,
+      rgba(15, 23, 42, 0.95) 100%
+    );
+  }
+  
+  .activity-card,
+  .news-item {
+    background: var(--dark-800);
+    border-color: var(--dark-700);
+  }
+  
+  .filter-btn {
+    background: var(--dark-800);
+    border-color: var(--dark-700);
+    color: var(--light-300);
+  }
+}
+
+
+/* ========== ADVANCED INTERACTIONS ========== */
+
+/* Parallax ефект для декоративних елементів */
+@media (min-width: 1024px) {
+  .hero::after {
+    transition: transform var(--duration-slow) var(--ease-out);
+  }
+  
+  .hero:hover::after {
+    transform: translate(20px, -20px);
+  }
+}
+
+/* Stagger animation для cards */
+.activities-grid .activity-card {
+  opacity: 0;
+  animation: fadeInUp var(--duration-medium) var(--ease-smooth) forwards;
+}
+
+.activities-grid .activity-card:nth-child(1) { animation-delay: 0.1s; }
+.activities-grid .activity-card:nth-child(2) { animation-delay: 0.2s; }
+.activities-grid .activity-card:nth-child(3) { animation-delay: 0.3s; }
+.activities-grid .activity-card:nth-child(4) { animation-delay: 0.4s; }
+.activities-grid .activity-card:nth-child(5) { animation-delay: 0.5s; }
+.activities-grid .activity-card:nth-child(6) { animation-delay: 0.6s; }
+
+/* Для наступних елементів - без затримки */
+.activities-grid .activity-card:nth-child(n+7) {
+  animation-delay: 0s;
+  opacity: 1;
+}
+
+
+/* ========== PRINT STYLES ========== */
+
+@media print {
+  .hero::before,
+  .hero::after,
+  .activities::before,
+  .trust-block::before {
+    display: none;
+  }
+  
+  .filters,
+  .hero-actions,
+  .view-more-container {
+    display: none;
+  }
+  
+  .activity-card,
+  .news-item {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #ccc;
+  }
+  
+  .news-items {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* ========== LOADING STATES ========== */
+
+/* Skeleton loader для cards */
+.activity-card.skeleton,
+.news-item.skeleton {
+  pointer-events: none;
+  cursor: default;
+}
+
+.activity-card.skeleton h3,
+.activity-card.skeleton p,
+.news-item.skeleton h3,
+.news-item.skeleton p {
+  background: linear-gradient(
+    90deg,
+    var(--light-200) 25%,
+    var(--light-100) 50%,
+    var(--light-200) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  color: transparent;
+  border-radius: var(--radius-sm);
+}
+
+
+/* ========== EMPTY STATES ========== */
+
+.news-items:empty::after {
+  content: 'Подій не знайдено. Спробуйте інший фільтр.';
+  display: block;
+  text-align: center;
+  padding: var(--space-16);
+  color: var(--dark-500);
+  font-size: var(--text-lg);
+  grid-column: 1 / -1;
+}
+
+
+/* ========== SCROLL ANIMATIONS ========== */
+
+/* Плавне появлення при скролі (якщо підключено Intersection Observer) */
+.fade-in-on-scroll {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all var(--duration-slow) var(--ease-smooth);
+}
+
+.fade-in-on-scroll.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+
+/* ========== MICRO-INTERACTIONS ========== */
+
+/* Ripple effect для кнопок (опціонально) */
+@keyframes ripple {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+.btn-ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-ripple::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: var(--radius-full);
+  transform: translate(-50%, -50%) scale(0);
+  pointer-events: none;
+}
+
+.btn-ripple:active::after {
+  animation: ripple 0.6s ease-out;
+}
+
+
+/* ========== FINAL TOUCHES ========== */
+
+/* Smooth transitions для всієї сторінки */
+* {
+  transition-timing-function: var(--ease-smooth);
+}
+
+/* Оптимізація анімацій */
+.activity-card,
+.news-item,
+.filter-btn,
+.btn {
+  will-change: transform;
+}
+
+.activity-card:hover,
+.news-item:hover {
+  will-change: transform, box-shadow;
+}

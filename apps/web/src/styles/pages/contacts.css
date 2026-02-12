@@ -1,0 +1,795 @@
+/* ============================================
+   CONTACTS PAGE — Современный динамичный дизайн
+   ============================================ */
+
+/* ========== ОБЩАЯ СТРУКТУРА СТРАНИЦЫ ========== */
+
+.contacts-page {
+  min-height: 100vh;
+  background: linear-gradient(
+    180deg,
+    var(--light-50) 0%,
+    var(--white) 50%,
+    var(--light-100) 100%
+  );
+  position: relative;
+  overflow: hidden;
+}
+
+/* Декоративные элементы фона */
+.contacts-page::before {
+  content: '';
+  position: absolute;
+  top: -10%;
+  right: -5%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(
+    circle,
+    rgba(44, 173, 229, 0.08) 0%,
+    transparent 70%
+  );
+  border-radius: var(--radius-full);
+  animation: float 8s var(--ease-in-out) infinite;
+  pointer-events: none;
+}
+
+.contacts-page::after {
+  content: '';
+  position: absolute;
+  bottom: -10%;
+  left: -5%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(
+    circle,
+    rgba(77, 122, 188, 0.06) 0%,
+    transparent 70%
+  );
+  border-radius: var(--radius-full);
+  animation: float 10s var(--ease-in-out) infinite reverse;
+  pointer-events: none;
+}
+
+
+/* ========== СЕКЦИЯ КОНТАКТНОЙ ИНФОРМАЦИИ ========== */
+
+.contact-info {
+  padding-top: calc(var(--navbar-height) + var(--space-16));
+  padding-bottom: var(--space-20);
+  position: relative;
+  z-index: 1;
+}
+
+.section-title {
+  font-size: clamp(var(--text-4xl), 5vw, var(--text-6xl));
+  font-weight: var(--font-extrabold);
+  text-align: center;
+  margin-bottom: var(--space-16);
+  color: var(--dark-900);
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.section-title::after {
+  content: '';
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 4px;
+  background: var(--gradient);
+  border-radius: var(--radius-full);
+  animation: scaleInOut 2s var(--ease-in-out) infinite;
+}
+
+@keyframes scaleInOut {
+  0%, 100% {
+    transform: translateX(-50%) scaleX(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translateX(-50%) scaleX(1.2);
+    opacity: 0.8;
+  }
+}
+
+
+/* ========== СЕТКА КАРТОЧЕК КОНТАКТОВ ========== */
+
+.contact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-8);
+  margin-top: var(--space-12);
+}
+
+@media (min-width: 768px) {
+  .contact-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .contact-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+
+/* ========== КАРТОЧКИ КОНТАКТОВ ========== */
+
+.contact-card {
+  background: var(--white);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-8);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--duration-medium) var(--ease-smooth);
+  border: 1px solid var(--light-200);
+  animation: fadeInUp var(--duration-slow) var(--ease-smooth) backwards;
+
+  /* чтобы плитки выглядели ровнее в сетке */
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Задержки анимации для карточек */
+.contact-card:nth-child(1) { animation-delay: 0.1s; }
+.contact-card:nth-child(2) { animation-delay: 0.2s; }
+.contact-card:nth-child(3) { animation-delay: 0.3s; }
+.contact-card:nth-child(4) { animation-delay: 0.4s; }
+
+/* Градиентная линия сверху */
+.contact-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--gradient);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--duration-medium) var(--ease-smooth);
+}
+
+/* Эффект сияния при наведении */
+.contact-card::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    circle,
+    rgba(44, 173, 229, 0.1) 0%,
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity var(--duration-medium) var(--ease-smooth);
+  pointer-events: none;
+}
+
+.contact-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--primary-lighter, var(--primary));
+}
+
+.contact-card:hover::before {
+  transform: scaleX(1);
+}
+
+.contact-card:hover::after {
+  opacity: 1;
+}
+
+
+/* ========== ИКОНКИ КОНТАКТОВ ========== */
+
+.contact-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto var(--space-6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* важно: фон остаётся мягким даже при hover */
+  background: var(--gradient-soft, rgba(44, 173, 229, 0.10));
+  border-radius: var(--radius-2xl);
+  border: 1px solid var(--light-200);
+
+  position: relative;
+  isolation: isolate; /* стабильные слои, без “синей заливки” */
+  transition: transform var(--duration-medium) var(--ease-smooth),
+              box-shadow var(--duration-medium) var(--ease-smooth);
+}
+
+/* Градиентная рамка (не заливка) */
+.contact-icon::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 2px;
+  border-radius: inherit;
+  background: var(--gradient);
+  opacity: 0;
+  transform: scale(0.98);
+  transition: opacity var(--duration-medium) var(--ease-smooth),
+              transform var(--duration-medium) var(--ease-smooth);
+  pointer-events: none;
+  z-index: 0;
+
+  /* вырезаем центр, чтобы осталась только “рамка” */
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+.contact-card:hover .contact-icon {
+  transform: scale(1.08) rotate(4deg);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.08);
+}
+
+.contact-card:hover .contact-icon::before {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.contact-icon i {
+  font-size: var(--text-3xl);
+  transition: transform var(--duration-medium) var(--ease-smooth);
+  position: relative;
+  z-index: 1;
+
+  /* fallback: чтобы не “белело” от чужих стилей */
+  color: var(--primary);
+}
+
+/* Градиентный текст для иконки (если поддерживается) */
+@supports (-webkit-background-clip: text) {
+  .contact-icon i {
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+}
+
+.contact-card:hover .contact-icon i {
+  transform: scale(1.08);
+}
+
+
+/* ========== ТЕКСТ КАРТОЧЕК ========== */
+
+.contact-card h3 {
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  color: var(--dark-900);
+  margin-bottom: var(--space-4);
+  transition: color var(--duration-base) var(--ease-out);
+}
+
+.contact-card:hover h3 {
+  color: var(--primary);
+}
+
+.contact-card p {
+  font-size: var(--text-base);
+  color: var(--dark-600);
+  line-height: var(--leading-relaxed);
+  margin: 0;
+
+  /* чтобы длинные email/телефоны аккуратно переносились в плитке */
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.contact-card a {
+  color: var(--primary);
+  font-weight: var(--font-medium);
+  text-decoration: none;
+  position: relative;
+  display: inline-block;
+  transition: all var(--duration-base) var(--ease-out);
+}
+
+.contact-card a::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--gradient);
+  transition: width var(--duration-medium) var(--ease-smooth);
+}
+
+.contact-card a:hover {
+  color: var(--primary-hover, var(--primary));
+}
+
+.contact-card a:hover::after {
+  width: 100%;
+}
+
+.contact-card a:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+
+/* ========== СЕКЦИЯ ФОРМЫ ========== */
+
+.contact-form {
+  padding: var(--space-20) 0;
+  background: var(--white);
+  position: relative;
+  z-index: 1;
+}
+
+.form-wrapper {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: var(--space-12);
+  background: var(--light-50);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  overflow: hidden;
+  animation: fadeInUp var(--duration-slow) var(--ease-smooth) 0.5s backwards;
+}
+
+/* Декоративный элемент */
+.form-wrapper::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: var(--gradient);
+}
+
+.form-wrapper h2 {
+  font-size: clamp(var(--text-3xl), 4vw, var(--text-4xl));
+  font-weight: var(--font-bold);
+  text-align: center;
+  color: var(--dark-900);
+  margin-bottom: var(--space-10);
+}
+
+
+/* ========== ГРУППЫ ФОРМЫ ========== */
+
+.form-group {
+  position: relative;
+  margin-bottom: var(--space-8);
+}
+
+/* Floating label эффект */
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: var(--space-5) var(--space-4);
+  font-size: var(--text-base);
+  font-family: var(--font-primary);
+  color: var(--dark-900);
+  background: var(--white);
+  border: 2px solid var(--light-300);
+  border-radius: var(--radius-lg);
+  outline: none;
+  transition: all var(--duration-base) var(--ease-out);
+  appearance: none;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-lightest, rgba(44, 173, 229, 0.20));
+  transform: translateY(-2px);
+}
+
+.form-group label {
+  position: absolute;
+  left: var(--space-4);
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: var(--text-base);
+  color: var(--dark-500);
+  background: var(--white);
+  padding: 0 var(--space-2);
+  transition: all var(--duration-base) var(--ease-out);
+
+  /* лучше по UX: можно нажать на label */
+  pointer-events: auto;
+  cursor: text;
+}
+
+.form-group textarea + label {
+  top: var(--space-5);
+  transform: translateY(0);
+}
+
+/* Когда поле заполнено или в фокусе */
+.form-group input:focus + label,
+.form-group input:not(:placeholder-shown) + label,
+.form-group textarea:focus + label,
+.form-group textarea:not(:placeholder-shown) + label {
+  top: -2px;
+  transform: translateY(-50%) scale(0.85);
+  color: var(--primary);
+  font-weight: var(--font-medium);
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  opacity: 0;
+  transition: opacity var(--duration-base) var(--ease-out);
+}
+
+.form-group input:focus::placeholder,
+.form-group textarea:focus::placeholder {
+  opacity: 0.5;
+}
+
+/* Textarea особенности */
+.form-group textarea {
+  min-height: 150px;
+  resize: vertical;
+  padding-top: var(--space-5);
+}
+
+
+/* ========== КНОПКА ОТПРАВКИ ========== */
+
+.contact-form .btn {
+  width: 100%;
+  padding: var(--space-5) var(--space-6);
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  background: var(--gradient);
+  color: var(--white);
+  border: none;
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-primary);
+  transition: all var(--duration-medium) var(--ease-smooth);
+}
+
+.contact-form .btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transition: left var(--duration-slow) var(--ease-out);
+}
+
+.contact-form .btn:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+}
+
+.contact-form .btn:hover::before {
+  left: 100%;
+}
+
+.contact-form .btn:active {
+  transform: translateY(-1px);
+}
+
+.contact-form .btn i {
+  font-size: var(--text-xl);
+  transition: transform var(--duration-medium) var(--ease-smooth);
+}
+
+.contact-form .btn:hover i {
+  transform: translateX(5px);
+}
+
+
+/* ========== СЕКЦИЯ КАРТЫ ========== */
+
+.map {
+  padding: var(--space-20) 0;
+  background: var(--light-50);
+  position: relative;
+  z-index: 1;
+}
+
+.map h2 {
+  font-size: clamp(var(--text-3xl), 4vw, var(--text-5xl));
+  font-weight: var(--font-bold);
+  text-align: center;
+  color: var(--dark-900);
+  margin-bottom: var(--space-12);
+}
+
+.map iframe {
+  width: 100%;
+  height: 450px;
+  border: none;
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-xl);
+  transition: all var(--duration-medium) var(--ease-smooth);
+  animation: fadeInUp var(--duration-slow) var(--ease-smooth) 0.7s backwards;
+}
+
+.map iframe:hover {
+  box-shadow: var(--shadow-2xl);
+  transform: translateY(-4px);
+}
+
+
+/* ========== АДАПТИВНОСТЬ ========== */
+
+@media (max-width: 768px) {
+  .contact-info {
+    padding-top: calc(var(--navbar-height) + var(--space-12));
+    padding-bottom: var(--space-16);
+  }
+
+  .section-title {
+    font-size: var(--text-3xl);
+    margin-bottom: var(--space-12);
+  }
+
+  /* ✅ мобильная плитка 2×2 вместо списка */
+  .contact-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-6);
+  }
+
+  .contact-card {
+    padding: var(--space-6);
+  }
+
+  .contact-icon {
+    width: 70px;
+    height: 70px;
+    margin-bottom: var(--space-5);
+  }
+
+  .contact-icon i {
+    font-size: var(--text-2xl);
+  }
+
+  .contact-card h3 {
+    font-size: var(--text-lg);
+  }
+
+  .contact-card p {
+    font-size: var(--text-sm);
+  }
+
+  .contact-form,
+  .map {
+    padding: var(--space-16) 0;
+  }
+
+  .form-wrapper {
+    padding: var(--space-8);
+  }
+
+  .form-wrapper h2,
+  .map h2 {
+    font-size: var(--text-2xl);
+    margin-bottom: var(--space-8);
+  }
+
+  .form-group {
+    margin-bottom: var(--space-6);
+  }
+
+  .contact-form .btn {
+    padding: var(--space-4) var(--space-5);
+    font-size: var(--text-base);
+  }
+
+  .map iframe {
+    height: 350px;
+    border-radius: var(--radius-lg);
+  }
+}
+
+@media (max-width: 480px) {
+  .section-title {
+    font-size: var(--text-2xl);
+  }
+
+  /* оставляем плитку и на маленьких телефонах */
+  .contact-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-5);
+  }
+
+  .contact-card {
+    padding: var(--space-5);
+  }
+
+  .contact-icon {
+    width: 60px;
+    height: 60px;
+  }
+
+  .form-wrapper {
+    padding: var(--space-6);
+  }
+
+  .map iframe {
+    height: 300px;
+  }
+}
+
+/* опционально: если совсем узкий экран — возвращаем 1 колонку, чтобы не было “сдавлено” */
+@media (max-width: 360px) {
+  .contact-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* ========== ДОПОЛНИТЕЛЬНЫЕ АНИМАЦИИ ========== */
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  33% {
+    transform: translateY(-20px) rotate(2deg);
+  }
+  66% {
+    transform: translateY(-10px) rotate(-2deg);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* ========== СОСТОЯНИЯ ВАЛИДАЦИИ ========== */
+
+.form-group input:invalid:not(:placeholder-shown),
+.form-group textarea:invalid:not(:placeholder-shown) {
+  border-color: var(--error);
+}
+
+.form-group input:invalid:not(:placeholder-shown) + label,
+.form-group textarea:invalid:not(:placeholder-shown) + label {
+  color: var(--error);
+}
+
+.form-group input:valid:not(:placeholder-shown),
+.form-group textarea:valid:not(:placeholder-shown) {
+  border-color: var(--success);
+}
+
+.form-group input:valid:not(:placeholder-shown) + label,
+.form-group textarea:valid:not(:placeholder-shown) + label {
+  color: var(--success);
+}
+
+
+/* ========== ТЕМНАЯ ТЕМА (опционально) ========== */
+
+@media (prefers-color-scheme: dark) {
+  .contacts-page {
+    background: linear-gradient(
+      180deg,
+      var(--dark-900) 0%,
+      var(--dark-800) 50%,
+      var(--dark-900) 100%
+    );
+  }
+
+  .contact-card,
+  .form-wrapper {
+    background: var(--dark-800);
+    border-color: var(--dark-700);
+  }
+
+  .section-title,
+  .contact-card h3,
+  .form-wrapper h2,
+  .map h2 {
+    color: var(--light-50);
+  }
+
+  .contact-card p {
+    color: var(--light-300);
+  }
+
+  .contact-icon {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: var(--dark-700);
+  }
+
+  .form-group input,
+  .form-group textarea {
+    background: var(--dark-700);
+    border-color: var(--dark-600);
+    color: var(--light-50);
+  }
+
+  .form-group label {
+    background: var(--dark-700);
+    color: var(--light-400);
+  }
+
+  .contact-form {
+    background: var(--dark-800);
+  }
+
+  .map {
+    background: var(--dark-900);
+  }
+}
+
+
+/* ========== ACCESSIBILITY ========== */
+
+@media (prefers-reduced-motion: reduce) {
+  .contact-card,
+  .form-wrapper,
+  .map iframe,
+  .contact-icon,
+  .btn,
+  .section-title::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .contact-card:hover,
+  .contact-form .btn:hover,
+  .map iframe:hover {
+    transform: none !important;
+  }
+}
+
+/* Focus видимость для клавиатурной навигации */
+.contact-card:focus-within {
+  outline: 3px solid var(--primary);
+  outline-offset: 4px;
+}
+
+.form-group input:focus-visible,
+.form-group textarea:focus-visible,
+.contact-form .btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px var(--primary-lightest, rgba(44, 173, 229, 0.20));
+}

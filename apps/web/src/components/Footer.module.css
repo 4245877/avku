@@ -1,0 +1,352 @@
+/* ============================================
+   FOOTER — Современный, динамичный футер
+   ============================================ */
+
+.footer {
+  position: relative;
+  background: var(--dark-900);
+  color: var(--light-100);
+  padding: var(--space-12) 0 var(--space-8);
+  overflow: hidden;
+}
+
+/* Декоративный градиентный топ-бордер */
+.footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--gradient);
+  z-index: 1;
+}
+
+/* Декоративный фоновый паттерн */
+.footer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image:
+    radial-gradient(circle at 20% 50%, rgba(44, 173, 229, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(77, 122, 188, 0.05) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.container {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+/* ========== СОЦИАЛЬНЫЕ ССЫЛКИ ========== */
+
+.socialLinks {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+/* Цвет задаём переменной на каждой кнопке через nth-child */
+.socialLink {
+  /* default (если вдруг порядок изменится) */
+  --social-rgb: 44 173 229;
+
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg);
+
+  backdrop-filter: var(--backdrop-blur-base);
+  -webkit-backdrop-filter: var(--backdrop-blur-base);
+
+  transition: all var(--duration-medium) var(--ease-smooth);
+  overflow: hidden;
+  isolation: isolate; /* чтобы псевдо-элементы были строго внутри */
+}
+
+/* Порядок соответствует массиву social в Footer.astro */
+.socialLinks .socialLink:nth-child(1) { --social-rgb: 34 158 217; } /* Telegram */
+.socialLinks .socialLink:nth-child(2) { --social-rgb: 228 64 95; }  /* Instagram (акцент) */
+.socialLinks .socialLink:nth-child(3) { --social-rgb: 24 119 242; } /* Facebook */
+.socialLinks .socialLink:nth-child(4) { --social-rgb: 255 0 0; }    /* YouTube */
+.socialLinks .socialLink:nth-child(5) { --social-rgb: 37 211 102; } /* WhatsApp */
+
+/* Оверлей при ховере — теперь цветом самой иконки */
+.socialLink::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      circle at 30% 30%,
+      rgb(var(--social-rgb) / 0.38) 0%,
+      rgb(var(--social-rgb) / 0.18) 55%,
+      rgb(var(--social-rgb) / 0.06) 100%
+    );
+  opacity: 0;
+  transition: opacity var(--duration-medium) var(--ease-smooth);
+  z-index: 0;
+}
+
+.socialLink:hover::before {
+  opacity: 1;
+}
+
+/* Пульсирующее кольцо при ховере — тоже цветом иконки */
+.socialLink::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  border: 2px solid rgb(var(--social-rgb) / 0.85);
+  border-radius: var(--radius-lg);
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 0;
+  transition: all var(--duration-medium) var(--ease-smooth);
+  z-index: 1;
+}
+
+.socialLink:hover::after {
+  transform: translate(-50%, -50%) scale(1.3);
+  opacity: 0;
+  animation: socialPulse var(--duration-slow) var(--ease-out);
+}
+
+.socialLink:hover {
+  transform: translateY(-4px) scale(1.05);
+  background: rgb(var(--social-rgb) / 0.10);
+  border-color: rgb(var(--social-rgb) / 0.45);
+  box-shadow:
+    0 10px 25px -5px rgb(var(--social-rgb) / 0.35),
+    0 0 0 1px rgb(var(--social-rgb) / 0.22);
+}
+
+.socialLink:active {
+  transform: translateY(-2px) scale(1.02);
+}
+
+.socialIcon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  filter: none;
+  transition: all var(--duration-medium) var(--ease-smooth);
+  position: relative;
+  z-index: 2; /* выше оверлея и кольца */
+}
+
+.socialLink:hover .socialIcon {
+  filter: none;
+  transform: scale(1.1) rotate(-5deg);
+}
+
+/* ========== КОПИРАЙТ ========== */
+
+.copy {
+  font-size: var(--text-sm);
+  font-weight: var(--font-regular);
+  color: var(--light-400);
+  text-align: center;
+  margin: 0;
+  opacity: 0.9;
+  transition: all var(--duration-base) var(--ease-out);
+  letter-spacing: var(--tracking-wide);
+}
+
+.copy:hover {
+  color: var(--light-200);
+  opacity: 1;
+}
+
+/* ========== АНИМАЦИИ ========== */
+
+@keyframes socialPulse {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* Анимация появления при загрузке */
+.socialLinks {
+  animation: fadeInUp var(--duration-medium) var(--ease-smooth) backwards;
+}
+
+.copy {
+  animation: fadeInUp var(--duration-medium) var(--ease-smooth) 0.1s backwards;
+}
+
+/* ========== АДАПТИВНОСТЬ ========== */
+
+/* Планшеты и больше */
+@media (min-width: 768px) {
+  .footer {
+    padding: var(--space-16) 0 var(--space-10);
+  }
+
+  .container {
+    gap: var(--space-10);
+  }
+
+  .socialLinks {
+    gap: var(--space-6);
+  }
+
+  .socialLink {
+    width: 56px;
+    height: 56px;
+  }
+
+  .socialIcon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .copy {
+    font-size: var(--text-base);
+  }
+}
+
+/* Десктопы */
+@media (min-width: 1024px) {
+  .footer {
+    padding: var(--space-20) 0 var(--space-12);
+  }
+
+  .socialLinks {
+    gap: var(--space-8);
+  }
+
+  .socialLink {
+    width: 64px;
+    height: 64px;
+  }
+
+  .socialIcon {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+/* Большие экраны */
+@media (min-width: 1280px) {
+  .footer {
+    padding: var(--space-24) 0 var(--space-16);
+  }
+}
+
+/* ========== АЛЬТЕРНАТИВНЫЕ ВАРИАНТЫ ========== */
+
+/* Вариант с расширенным футером (если понадобится) */
+.footer.expanded {
+  padding-top: var(--space-20);
+}
+
+.footer.expanded .container {
+  gap: var(--space-12);
+}
+
+/* Компактный вариант */
+.footer.compact {
+  padding: var(--space-8) 0 var(--space-6);
+}
+
+.footer.compact .socialLink {
+  width: 40px;
+  height: 40px;
+}
+
+.footer.compact .socialIcon {
+  width: 20px;
+  height: 20px;
+}
+
+/* ========== ACCESSIBILITY ========== */
+
+/* Focus состояние для клавиатурной навигации */
+.socialLink:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px var(--dark-900),
+    0 0 0 6px rgb(var(--social-rgb) / 0.9);
+  transform: translateY(-4px) scale(1.05);
+}
+
+/* Уважение к предпочтениям пользователя по анимации */
+@media (prefers-reduced-motion: reduce) {
+  .footer::before,
+  .socialLink,
+  .socialLink::before,
+  .socialLink::after,
+  .socialIcon,
+  .copy {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .socialLink:hover {
+    transform: none;
+  }
+
+  .socialLink:hover .socialIcon {
+    transform: none;
+  }
+}
+
+/* ========== ПЕЧАТЬ ========== */
+
+@media print {
+  .footer {
+    background: transparent;
+    color: var(--dark-900);
+    padding: var(--space-8) 0;
+  }
+
+  .footer::before,
+  .footer::after {
+    display: none;
+  }
+
+  .socialLinks {
+    display: none;
+  }
+
+  .copy {
+    color: var(--dark-900);
+    border-top: 1px solid var(--dark-900);
+    padding-top: var(--space-4);
+  }
+}
+
+/* ========== ТЕМНАЯ ТЕМА ========== */
+
+[data-theme="dark"] .footer {
+  background: var(--dark-900);
+  border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="light"] .footer {
+  background: var(--dark-900);
+}

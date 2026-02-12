@@ -1,10 +1,14 @@
 {
-  "dependencies": {
-    "@sparticuz/chromium": "^138.0.2",
-    "body-parser": "^2.2.0",
-    "cors": "^2.8.5",
-    "express": "^5.1.0",
-    "node-fetch": "^3.3.2",
-    "puppeteer-core": "^24.17.0"
+  "name": "avku-monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/web",
+    "apps/bot"
+  ],
+  "scripts": {
+    "dev:web": "npm -w apps/web run dev -- --host",
+    "build:web": "npm -w apps/web run build",
+    "preview:web": "npm -w apps/web run preview -- --host",
+    "dev:bot": "npm -w apps/bot run dev"
   }
 }

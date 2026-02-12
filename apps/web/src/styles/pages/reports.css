@@ -1,0 +1,1226 @@
+/* ============================================
+   REPORTS PAGE — Современный, динамичный дизайн
+   Прозорість → довіра → підтримка
+   ============================================ */
+
+/* Компенсация фиксированного header, чтобы hero не "заезжал" под навигацию */
+#reports {
+  /* если в проекте уже есть переменная высоты хедера — она подхватится */
+  --reports-header-offset: var(--header-height, var(--site-header-height, 48px));
+  padding-top: calc(var(--reports-header-offset) + var(--space-6));
+}
+
+/* ========== PAGE HERO ========== */
+
+.page-hero {
+  position: relative;
+  padding: var(--space-20) 0 var(--space-16);
+  text-align: center;
+  background: linear-gradient(
+    180deg,
+    var(--primary-lightest) 0%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  overflow: hidden;
+}
+
+.page-hero::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(
+    circle,
+    rgba(44, 173, 229, 0.08) 0%,
+    transparent 70%
+  );
+  border-radius: var(--radius-full);
+  pointer-events: none;
+  animation: float 8s ease-in-out infinite;
+}
+
+.page-hero::after {
+  content: '';
+  position: absolute;
+  bottom: -30%;
+  left: -15%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(
+    circle,
+    rgba(77, 122, 188, 0.06) 0%,
+    transparent 70%
+  );
+  border-radius: var(--radius-full);
+  pointer-events: none;
+  animation: float 10s ease-in-out infinite reverse;
+}
+
+.page-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+#reports-title {
+  font-size: clamp(var(--text-4xl), 6vw, var(--text-6xl));
+  font-weight: var(--font-extrabold);
+  background: var(--gradient);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: var(--space-6);
+  animation: fadeInDown var(--duration-slow) var(--ease-smooth);
+}
+
+.page-hero > p {
+  font-size: clamp(var(--text-lg), 2vw, var(--text-xl));
+  color: var(--dark-600);
+  max-width: 700px;
+  margin: 0 auto var(--space-12);
+  line-height: var(--leading-relaxed);
+  animation: fadeInUp var(--duration-slow) var(--ease-smooth) 0.1s both;
+}
+
+
+/* ========== TRUST WIDGET (Поточний збір) ========== */
+
+.trust-widget {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: var(--space-8);
+  background: var(--white);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  overflow: hidden;
+  transition: all var(--duration-medium) var(--ease-smooth);
+  animation: scaleIn var(--duration-slow) var(--ease-smooth) 0.2s both;
+}
+
+.trust-widget::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: var(--gradient);
+  transform-origin: left;
+  animation: slideInRight var(--duration-slow) var(--ease-smooth);
+}
+
+.trust-widget:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+}
+
+.trust-widget__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.trust-widget__head strong {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--dark-900);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+}
+
+.trust-widget__head .muted {
+  font-size: var(--text-sm);
+  color: var(--dark-500);
+  font-weight: var(--font-regular);
+}
+
+.trust-widget__title {
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  color: var(--dark-900);
+  margin-bottom: var(--space-6);
+  line-height: var(--leading-snug);
+}
+
+.trust-widget__progress {
+  position: relative;
+  width: 100%;
+  height: 16px;
+  background: var(--light-200);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  margin-bottom: var(--space-5);
+  box-shadow: var(--shadow-inner);
+}
+
+.trust-widget__bar {
+  height: 100%;
+  background: var(--gradient);
+  border-radius: var(--radius-full);
+  transition: width var(--duration-slow) var(--ease-smooth);
+  position: relative;
+  box-shadow: 0 0 20px rgba(44, 173, 229, 0.3);
+}
+
+.trust-widget__bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: shimmer 2s linear infinite;
+}
+
+.trust-widget__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.trust-widget__meta > span {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--dark-900);
+}
+
+
+/* ========== CONTROLS: Фільтри та пошук ========== */
+
+.reports-controls {
+  margin: var(--space-12) 0 var(--space-6);
+  animation: fadeInUp var(--duration-slow) var(--ease-smooth) 0.3s both;
+}
+
+.reports-controls__row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  margin-bottom: var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .reports-controls__row {
+    flex-direction: row;
+    align-items: flex-end;
+    gap: var(--space-8);
+  }
+}
+
+.reports-search {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.reports-search input {
+  width: 100%;
+  padding: var(--space-4) var(--space-5);
+  font-size: var(--text-base);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  transition: all var(--duration-base) var(--ease-out);
+  box-shadow: var(--shadow-sm);
+}
+
+.reports-search input:hover {
+  border-color: var(--primary-light);
+}
+
+.reports-search input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-lightest), var(--shadow-base);
+  transform: translateY(-1px);
+}
+
+.reports-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.filter-btn {
+  padding: var(--space-3) var(--space-5);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--dark-600);
+  background: var(--white);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all var(--duration-base) var(--ease-out);
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+}
+
+.filter-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: var(--primary-lightest);
+  border-radius: var(--radius-full);
+  transform: translate(-50%, -50%);
+  transition: width var(--duration-medium) var(--ease-smooth),
+              height var(--duration-medium) var(--ease-smooth);
+}
+
+.filter-btn:hover {
+  border-color: var(--primary-light);
+  color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.filter-btn:hover::before {
+  width: 200px;
+  height: 200px;
+}
+
+.filter-btn.is-active {
+  background: var(--gradient);
+  color: var(--white);
+  border-color: var(--primary);
+  box-shadow: var(--shadow-primary);
+  transform: translateY(-2px);
+}
+
+.filter-btn.is-active::before {
+  display: none;
+}
+
+#reportsCount {
+  font-size: var(--text-sm);
+  color: var(--dark-500);
+  font-weight: var(--font-medium);
+  padding: 0;
+  margin: var(--space-2) 0 0;
+}
+
+/* ========== LAYOUT FIXES: gap between count and list ========== */
+#reports {
+  /* тонкая настройка расстояния между "Показано..." и списком */
+  --reports-list-gap: 0px; /* поставь var(--space-2) если нужен "воздух" */
+  --reports-list-nudge: 0px; /* если нужно чуть выше: calc(var(--space-2) * -1) */
+}
+
+/* если глобальные стили дают margin у <section> — убираем именно тут */
+#reports .reports-controls + section[aria-label="Список звітів"] {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+/* верхний отступ списка управляем переменными */
+#reports .reports-controls + section[aria-label="Список звітів"] > .reports-list {
+  margin-top: calc(var(--reports-list-gap) + var(--reports-list-nudge)) !important;
+}
+
+
+/* ========== REPORTS LIST ========== */
+
+.reports-list {
+  list-style: none;
+  display: grid;
+  gap: var(--space-8);
+  margin: var(--space-4) 0 var(--space-12);
+  padding: 0;
+}
+
+.report-card {
+  opacity: 0;
+  animation: fadeInUp var(--duration-slow) var(--ease-smooth) forwards;
+}
+
+.report-card:nth-child(1) { animation-delay: 0.1s; }
+.report-card:nth-child(2) { animation-delay: 0.15s; }
+.report-card:nth-child(3) { animation-delay: 0.2s; }
+.report-card:nth-child(4) { animation-delay: 0.25s; }
+.report-card:nth-child(5) { animation-delay: 0.3s; }
+.report-card:nth-child(n+6) { animation-delay: 0.35s; }
+
+.report-card[hidden] {
+  display: none;
+}
+
+.report-card > article {
+  background: var(--white);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-8);
+  box-shadow: var(--shadow-base);
+  transition: all var(--duration-medium) var(--ease-smooth);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid transparent;
+}
+
+.report-card > article::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--gradient);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--duration-medium) var(--ease-smooth);
+}
+
+.report-card > article:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--primary-lighter);
+}
+
+.report-card > article:hover::before {
+  transform: scaleX(1);
+}
+
+
+/* ========== REPORT CARD HEADER ========== */
+
+.report-card__header {
+  margin-bottom: var(--space-6);
+}
+
+.report-card__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.report-card__meta time {
+  font-size: var(--text-sm);
+  color: var(--dark-500);
+  font-weight: var(--font-medium);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.report-card__meta time::before {
+  content: '📅';
+  font-size: var(--text-base);
+}
+
+.report-card__meta .badge {
+  font-size: var(--text-xs);
+  padding: var(--space-2) var(--space-4);
+  background: var(--gradient);
+  color: var(--white);
+  font-weight: var(--font-semibold);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--duration-base) var(--ease-out);
+}
+
+.report-card:hover .badge {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-primary);
+}
+
+.report-card__title {
+  font-size: clamp(var(--text-xl), 3vw, var(--text-3xl));
+  font-weight: var(--font-bold);
+  color: var(--dark-900);
+  line-height: var(--leading-tight);
+  margin-bottom: var(--space-4);
+  transition: color var(--duration-base) var(--ease-out);
+}
+
+.report-card:hover .report-card__title {
+  color: var(--primary);
+}
+
+.report-card__summary {
+  font-size: var(--text-base);
+  color: var(--dark-600);
+  line-height: var(--leading-relaxed);
+  margin: 0;
+}
+
+
+/* ========== REPORT MEDIA (INLINE PREVIEW / GALLERY) ========== */
+
+.report-media {
+  margin: var(--space-4) 0;
+}
+
+/* коли галерея показується одразу в картці */
+.report-media--inline {
+  margin-top: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.report-media__grid {
+  display: grid;
+  /* На ПК 1–2 фото більше не розтягуються на всю ширину */
+  grid-template-columns: repeat(auto-fit, minmax(200px, 300px));
+  justify-content: center;
+  align-content: start;
+  gap: var(--space-4);
+  list-style: none;
+  padding: 0;
+  margin: var(--space-3) 0 0;
+}
+
+@media (min-width: 1024px) {
+  .report-media__grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 320px));
+  }
+}
+
+.report-media__link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  cursor: zoom-in;
+  border-radius: var(--radius-lg);
+}
+
+.report-media__link:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.report-media__item figure {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--light-100);
+  box-shadow: var(--shadow-base);
+  transition: all var(--duration-medium) var(--ease-smooth);
+  aspect-ratio: 4/3;
+}
+
+.report-media__item figure:hover {
+  transform: scale(1.03);
+  box-shadow: var(--shadow-lg);
+}
+
+.report-media__item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--duration-slow) var(--ease-smooth);
+}
+
+.report-media__item figure:hover img {
+  transform: scale(1.1);
+}
+
+.report-media__item figcaption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: var(--space-3);
+  background: linear-gradient(
+    to top,
+    rgba(15, 23, 42, 0.9),
+    transparent
+  );
+  color: var(--white);
+  font-size: var(--text-sm);
+  transform: translateY(100%);
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+.report-media__item figure:hover figcaption {
+  transform: translateY(0);
+}
+
+
+/* ========== REPORT CARD ACTIONS ========== */
+
+.report-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--border-color-light);
+}
+
+.report-card__actions .btn {
+  flex: 1;
+  min-width: 140px;
+  justify-content: center;
+}
+
+.report-card__actions .btn-primary {
+  background: var(--secondary);
+  box-shadow: var(--shadow-secondary);
+}
+
+.report-card__actions .btn-primary:hover {
+  background: var(--secondary-hover);
+  transform: translateY(-2px) scale(1.02);
+}
+
+.report-card__actions .btn-outline {
+  background: transparent;
+  color: var(--primary);
+  border: 2px solid var(--primary-light);
+}
+
+.report-card__actions .btn-outline:hover {
+  background: var(--primary-lightest);
+  border-color: var(--primary);
+}
+
+
+/* ========== REPORT CARD DETAILS (accordion) ========== */
+
+.report-card__details {
+  border-top: 2px solid var(--border-color-light);
+  padding-top: var(--space-6);
+  margin-top: var(--space-6);
+}
+
+.report-card__summary-toggle {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--primary);
+  cursor: pointer;
+  padding: var(--space-3) var(--space-4);
+  background: var(--primary-lightest);
+  border-radius: var(--radius-lg);
+  transition: all var(--duration-base) var(--ease-out);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  user-select: none;
+  list-style: none;
+}
+
+.report-card__summary-toggle::-webkit-details-marker {
+  display: none;
+}
+
+.report-card__summary-toggle::before {
+  content: '▶';
+  font-size: var(--text-sm);
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+details[open] .report-card__summary-toggle::before {
+  transform: rotate(90deg);
+}
+
+.report-card__summary-toggle:hover {
+  background: var(--primary-lighter);
+  color: var(--primary-hover);
+  transform: translateX(4px);
+}
+
+details[open] .report-card__summary-toggle {
+  margin-bottom: var(--space-6);
+}
+
+
+/* ========== REPORT DOCS ========== */
+
+.report-docs {
+  margin: var(--space-6) 0;
+  padding: var(--space-5);
+  background: var(--light-50);
+  border-radius: var(--radius-lg);
+  border-left: 4px solid var(--secondary);
+}
+
+.report-docs strong {
+  display: block;
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--dark-900);
+  margin-bottom: var(--space-3);
+}
+
+.report-docs ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.report-docs li {
+  margin-bottom: var(--space-2);
+}
+
+.report-docs a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  color: var(--secondary);
+  font-weight: var(--font-medium);
+  border-radius: var(--radius-base);
+  transition: all var(--duration-base) var(--ease-out);
+}
+
+.report-docs a::before {
+  content: '📄';
+  font-size: var(--text-base);
+}
+
+.report-docs a:hover {
+  background: var(--secondary-lightest);
+  color: var(--secondary-hover);
+  transform: translateX(4px);
+}
+
+
+/* ========== REPORT NEXT STEPS (trust loop) ========== */
+
+.report-next-steps {
+  margin-top: var(--space-8);
+  padding: var(--space-6);
+  background: linear-gradient(
+    135deg,
+    var(--primary-lightest),
+    var(--secondary-lightest)
+  );
+  border-radius: var(--radius-xl);
+  border: 2px solid var(--primary-lighter);
+}
+
+.report-next-steps strong {
+  display: block;
+  font-size: var(--text-lg);
+  font-weight: var(--font-bold);
+  color: var(--dark-900);
+  margin-bottom: var(--space-5);
+  text-align: center;
+}
+
+.report-next-steps__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  justify-content: center;
+}
+
+.report-next-steps__actions .btn {
+  flex: 1;
+  min-width: 160px;
+}
+
+
+/* ========== OFFICIAL DOCS SECTION ========== */
+
+.reports-official {
+  padding: var(--space-16) var(--space-8);
+  background: linear-gradient(
+    180deg,
+    var(--white),
+    var(--secondary-lightest)
+  );
+  border-radius: var(--radius-2xl);
+  text-align: center;
+  margin: var(--space-20) 0;
+  animation: fadeInUp var(--duration-slow) var(--ease-smooth);
+}
+
+.reports-official h2 {
+  font-size: clamp(var(--text-3xl), 4vw, var(--text-5xl));
+  margin-bottom: var(--space-5);
+  background: var(--gradient);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.reports-official p {
+  max-width: 600px;
+  margin: 0 auto var(--space-8);
+  font-size: var(--text-lg);
+  color: var(--dark-600);
+}
+
+
+/* ========== RETURN LOOP SECTION ========== */
+
+.reports-return {
+  padding: var(--space-16) var(--space-8);
+  background: var(--white);
+  border-radius: var(--radius-2xl);
+  text-align: center;
+  box-shadow: var(--shadow-xl);
+  position: relative;
+  overflow: hidden;
+  margin: var(--space-20) 0;
+  animation: fadeInUp var(--duration-slow) var(--ease-smooth) 0.2s both;
+}
+
+.reports-return::before {
+  content: '';
+  position: absolute;
+  top: -100px;
+  right: -100px;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(
+    circle,
+    rgba(44, 173, 229, 0.1) 0%,
+    transparent 70%
+  );
+  border-radius: var(--radius-full);
+  pointer-events: none;
+}
+
+.reports-return::after {
+  content: '';
+  position: absolute;
+  bottom: -100px;
+  left: -100px;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(
+    circle,
+    rgba(77, 122, 188, 0.1) 0%,
+    transparent 70%
+  );
+  border-radius: var(--radius-full);
+  pointer-events: none;
+}
+
+.reports-return > * {
+  position: relative;
+  z-index: 1;
+}
+
+.reports-return h2 {
+  font-size: clamp(var(--text-3xl), 4vw, var(--text-5xl));
+  margin-bottom: var(--space-5);
+  color: var(--dark-900);
+}
+
+.reports-return p {
+  max-width: 700px;
+  margin: 0 auto var(--space-8);
+  font-size: var(--text-lg);
+  color: var(--dark-600);
+  line-height: var(--leading-relaxed);
+}
+
+.reports-return__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  justify-content: center;
+}
+
+.reports-return__actions .btn {
+  min-width: 180px;
+}
+
+
+/* ========== LIGHTBOX (dialog) ========== */
+
+.media-lightbox {
+  border: 0;
+  padding: 0;
+  width: min(980px, 92vw);
+  max-width: 92vw;
+  max-height: 92vh;
+  border-radius: var(--radius-2xl);
+  background: var(--white);
+  box-shadow: var(--shadow-xl);
+  overflow: hidden;
+  /* Центр <dialog> навіть при CSS reset */
+  position: fixed;
+  inset: 0;
+  margin: auto;
+}
+
+.media-lightbox::backdrop {
+  background: rgba(0, 0, 0, 0.65);
+}
+
+.media-lightbox__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border-color-light);
+  background: linear-gradient(
+    180deg,
+    var(--light-50),
+    rgba(255, 255, 255, 0)
+  );
+}
+
+.media-lightbox__title {
+  font-weight: var(--font-semibold);
+  color: var(--dark-900);
+  font-size: var(--text-base);
+  line-height: var(--leading-snug);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.media-lightbox__close {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+  color: var(--dark-700);
+  transition: background var(--duration-base) var(--ease-out),
+              transform var(--duration-base) var(--ease-out);
+}
+
+.media-lightbox__close:hover {
+  background: var(--light-100);
+  transform: scale(1.03);
+}
+
+.media-lightbox__content {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-5);
+}
+
+.media-lightbox__nav {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-size: 34px;
+  line-height: 1;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-xl);
+  color: var(--dark-700);
+  transition: background var(--duration-base) var(--ease-out),
+              transform var(--duration-base) var(--ease-out);
+}
+
+.media-lightbox__nav:hover {
+  background: var(--light-100);
+  transform: scale(1.03);
+}
+
+.media-lightbox__nav:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.media-lightbox__figure {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+}
+
+.media-lightbox__figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 72vh;
+  object-fit: contain;
+  border-radius: var(--radius-xl);
+  background: var(--light-50);
+  box-shadow: var(--shadow-base);
+}
+
+.media-lightbox__caption {
+  margin-top: var(--space-4);
+}
+
+.media-lightbox__counter {
+  margin-top: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--dark-500);
+}
+
+.media-lightbox__nav:focus-visible,
+.media-lightbox__close:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+@media (max-width: 520px) {
+  .media-lightbox__content {
+    gap: var(--space-2);
+    padding: var(--space-4);
+  }
+
+  .media-lightbox__nav {
+    font-size: 28px;
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .media-lightbox__figure img {
+    max-height: 68vh;
+  }
+}
+
+
+/* ========== MUTED TEXT ========== */
+
+.muted {
+  color: var(--dark-500);
+  font-size: var(--text-sm);
+  font-weight: var(--font-regular);
+}
+
+
+/* ========== АДАПТИВНІСТЬ ========== */
+
+/* Мобільні пристрої */
+@media (max-width: 640px) {
+  .page-hero {
+    padding: var(--space-16) 0 var(--space-12);
+  }
+
+  .trust-widget {
+    padding: var(--space-6);
+  }
+
+  .report-card > article {
+    padding: var(--space-6);
+  }
+
+  .report-card__actions {
+    flex-direction: column;
+  }
+
+  .report-card__actions .btn {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .report-media__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .reports-controls__row {
+    gap: var(--space-4);
+  }
+
+  .filter-btn {
+    flex: 1;
+    text-align: center;
+  }
+
+  .reports-return__actions,
+  .report-next-steps__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .reports-return__actions .btn,
+  .report-next-steps__actions .btn {
+    width: 100%;
+    min-width: unset;
+  }
+}
+
+/* Планшети */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .report-media__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .report-card__actions {
+    gap: var(--space-2);
+  }
+
+  .report-card__actions .btn {
+    min-width: 120px;
+    font-size: var(--text-sm);
+    padding: var(--space-3) var(--space-4);
+  }
+}
+
+/* Великі екрани */
+@media (min-width: 1280px) {
+  .reports-list {
+    gap: var(--space-10);
+  }
+
+  .report-card > article {
+    padding: var(--space-10);
+  }
+
+  .trust-widget {
+    padding: var(--space-10);
+  }
+}
+
+
+/* ========== АНІМАЦІЇ ДЛЯ ВЗАЄМОДІЇ ========== */
+
+/* Smooth scroll для якорних посилань */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Parallax ефект для hero */
+@media (prefers-reduced-motion: no-preference) {
+  .page-hero::before,
+  .page-hero::after {
+    will-change: transform;
+  }
+}
+
+/* Плавна поява елементів при скролі (потребує JS) */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all var(--duration-slow) var(--ease-smooth);
+}
+
+.reveal.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+
+/* ========== ACCESSIBILITY ========== */
+
+/* Покращена видимість focus для клавіатурної навігації */
+.filter-btn:focus-visible,
+.report-card__summary-toggle:focus-visible,
+.report-media__link:focus-visible,
+.btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Анімації тільки якщо користувач не має prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .page-hero::before,
+  .page-hero::after {
+    animation: none;
+  }
+
+  .trust-widget__bar::after {
+    animation: none;
+  }
+}
+
+/* Високий контраст для режиму високої контрастності */
+@media (prefers-contrast: high) {
+  .report-card > article {
+    border: 2px solid var(--dark-900);
+  }
+
+  .filter-btn {
+    border-width: 3px;
+  }
+
+  .badge {
+    border: 2px solid currentColor;
+  }
+}
+
+
+/* ========== СТАН ЗАВАНТАЖЕННЯ ========== */
+
+.trust-widget[aria-busy="true"] .trust-widget__title,
+.trust-widget[aria-busy="true"] .trust-widget__bar,
+.trust-widget[aria-busy="true"] .trust-widget__meta > span {
+  background: var(--shimmer);
+  color: transparent;
+  user-select: none;
+  pointer-events: none;
+}
+
+
+/* ========== EMPTY STATE ========== */
+
+.reports-empty {
+  text-align: center;
+  padding: var(--space-20) var(--space-8);
+  color: var(--dark-500);
+}
+
+.reports-empty::before {
+  content: '🔍';
+  display: block;
+  font-size: 4rem;
+  margin-bottom: var(--space-6);
+  opacity: 0.5;
+}
+
+.reports-empty h3 {
+  font-size: var(--text-2xl);
+  margin-bottom: var(--space-4);
+  color: var(--dark-700);
+}
+
+.reports-empty p {
+  font-size: var(--text-lg);
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+
+/* ========== PRINT STYLES ========== */
+
+@media print {
+  .page-hero::before,
+  .page-hero::after,
+  .reports-return::before,
+  .reports-return::after {
+    display: none;
+  }
+
+  .media-lightbox {
+    display: none;
+  }
+
+  .report-card > article {
+    page-break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid var(--dark-900);
+  }
+
+  .filter-btn,
+  .reports-search,
+  .trust-widget,
+  .report-card__actions,
+  .report-next-steps {
+    display: none;
+  }
+
+  details {
+    display: block;
+  }
+
+  .report-card__summary-toggle {
+    display: none;
+  }
+}

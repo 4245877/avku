@@ -1,0 +1,501 @@
+---
+// apps/web/src/pages/reports.astro
+import Base from "../layouts/Base.astro";
+import "../styles/pages/reports.css";
+
+import reportsData from "../data/reports.json";
+
+// Базовий шлях (наприклад, /avku_test/)
+const base = import.meta.env.BASE_URL ?? "/";
+
+// Безпечне склеювання шляхів (працює і для GH Pages з підпапкою)
+const url = (path) => {
+  const p = String(path ?? "");
+  if (/^https?:\/\//i.test(p)) return p;
+
+  const clean = p.replace(/^\//, "");
+  const baseFixed = base.endsWith("/") ? base : base + "/";
+
+  // важно для пробелов/кириллицы в путях (например, gallery/Фото звіт 2024/...)
+  return encodeURI(`${baseFixed}${clean}`);
+};
+
+const lang = "uk";
+const title = "АВКУ — Звіти";
+const description =
+  "Звіти про виконану роботу АВКУ: що зроблено, фото/документи, пов’язані збори та публікації. Прозорість → довіра → підтримка.";
+
+const categories = [
+  { id: "all", labelKey: "reports_filter_all", labelFallback: "Усі" },
+  { id: "zsu", labelKey: "reports_filter_zsu", labelFallback: "ЗСУ" },
+  { id: "repair", labelKey: "reports_filter_repair", labelFallback: "Ремонт/техніка" },
+  { id: "humanitarian", labelKey: "reports_filter_humanitarian", labelFallback: "Гуманітарка" },
+  { id: "medical", labelKey: "reports_filter_medical", labelFallback: "Медицина/реабілітація" },
+  { id: "partners", labelKey: "reports_filter_partners", labelFallback: "Партнери" },
+  { id: "other", labelKey: "reports_filter_other", labelFallback: "Інше" },
+];
+
+// Нормалізація: підтримка масиву, { reports: [...] } або одиночного об'єкта
+const reports =
+  Array.isArray(reportsData) ? reportsData :
+  Array.isArray(reportsData?.reports) ? reportsData.reports :
+  (reportsData && typeof reportsData === "object") ? [reportsData] : [];
+
+// Сортуємо: новіші зверху
+const reportsSorted = [...reports].sort((a, b) => (String(a.dateISO) < String(b.dateISO) ? 1 : -1));
+
+function formatDate(iso) {
+  const s = String(iso ?? "");
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return s;
+  return `${m[3]}.${m[2]}.${m[1]}`;
+}
+
+const categoryLabel = (id) => {
+  const map = {
+    zsu: "ЗСУ",
+    repair: "Ремонт/техніка",
+    humanitarian: "Гуманітарка",
+    medical: "Медицина/реабілітація",
+    partners: "Партнери",
+    other: "Інше",
+  };
+  return map[id] || "Усі";
+};
+---
+
+<Base lang={lang} title={title} description={description}>
+  <main class="container" id="reports">
+    <section class="page-hero" aria-labelledby="reports-title">
+      <h1 id="reports-title" data-translate="reports_title">Звіти</h1>
+      <p data-translate="reports_subtitle">
+        Тут зібрані фото-звіти та підтвердження виконаної роботи: що зроблено, коли, і як це перевірити.
+      </p>
+
+      <div class="trust-widget" id="donationWidget" hidden>
+        <div class="trust-widget__head">
+          <strong data-translate="reports_current_campaign">Поточний збір</strong>
+          <span class="muted" id="donationUpdated" aria-live="polite"></span>
+        </div>
+        <div class="trust-widget__title" id="donationTitle"></div>
+        <div
+          class="trust-widget__progress"
+          role="progressbar"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow="0"
+        >
+          <div class="trust-widget__bar" id="donationBar"></div>
+        </div>
+        <div class="trust-widget__meta">
+          <span id="donationAmounts"></span>
+          <a class="btn btn-primary" href={url("donate")} data-translate="reports_support_now">Підтримати зараз</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="reports-controls" aria-label="Фільтри та пошук">
+      <div class="reports-controls__row">
+        <label class="reports-search">
+          <span class="muted" data-translate="reports_search_label">Пошук по звітах</span>
+          <input
+            id="reportsSearch"
+            type="search"
+            placeholder="Почни вводити ключові слова…"
+            data-translate-placeholder="reports_search_placeholder"
+            autocomplete="off"
+          />
+        </label>
+
+        <div class="reports-filters" role="tablist" aria-label="Фільтр категорій">
+          {categories.map((c) => (
+            <button
+              type="button"
+              class={`filter-btn ${c.id === "all" ? "is-active" : ""}`}
+              data-filter={c.id}
+              role="tab"
+              aria-selected={c.id === "all" ? "true" : "false"}
+              data-translate={c.labelKey}
+            >
+              {c.labelFallback}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <p class="muted" id="reportsCount" aria-live="polite"></p>
+    </section>
+
+    <section aria-label="Список звітів">
+      <ul class="reports-list" id="reportsList">
+        {reportsSorted.map((r) => {
+          const titleFallback = String(r.titleFallback ?? "");
+          const summaryFallback = String(r.summaryFallback ?? "");
+          const catText = categoryLabel(String(r.category ?? "other"));
+          const searchText = `${titleFallback} ${summaryFallback} ${catText}`.toLowerCase();
+
+          const reportId = String(r.id ?? "");
+          const media = Array.isArray(r.media) ? r.media : [];
+
+          return (
+            <li
+              class="report-card"
+              data-category={String(r.category ?? "other")}
+              data-search={searchText}
+              id={`report-${reportId}`}
+            >
+              <article>
+                <header class="report-card__header">
+                  <div class="report-card__meta">
+                    <time datetime={String(r.dateISO ?? "")} class="muted">{formatDate(r.dateISO)}</time>
+                    <span class="badge" aria-label="Категорія">{catText}</span>
+                  </div>
+
+                  <h2 class="report-card__title" data-translate={r.titleKey}>{titleFallback}</h2>
+                  <p class="report-card__summary" data-translate={r.summaryKey}>{summaryFallback}</p>
+                </header>
+
+                {/* ✅ Фото тепер видно одразу в картці */}
+                {media.length ? (
+                  <section class="report-media report-media--inline" aria-label="Фото">
+                    <ul class="report-media__grid">
+                      {media.map((m, idx) => (
+                        <li class="report-media__item">
+                          <a
+                            class="report-media__link"
+                            href={url(m.src)}
+                            data-media-thumb="1"
+                            data-report={reportId}
+                            data-index={String(idx)}
+                            data-src={url(m.src)}
+                            data-alt={String(m.alt ?? "")}
+                            data-caption={String(m.caption ?? "")}
+                            data-title={titleFallback}
+                          >
+                            <figure>
+                              <img
+                                src={url(m.src)}
+                                alt={m.alt || ""}
+                                loading="lazy"
+                              />
+                              {m.caption ? <figcaption class="muted">{m.caption}</figcaption> : null}
+                            </figure>
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                ) : (
+                  <p class="muted" data-translate="reports_no_media">
+                    Фото для цього звіту буде додано, якщо не трудно.
+                  </p>
+                )}
+
+                <div class="report-card__actions">
+                  {r.donation?.href ? (
+                    <a class="btn btn-outline" href={url(r.donation.href)} data-translate={r.donation.labelKey}>
+                      {r.donation.labelFallback}
+                    </a>
+                  ) : null}
+
+                  {r.social?.href ? (
+                    <a class="btn btn-outline" href={url(r.social.href)} target="_blank" rel="noopener">
+                      <span data-translate={r.social.labelKey}>{r.social.labelFallback}</span>
+                    </a>
+                  ) : null}
+
+                  <a class="btn btn-primary" href={url("donate")} data-translate="reports_support_btn">
+                    Підтримати
+                  </a>
+                </div>
+
+                {/* ✅ Деталі лишаємо для документів/посилань */}
+                <details class="report-card__details">
+                  <summary class="report-card__summary-toggle" data-translate="reports_details_toggle">
+                    Деталі: документи та посилання
+                  </summary>
+
+                  {/* DOCS */}
+                  {r.docs?.length ? (
+                    <div class="report-docs" aria-label="Документи">
+                      <strong data-translate="reports_docs_title">Документи/підтвердження</strong>
+                      <ul>
+                        {r.docs.map((d) => (
+                          <li>
+                            <a href={url(d.href)} class="link" data-translate={d.labelKey}>
+                              {d.labelFallback}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : (
+                    <p class="muted" data-translate="reports_no_docs">
+                      Документи для цього кейсу дивись у розділі «Публікації».
+                    </p>
+                  )}
+
+                  <div class="report-next-steps" aria-label="Наступні кроки">
+                    <strong data-translate="reports_next_title">Хочеш бачити результат частіше?</strong>
+                    <div class="report-next-steps__actions">
+                      <a class="btn btn-primary" href={url("donate")} data-translate="reports_next_donate">
+                        Підтримати наступний крок
+                      </a>
+                      <a
+                        class="btn btn-outline"
+                        href="https://www.facebook.com/groups/555103805361838"
+                        target="_blank"
+                        rel="noopener"
+                        data-translate="reports_next_follow"
+                      >
+                        Слідкувати у Facebook
+                      </a>
+                      <a class="btn btn-outline" href={url("contacts")} data-translate="reports_next_contact">
+                        Зв’язатися
+                      </a>
+                    </div>
+                  </div>
+                </details>
+              </article>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+
+    <section class="reports-official" aria-label="Офіційні звіти та документи">
+      <h2 data-translate="reports_official_title">Офіційні документи</h2>
+      <p class="muted" data-translate="reports_official_desc">
+        Якщо тобі потрібні підсумкові звіти та файли (PDF/документи) — вони зібрані в розділі «Публікації».
+      </p>
+      <a class="btn btn-outline" href={url("publications")} data-translate="reports_official_btn">
+        Перейти до «Публікацій»
+      </a>
+    </section>
+
+    {/* LIGHTBOX (нативний <dialog>) */}
+    <dialog class="media-lightbox" id="mediaLightbox" aria-label="Перегляд фото">
+      <div class="media-lightbox__top">
+        <div class="media-lightbox__title" id="lightboxTitle"></div>
+        <button type="button" class="media-lightbox__close" id="lightboxClose" aria-label="Закрити">✕</button>
+      </div>
+
+      <div class="media-lightbox__content">
+        <button type="button" class="media-lightbox__nav media-lightbox__prev" id="lightboxPrev" aria-label="Попереднє фото">‹</button>
+
+        <figure class="media-lightbox__figure">
+          <img id="lightboxImg" alt="" />
+          <figcaption class="muted media-lightbox__caption" id="lightboxCaption"></figcaption>
+          <div class="muted media-lightbox__counter" id="lightboxCounter"></div>
+        </figure>
+
+        <button type="button" class="media-lightbox__nav media-lightbox__next" id="lightboxNext" aria-label="Наступне фото">›</button>
+      </div>
+    </dialog>
+  </main>
+
+  <script is:inline>
+    (function () {
+      // FILTER + SEARCH
+      const list = document.getElementById("reportsList");
+      const items = list ? Array.from(list.querySelectorAll(".report-card")) : [];
+      const search = document.getElementById("reportsSearch");
+      const countEl = document.getElementById("reportsCount");
+      const filterButtons = Array.from(document.querySelectorAll("[data-filter]"));
+
+      const total = items.length;
+      let activeFilter = "all";
+      let activeQuery = "";
+      let t = null;
+
+      function setTabState(activeBtn) {
+        for (const b of filterButtons) {
+          const isActive = b === activeBtn;
+          b.classList.toggle("is-active", isActive);
+          b.setAttribute("aria-selected", isActive ? "true" : "false");
+        }
+      }
+
+      function apply() {
+        const q = (activeQuery || "").trim().toLowerCase();
+        let visible = 0;
+
+        for (const el of items) {
+          const cat = el.getAttribute("data-category") || "";
+          const hay = el.getAttribute("data-search") || "";
+          const okFilter = activeFilter === "all" ? true : cat === activeFilter;
+          const okQuery = !q ? true : hay.includes(q);
+          const show = okFilter && okQuery;
+          el.hidden = !show;
+          if (show) visible++;
+        }
+
+        if (countEl) {
+          countEl.textContent = visible
+            ? `Показано: ${visible} із ${total}`
+            : "Нічого не знайдено.";
+        }
+      }
+
+      for (const btn of filterButtons) {
+        btn.addEventListener("click", () => {
+          activeFilter = btn.getAttribute("data-filter") || "all";
+          setTabState(btn);
+          apply();
+        });
+      }
+
+      if (search) {
+        search.addEventListener("input", (e) => {
+          activeQuery = (e && e.target && e.target.value) ? e.target.value : "";
+          if (t) clearTimeout(t);
+          t = setTimeout(apply, 160);
+        });
+      }
+
+      apply();
+
+      // LIGHTBOX
+      const dialog = document.getElementById("mediaLightbox");
+      const imgEl = document.getElementById("lightboxImg");
+      const capEl = document.getElementById("lightboxCaption");
+      const titleEl = document.getElementById("lightboxTitle");
+      const counterEl = document.getElementById("lightboxCounter");
+      const btnPrev = document.getElementById("lightboxPrev");
+      const btnNext = document.getElementById("lightboxNext");
+      const btnClose = document.getElementById("lightboxClose");
+
+      const thumbs = Array.from(document.querySelectorAll('[data-media-thumb="1"]'));
+
+      // Групуємо фото по reportId
+      const groups = new Map();
+      for (const a of thumbs) {
+        const rid = a.getAttribute("data-report") || "";
+        if (!groups.has(rid)) groups.set(rid, []);
+        groups.get(rid).push(a);
+      }
+
+      let activeGroupId = "";
+      let activeIndex = 0;
+
+      function setText(el, v) {
+        if (!el) return;
+        el.textContent = String(v ?? "");
+      }
+
+      function renderLightbox() {
+        if (!dialog || !imgEl) return;
+        const arr = groups.get(activeGroupId) || [];
+        if (!arr.length) return;
+
+        const node = arr[activeIndex];
+        const src = node.getAttribute("data-src") || node.getAttribute("href") || "";
+        const alt = node.getAttribute("data-alt") || "";
+        const cap = node.getAttribute("data-caption") || "";
+        const ttl = node.getAttribute("data-title") || "";
+
+        imgEl.src = src;
+        imgEl.alt = alt;
+
+        setText(titleEl, ttl);
+        setText(capEl, cap);
+        setText(counterEl, `${activeIndex + 1} / ${arr.length}`);
+
+        // Кнопки навігації
+        if (btnPrev) btnPrev.disabled = arr.length <= 1;
+        if (btnNext) btnNext.disabled = arr.length <= 1;
+      }
+
+      function openLightbox(groupId, index) {
+        if (!dialog || typeof dialog.showModal !== "function") return;
+        activeGroupId = groupId;
+        activeIndex = Math.max(0, Number(index) || 0);
+        renderLightbox();
+        dialog.showModal();
+      }
+
+      function closeLightbox() {
+        try { dialog && dialog.close(); } catch {}
+      }
+
+      function step(dir) {
+        const arr = groups.get(activeGroupId) || [];
+        if (arr.length <= 1) return;
+        activeIndex = (activeIndex + dir + arr.length) % arr.length;
+        renderLightbox();
+      }
+
+      for (const a of thumbs) {
+        a.addEventListener("click", (e) => {
+          // Якщо dialog не підтримується — відкриється href (фолбек)
+          if (dialog && typeof dialog.showModal === "function") {
+            e.preventDefault();
+            const rid = a.getAttribute("data-report") || "";
+            const idx = a.getAttribute("data-index") || "0";
+            openLightbox(rid, idx);
+          }
+        });
+      }
+
+      if (btnPrev) btnPrev.addEventListener("click", () => step(-1));
+      if (btnNext) btnNext.addEventListener("click", () => step(+1));
+      if (btnClose) btnClose.addEventListener("click", closeLightbox);
+
+      if (dialog) {
+        dialog.addEventListener("click", (e) => {
+          if (e.target === dialog) closeLightbox();
+        });
+
+        dialog.addEventListener("keydown", (e) => {
+          if (e.key === "ArrowLeft") { e.preventDefault(); step(-1); }
+          if (e.key === "ArrowRight") { e.preventDefault(); step(+1); }
+          if (e.key === "Escape") { closeLightbox(); }
+        });
+      }
+
+      // DONATION WIDGET (URL не чіпаємо)
+      const widget = document.getElementById("donationWidget");
+      const donationTitleEl = document.getElementById("donationTitle");
+      const updatedEl = document.getElementById("donationUpdated");
+      const amountsEl = document.getElementById("donationAmounts");
+      const barEl = document.getElementById("donationBar");
+      const progressEl = widget ? widget.querySelector('[role="progressbar"]') : null;
+      const DONATION_STATUS_URL = "/api/monobank-jar-public";
+
+      function safeText(el, txt) {
+        if (!el) return;
+        el.textContent = String(txt ?? "");
+      }
+
+      async function loadDonation() {
+        if (!widget) return;
+        try {
+          const res = await fetch(DONATION_STATUS_URL, { headers: { accept: "application/json" } });
+          if (!res.ok) return;
+
+          const data = await res.json();
+
+          const t = data?.title ?? data?.name ?? "";
+          const goal = Number(data?.goal ?? data?.targetAmount ?? data?.target ?? 0);
+          const raised = Number(data?.raised ?? data?.amount ?? data?.currentAmount ?? 0);
+
+          if (t) safeText(donationTitleEl, t);
+
+          if (Number.isFinite(goal) && goal > 0 && Number.isFinite(raised) && raised >= 0) {
+            const pct = Math.max(0, Math.min(100, Math.round((raised / goal) * 100)));
+            if (barEl) barEl.style.width = pct + "%";
+            if (progressEl) progressEl.setAttribute("aria-valuenow", String(pct));
+            safeText(amountsEl, `${raised.toLocaleString("uk-UA")} / ${goal.toLocaleString("uk-UA")} грн`);
+          }
+
+          const now = new Date();
+          if (updatedEl) safeText(updatedEl, `оновлено: ${now.toLocaleString("uk-UA")}`);
+
+          widget.hidden = false;
+        } catch {}
+      }
+
+      loadDonation();
+    })();
+  </script>
+</Base>

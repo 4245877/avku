@@ -1,0 +1,797 @@
+---
+import Base from "../layouts/Base.astro";
+import "../styles/pages/donate.css";
+
+const lang = "uk";
+const title = "Підтримати АВКУ — донат, волонтерство, партнерство";
+const description =
+  "Оберіть напрям допомоги, зробіть донат або долучіться як волонтер/партнер. Після — перегляньте звіти та поверніться підтримати наступні збори.";
+
+// Отримуємо базовий шлях для правильних посилань
+const base = import.meta.env.BASE_URL;
+const url = (path) => {
+  if (path.startsWith("http")) return path;
+  const cleanPath = path.startsWith("/") ? path.slice(1) : path;
+  return `${base}${cleanPath}`;
+};
+
+/**
+ * Налаштування (безпечні дефолти):
+ */
+const MONO_JAR_URL_DEFAULT = import.meta.env.PUBLIC_MONO_JAR_URL ?? "";
+const MONO_API_URL_DEFAULT =
+  import.meta.env.PUBLIC_MONO_API_URL ?? "/api/monobank-jar-public";
+
+const contacts = {
+  address: "м. Київ, вул. Зодчих, 58-а, 03170",
+  phones: ["+38 (068) 847-34-01", "+38 (063) 677-70-50"],
+  email: "volunteer_ukraine@ukr.net",
+  fbGroup: "https://www.facebook.com/groups/555103805361838",
+  telegram: "https://t.me/+380688473401",
+};
+
+const quickAmounts = [200, 500, 1000, 2000, 5000];
+
+/** Актуальний збір (оновлено) */
+const activeFund = {
+  id: "presidential_brigade_uav",
+  title: "Збір для захисників: Президентська бригада",
+  unit: "Президентська бригада",
+  battalion: "Батальйон перехоплювачів безпілотних систем",
+  about:
+    "Підрозділ щодня працює з перехопленням ворожих БПЛА. Для ефективної та безпечної роботи потрібне базове, але критично важливе обладнання.",
+  needs: ["Дизельний обігрівач", "Інверторний генератор", "Ноутбук"],
+  goal: 60000,
+  jarUrl: "https://send.monobank.ua/jar/AYnqhv5wj7",
+  cardNumber: "4874 1000 2444 4732",
+};
+
+const campaigns = [
+  {
+    ...activeFund,
+    short:
+      "Батальйон перехоплювачів безпілотних систем. Потрібні: дизельний обігрівач, інверторний генератор, ноутбук. Ціль — 60 000 ₴.",
+    progressApiUrl: "", // API немає, показуємо вручну
+    reportUrl: "/reports",
+    tags: ["Терміново", "Ціль 60 000 ₴"],
+  },
+  {
+    id: "zsu",
+    title: "Підтримка ЗСУ",
+    short:
+      "Закриваємо термінові запити підрозділів: спорядження, дрони, живлення, витратні матеріали.",
+    jarUrl: MONO_JAR_URL_DEFAULT,
+    progressApiUrl: MONO_API_URL_DEFAULT,
+    reportUrl: "/reports",
+    tags: ["Терміново", "Запити підрозділів"],
+  },
+  {
+    id: "humanitarian",
+    title: "Гуманітарна допомога",
+    short:
+      "Продукти, ліки та гігієна для військових і цивільних. Адресна доставка за потребою.",
+    jarUrl: MONO_JAR_URL_DEFAULT,
+    progressApiUrl: MONO_API_URL_DEFAULT,
+    reportUrl: "/reports",
+    tags: ["Пункти незламності", "Адресна підтримка"],
+  },
+  {
+    id: "workshops",
+    title: "Майстерні та виробництво",
+    short:
+      "Матеріали для маскувальних сіток, окопних свічок та інших речей, які роблять волонтери.",
+    jarUrl: MONO_JAR_URL_DEFAULT,
+    progressApiUrl: MONO_API_URL_DEFAULT,
+    reportUrl: "/reports",
+    tags: ["Матеріали", "Постійна потреба"],
+  },
+];
+
+const orgJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "ГС «Асоціація волонтерських команд України»",
+  url: "https://avku.org/",
+  email: contacts.email,
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "Київ",
+    streetAddress: "вул. Зодчих, 58-а",
+    postalCode: "03170",
+    addressCountry: "UA",
+  },
+  contactPoint: contacts.phones.map((p) => ({
+    "@type": "ContactPoint",
+    telephone: p,
+    contactType: "customer support",
+    areaServed: "UA",
+  })),
+  sameAs: [contacts.fbGroup, contacts.telegram],
+};
+---
+
+<Base lang={lang} title={title}>
+  <Fragment slot="head">
+    <meta name="description" content={description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://avku.org/donate" />
+    <script type="application/ld+json" set:html={JSON.stringify(orgJsonLd)}></script>
+  </Fragment>
+
+  <main class="donate-page">
+    <section class="hero">
+      <div class="hero__left">
+        <h1>Підтримай АВКУ</h1>
+        <p class="lead">
+          Проста логіка довіри: <strong>обери напрям</strong> →{" "}
+          <strong>зроби дію</strong> → <strong>перевір звіт</strong> →{" "}
+          <strong>повернись підтримати знову</strong>.
+        </p>
+
+        <ol class="steps" aria-label="Кроки">
+          <li>
+            <span class="step__num">1</span>
+            <span>Обереш напрям допомоги</span>
+          </li>
+          <li>
+            <span class="step__num">2</span>
+            <span>Підтримаєш донатом або дією</span>
+          </li>
+          <li>
+            <span class="step__num">3</span>
+            <span>Побачиш звіт з доказами</span>
+          </li>
+          <li>
+            <span class="step__num">4</span>
+            <span>Повернешся до наступного збору</span>
+          </li>
+        </ol>
+
+        <div class="hero__cta">
+          <a class="btn btn--primary" href="#donate-widget">Зробити донат</a>
+          <a class="btn btn--ghost" href="#trust">Як перевірити нас</a>
+          <a class="btn btn--ghost" href={url("reports")}>Переглянути звіти</a>
+        </div>
+
+        <p class="micro">
+          Потрібна допомога з оплатою? Напиши нам:{" "}
+          <a href={"mailto:" + contacts.email}>{contacts.email}</a> або в
+          Telegram:{" "}
+          <a href={contacts.telegram} target="_blank" rel="noopener">чат</a>.
+        </p>
+      </div>
+
+      <aside class="hero__right" aria-label="Швидкі дії">
+        <div class="card card--soft">
+          <h2 class="card__title">Хочу допомогти не грошима</h2>
+          <p class="card__text">
+            Якщо тобі ближче участь руками або ресурсами — це так само цінно.
+          </p>
+          <div class="action-grid">
+            <a class="btn btn--secondary" href={url("contacts#message")}>Стати волонтером</a>
+            <a class="btn btn--secondary" href={url("contacts#message")}>Стати партнером</a>
+            <a class="btn btn--secondary" href={url("contacts")}>Контакти</a>
+          </div>
+          <p class="micro">
+            Партнерства та запити:{" "}
+            <a href={"mailto:" + contacts.email + "?subject=Партнерство%20з%20АВКУ"}>лист</a>
+          </p>
+        </div>
+      </aside>
+    </section>
+
+    <section class="grid">
+      <div class="grid__left">
+        {/* Актуальний збір */}
+        <section class="section" aria-label="Актуальний збір">
+          <header class="section__header">
+            <h2>Актуальний збір</h2>
+            <p class="section__hint">
+              Оновлено під поточний запит підрозділу. Дякуємо за підтримку.
+            </p>
+          </header>
+
+          <div class="card">
+            <h3 class="card__title">{activeFund.unit}</h3>
+            <p class="card__text">
+              <strong>{activeFund.battalion}</strong>
+            </p>
+            <p class="card__text">{activeFund.about}</p>
+
+            <p class="card__text"><strong>Необхідне устаткування:</strong></p>
+            <ul class="list">
+              {activeFund.needs.map((x) => (
+                <li>{x}</li>
+              ))}
+            </ul>
+
+            <p class="card__text">
+              <strong>Ціль:</strong> 60 000 ₴
+            </p>
+            <p class="card__text">
+              <strong>Посилання на банку:</strong>{" "}
+              <a class="link" href={activeFund.jarUrl} target="_blank" rel="noopener">
+                {activeFund.jarUrl}
+              </a>
+            </p>
+            <p class="card__text">
+              <strong>Номер картки банки:</strong> {activeFund.cardNumber}
+            </p>
+          </div>
+        </section>
+
+        <section class="section" aria-label="Напрями допомоги">
+          <header class="section__header">
+            <h2>Обери напрям</h2>
+            <p class="section__hint">
+              Натисни “Обрати” — і справа одразу з’явиться готовий віджет донату під цей напрям.
+            </p>
+          </header>
+
+          <div class="campaigns" id="campaigns">
+            {campaigns.map((c) => (
+              <article class="campaign" data-campaign-id={c.id}>
+                <div class="campaign__top">
+                  <h3 class="campaign__title">{c.title}</h3>
+                  <div class="campaign__tags" aria-label="Теги">
+                    {c.tags?.map((t) => <span class="tag">{t}</span>)}
+                  </div>
+                </div>
+
+                <p class="campaign__desc">{c.short}</p>
+
+                <div class="campaign__meta">
+                  <a class="link" href={url(c.reportUrl)}>Звіти по напряму</a>
+                  <span class="dot" aria-hidden="true">•</span>
+                  <a class="link" href={url("publications")}>Публікації</a>
+                </div>
+
+                <div class="campaign__actions">
+                  <button type="button" class="btn btn--primary" data-select-campaign={c.id}>
+                    Обрати
+                  </button>
+                  <button type="button" class="btn btn--ghost" data-scroll-to="#donate-widget">
+                    До донату
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section class="section" id="trust" aria-label="Блок довіри">
+          <header class="section__header">
+            <h2>Як перевірити АВКУ</h2>
+            <p class="section__hint">
+              Ми робимо так, щоб тобі було легко впевнитися: куди пішли кошти і що зроблено.
+            </p>
+          </header>
+
+          <div class="trust">
+            <div class="card">
+              <h3 class="card__title">Докази і публічність</h3>
+              <ul class="list">
+                <li><a class="link" href={url("reports")}>Звіти з документами та фото</a></li>
+                <li><a class="link" href={url("publications")}>Публікації та підсумкові звіти</a></li>
+                <li><a class="link" href={url("news")}>Новини та оновлення</a></li>
+                <li>
+                  Facebook-група (публічність і обговорення):{" "}
+                  <a class="link" href={contacts.fbGroup} target="_blank" rel="noopener">відкрити</a>
+                </li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <h3 class="card__title">Офіційні контакти</h3>
+              <ul class="list">
+                <li><strong>Адреса:</strong> {contacts.address}</li>
+                <li>
+                  <strong>Телефони:</strong>{" "}
+                  {contacts.phones.map((p, idx) => (
+                    <>
+                      <a class="link" href={"tel:" + p.replace(/[^\d+]/g, "")}>{p}</a>
+                      {idx < contacts.phones.length - 1 ? ", " : ""}
+                    </>
+                  ))}
+                </li>
+                <li>
+                  <strong>Email:</strong>{" "}
+                  <a class="link" href={"mailto:" + contacts.email}>{contacts.email}</a>
+                </li>
+                <li>
+                  <strong>Telegram:</strong>{" "}
+                  <a class="link" href={contacts.telegram} target="_blank" rel="noopener">написати</a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" aria-label="FAQ">
+          <header class="section__header">
+            <h2>Питання та відповіді</h2>
+          </header>
+
+          <div class="faq">
+            <details class="faq__item">
+              <summary>Як швидко з’являється звіт?</summary>
+              <p>
+                Після закупівлі/передачі ми публікуємо звіт у розділі{" "}
+                <a class="link" href={url("reports")}>“Звіти”</a> і/або у{" "}
+                <a class="link" href={contacts.fbGroup} target="_blank" rel="noopener">Facebook-групі</a>.
+              </p>
+            </details>
+
+            <details class="faq__item">
+              <summary>Можна донатити анонімно?</summary>
+              <p>
+                Так. Якщо хочеш — не залишай контакт. Якщо хочеш отримати лінк на звіт — залиш контакт нижче.
+              </p>
+            </details>
+
+            <details class="faq__item">
+              <summary>Якщо оплата не пройшла?</summary>
+              <p>
+                Напиши нам на{" "}
+                <a class="link" href={"mailto:" + contacts.email}>{contacts.email}</a>{" "}
+                або у{" "}
+                <a class="link" href={contacts.telegram} target="_blank" rel="noopener">Telegram</a>{" "}
+                — підкажемо.
+              </p>
+            </details>
+          </div>
+        </section>
+      </div>
+
+      <aside class="grid__right" aria-label="Віджет донату">
+        <section class="widget" id="donate-widget">
+          <div class="widget__header">
+            <h2>Зробити донат</h2>
+            <p class="widget__sub">
+              Обери напрям зліва — або донать у “загальну підтримку”.
+            </p>
+          </div>
+
+          <div class="widget__body">
+            <div class="select">
+              <label for="campaignSelect">Напрям</label>
+              <select id="campaignSelect">
+                {campaigns.map((c) => (
+                  <option value={c.id}>{c.title}</option>
+                ))}
+              </select>
+            </div>
+
+            <div class="progress" aria-label="Прогрес збору">
+              <div class="progress__top">
+                <span class="progress__label">Прогрес</span>
+                <span class="progress__value" id="progressText">—</span>
+              </div>
+              <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                <div class="bar__fill" id="progressFill"></div>
+              </div>
+              <p class="micro" id="progressMeta">
+                Дані оновлюються автоматично (якщо налаштовано API).
+              </p>
+            </div>
+
+            <div class="amount">
+              <label>Сума (₴)</label>
+              <div class="chips" role="group" aria-label="Швидкі суми">
+                {quickAmounts.map((a) => (
+                  <button type="button" class="chip" data-amount={a}>{a}</button>
+                ))}
+              </div>
+              <input id="amountInput" inputmode="numeric" pattern="[0-9]*" placeholder="Введи свою суму" aria-label="Власна сума" />
+            </div>
+
+            <div class="pay">
+              <button type="button" class="btn btn--primary btn--full" id="payBtn">
+                Перейти до оплати
+              </button>
+              <p class="micro" id="payHint">
+                Якщо лінк не відкривається — напиши нам (контакти нижче).
+              </p>
+
+              <div class="mini-trust" aria-label="Реквізити">
+                <p class="micro" id="requisitesCard"></p>
+                <p class="micro" id="requisitesJar"></p>
+                <div class="inline-actions">
+                  <button type="button" class="btn btn--ghost btn--small" id="copyCardBtn">
+                    Скопіювати картку
+                  </button>
+                  <button type="button" class="btn btn--ghost btn--small" id="copyJarBtn">
+                    Скопіювати лінк банки
+                  </button>
+                </div>
+              </div>
+
+              <div class="inline-actions">
+                <button type="button" class="btn btn--ghost btn--small" id="copyMessageBtn">
+                  Скопіювати повідомлення
+                </button>
+                <a class="btn btn--ghost btn--small" id="openTelegramBtn" href={contacts.telegram} target="_blank" rel="noopener">
+                  Написати в Telegram
+                </a>
+              </div>
+            </div>
+
+            <hr class="sep" />
+
+            <div class="after">
+              <h3>Після донату — отримай лінк на звіт</h3>
+              <p class="micro">
+                Якщо хочеш — залиш контакт і ми надішлемо посилання на звіт по цьому напряму.
+              </p>
+
+              <form id="reportForm" class="form" action={"mailto:" + contacts.email} method="post" enctype="text/plain">
+                <label for="contactInput">Твій контакт (email / Telegram)</label>
+                <input id="contactInput" name="contact" placeholder="Напр. email або @username" />
+
+                <label for="commentInput">Коментар (необов’язково)</label>
+                <textarea id="commentInput" name="comment" rows="3" placeholder="Наприклад: хочу звіт по цьому збору"></textarea>
+
+                <input type="hidden" id="hiddenCampaign" name="campaign" value="" />
+                <input type="hidden" id="hiddenAmount" name="amount" value="" />
+                <input type="hidden" id="hiddenPage" name="page" value="https://avku.org/donate" />
+
+                <button type="submit" class="btn btn--secondary btn--full">
+                  Відправити (через email-клієнт)
+                </button>
+              </form>
+
+              <div class="template" aria-label="Шаблон повідомлення">
+                <div class="template__head">
+                  <strong>Шаблон</strong>
+                  <button type="button" class="btn btn--ghost btn--small" id="copyTemplateBtn">
+                    Скопіювати
+                  </button>
+                </div>
+                <pre id="templateText" class="template__text"></pre>
+              </div>
+            </div>
+          </div>
+        </section>
+      </aside>
+    </section>
+  </main>
+
+  <script type="module" define:vars={{ campaigns, contacts }}>
+    // Змінні campaigns та contacts тепер доступні тут автоматично!
+    const CAMPAIGNS = campaigns;
+    const CONTACTS = contacts;
+
+    const els = {
+      campaignSelect: document.getElementById("campaignSelect"),
+      amountInput: document.getElementById("amountInput"),
+      payBtn: document.getElementById("payBtn"),
+      payHint: document.getElementById("payHint"),
+      progressText: document.getElementById("progressText"),
+      progressFill: document.getElementById("progressFill"),
+      progressMeta: document.getElementById("progressMeta"),
+      progressBar: document.querySelector('[role="progressbar"]'),
+      copyMessageBtn: document.getElementById("copyMessageBtn"),
+      copyTemplateBtn: document.getElementById("copyTemplateBtn"),
+      templateText: document.getElementById("templateText"),
+      hiddenCampaign: document.getElementById("hiddenCampaign"),
+      hiddenAmount: document.getElementById("hiddenAmount"),
+      contactInput: document.getElementById("contactInput"),
+      commentInput: document.getElementById("commentInput"),
+      requisitesCard: document.getElementById("requisitesCard"),
+      requisitesJar: document.getElementById("requisitesJar"),
+      copyCardBtn: document.getElementById("copyCardBtn"),
+      copyJarBtn: document.getElementById("copyJarBtn"),
+    };
+
+    const chips = Array.from(document.querySelectorAll("[data-amount]"));
+    const selectBtns = Array.from(document.querySelectorAll("[data-select-campaign]"));
+    const scrollBtns = Array.from(document.querySelectorAll("[data-scroll-to]"));
+
+    function safeSetItem(key, value) { try { localStorage.setItem(key, value); } catch {} }
+    function safeGetItem(key) { try { return localStorage.getItem(key); } catch { return null; } }
+
+    function byId(id) {
+      return CAMPAIGNS.find((c) => c.id === id) || CAMPAIGNS[0];
+    }
+
+    function formatUah(n) {
+      try { return new Intl.NumberFormat("uk-UA").format(n) + " ₴"; } catch { return String(n) + " ₴"; }
+    }
+
+    function toNumber(value) {
+      const n = Number(value);
+      return Number.isFinite(n) ? n : null;
+    }
+
+    function pickNumber(obj, paths) {
+      for (const p of paths) {
+        const parts = p.split(".");
+        let cur = obj;
+        let ok = true;
+        for (const part of parts) {
+          if (cur && typeof cur === "object" && part in cur) cur = cur[part];
+          else { ok = false; break; }
+        }
+        if (ok) {
+          const n = toNumber(cur);
+          if (n !== null) return n;
+        }
+      }
+      return null;
+    }
+
+    function setChipActive(amount) {
+      chips.forEach((b) => {
+        const a = Number(b.getAttribute("data-amount"));
+        const active = a === amount && amount > 0;
+        b.setAttribute("aria-pressed", active ? "true" : "false");
+      });
+    }
+
+    function setProgressPct(pct) {
+      if (els.progressBar) els.progressBar.setAttribute("aria-valuenow", String(pct));
+    }
+
+    function getSelectedAmount() {
+      const raw = (els.amountInput?.value || "").trim();
+      const n = raw ? Number(raw) : 0;
+      return Number.isFinite(n) && n > 0 ? n : 0;
+    }
+
+    function normalizeCardNumber(s) {
+      return String(s || "").replace(/[^\d]/g, "");
+    }
+
+    function setRequisites() {
+      const c = byId(els.campaignSelect.value);
+      if (els.requisitesCard) {
+        els.requisitesCard.textContent = c.cardNumber ? "Картка банки: " + c.cardNumber : "";
+      }
+      if (els.requisitesJar) {
+        els.requisitesJar.textContent = c.jarUrl ? "Посилання на банку: " + c.jarUrl : "";
+      }
+    }
+
+    function buildTemplate(c, amount) {
+      const lines = [];
+      lines.push("Привіт! Я зробив(ла) донат для АВКУ.");
+      lines.push("");
+      lines.push("Напрям: " + c.title);
+      if (c.unit) lines.push("Підрозділ: " + c.unit);
+      if (c.battalion) lines.push("Підрозділ (деталі): " + c.battalion);
+      if (Array.isArray(c.needs) && c.needs.length) {
+        lines.push("Потреби: " + c.needs.join(", "));
+      }
+      if (amount > 0) lines.push("Сума: " + amount + " ₴");
+      if (c.jarUrl) lines.push("Посилання на банку: " + c.jarUrl);
+      if (c.cardNumber) lines.push("Картка: " + c.cardNumber);
+      lines.push("");
+      lines.push("Будь ласка, надішліть посилання на звіт по цьому напряму, коли він буде опублікований.");
+      lines.push("Мій контакт: " + ((els.contactInput?.value || "").trim() || "(не вказано)"));
+      const comment = (els.commentInput?.value || "").trim();
+      if (comment) {
+        lines.push("");
+        lines.push("Коментар: " + comment);
+      }
+      return lines.join("\n");
+    }
+
+    function setTemplateText() {
+      const c = byId(els.campaignSelect.value);
+      const amount = getSelectedAmount();
+      setChipActive(amount);
+      const t = buildTemplate(c, amount);
+      els.templateText.textContent = t;
+      if (els.hiddenCampaign) els.hiddenCampaign.value = c.title;
+      if (els.hiddenAmount) els.hiddenAmount.value = amount ? String(amount) : "";
+      setRequisites();
+    }
+
+    async function updateProgress() {
+      const c = byId(els.campaignSelect.value);
+      const url = c.progressApiUrl;
+
+      if (!url || typeof url !== "string") {
+        if (typeof c.goal === "number" && c.goal > 0) {
+          els.progressText.textContent = `Ціль: ${formatUah(c.goal)}`;
+          els.progressFill.style.width = "0%";
+          setProgressPct(0);
+          els.progressMeta.textContent = "Ціль задана вручну (без API прогресу).";
+          return;
+        }
+        els.progressText.textContent = "—";
+        els.progressFill.style.width = "0%";
+        setProgressPct(0);
+        els.progressMeta.textContent = "API прогресу не налаштовано.";
+        return;
+      }
+
+      try {
+        const res = await fetch(url, { cache: "no-store" });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+
+        const balance = pickNumber(data, ["balance", "data.balance", "jar.balance", "result.balance", "amount"]);
+        const goal = pickNumber(data, ["goal", "data.goal", "jar.goal", "result.goal", "target"]);
+        const goalValid = goal !== null && goal > 0;
+
+        if (balance === null && !goalValid) {
+          if (typeof c.goal === "number" && c.goal > 0) {
+            els.progressText.textContent = `Ціль: ${formatUah(c.goal)}`;
+            els.progressFill.style.width = "0%";
+            setProgressPct(0);
+            els.progressMeta.textContent = "Ціль задана вручну.";
+            return;
+          }
+          els.progressText.textContent = "Дані недоступні";
+          els.progressFill.style.width = "0%";
+          setProgressPct(0);
+          els.progressMeta.textContent = "Джерело не повернуло дані прогресу.";
+          return;
+        }
+
+        if (balance !== null && goalValid) {
+          const pct = Math.max(0, Math.min(100, Math.round((balance / goal) * 100)));
+          els.progressText.textContent = `${formatUah(balance)} з ${formatUah(goal)} (${pct}%)`;
+          els.progressFill.style.width = pct + "%";
+          setProgressPct(pct);
+          els.progressMeta.textContent = "Оновлено з публічного джерела.";
+          return;
+        }
+
+        if (balance !== null) {
+          els.progressText.textContent = `Зібрано: ${formatUah(balance)}`;
+          els.progressFill.style.width = "0%";
+          setProgressPct(0);
+          els.progressMeta.textContent = "Ціль не передано джерелом (показуємо лише суму).";
+          return;
+        }
+
+        // goalValid === true тут
+        els.progressText.textContent = `Ціль: ${formatUah(goal)}`;
+        els.progressFill.style.width = "0%";
+        setProgressPct(0);
+        els.progressMeta.textContent = "Баланс не передано джерелом (показуємо лише ціль).";
+        return;
+      } catch (e) {
+        if (typeof c.goal === "number" && c.goal > 0) {
+          els.progressText.textContent = `Ціль: ${formatUah(c.goal)}`;
+          els.progressFill.style.width = "0%";
+          setProgressPct(0);
+          els.progressMeta.textContent = "Не вдалося отримати прогрес (показуємо ціль).";
+          return;
+        }
+        els.progressText.textContent = "—";
+        els.progressFill.style.width = "0%";
+        setProgressPct(0);
+        els.progressMeta.textContent = "Не вдалося отримати прогрес.";
+      }
+    }
+
+    function openPayment() {
+      const c = byId(els.campaignSelect.value);
+      const amount = getSelectedAmount();
+      if (!c.jarUrl) {
+        const msg = [
+          "Посилання на оплату ще не налаштовано.",
+          "Будь ласка, напиши нам — підкажемо актуальний спосіб донату:",
+          CONTACTS.email,
+          CONTACTS.telegram,
+        ].join("\n");
+        alert(msg);
+        return;
+      }
+      window.open(c.jarUrl, "_blank", "noopener,noreferrer");
+      els.payHint.textContent = amount > 0
+        ? "Відкрили оплату. Якщо зручно — введи суму " + amount + " ₴ на сторінці оплати."
+        : "Відкрили оплату. Вкажи суму на сторінці оплати.";
+    }
+
+    function selectCampaign(id) {
+      els.campaignSelect.value = id;
+      safeSetItem("avku_campaign", id);
+      setTemplateText();
+      updateProgress();
+    }
+
+    function scrollToSelector(sel) {
+      const el = document.querySelector(sel);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    // Init Logic
+    const params = new URLSearchParams(location.search);
+    const fromQuery = params.get("campaign");
+    const fromStorage = safeGetItem("avku_campaign");
+    const initial = fromQuery && CAMPAIGNS.some((c) => c.id === fromQuery) ? fromQuery : (fromStorage && CAMPAIGNS.some((c) => c.id === fromStorage) ? fromStorage : CAMPAIGNS[0].id);
+    const amountFromQuery = params.get("amount");
+    if (amountFromQuery && els.amountInput) {
+      const n = Number(amountFromQuery);
+      if (Number.isFinite(n) && n > 0) els.amountInput.value = String(Math.round(n));
+    }
+
+    selectCampaign(initial);
+
+    // Event Listeners
+    selectBtns.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-select-campaign");
+        if (id) { selectCampaign(id); scrollToSelector("#donate-widget"); }
+      });
+    });
+    scrollBtns.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const sel = btn.getAttribute("data-scroll-to");
+        if (sel) scrollToSelector(sel);
+      });
+    });
+    els.campaignSelect.addEventListener("change", () => { selectCampaign(els.campaignSelect.value); });
+    chips.forEach((b) => {
+      b.addEventListener("click", () => {
+        const a = Number(b.getAttribute("data-amount"));
+        if (Number.isFinite(a) && a > 0 && els.amountInput) {
+          els.amountInput.value = String(a);
+          setChipActive(a);
+          setTemplateText();
+        }
+      });
+    });
+    els.amountInput.addEventListener("input", () => {
+      const n = getSelectedAmount();
+      setChipActive(n);
+      setTemplateText();
+    });
+    els.payBtn.addEventListener("click", openPayment);
+
+    async function copyToClipboard(text) {
+      try { await navigator.clipboard.writeText(text); return true; }
+      catch {
+        const ta = document.createElement("textarea");
+        ta.value = text; ta.style.position = "fixed"; ta.style.left = "-9999px";
+        document.body.appendChild(ta); ta.focus(); ta.select();
+        const ok = document.execCommand("copy");
+        document.body.removeChild(ta); return ok;
+      }
+    }
+
+    els.copyTemplateBtn.addEventListener("click", async () => {
+      const ok = await copyToClipboard(els.templateText.textContent || "");
+      els.copyTemplateBtn.textContent = ok ? "Скопійовано" : "Не вдалось";
+      setTimeout(() => (els.copyTemplateBtn.textContent = "Скопіювати"), 900);
+    });
+
+    els.copyMessageBtn.addEventListener("click", async () => {
+      const c = byId(els.campaignSelect.value);
+      const amount = getSelectedAmount();
+      const text = buildTemplate(c, amount);
+      const ok = await copyToClipboard(text);
+      els.copyMessageBtn.textContent = ok ? "Скопійовано" : "Не вдалось";
+      setTimeout(() => (els.copyMessageBtn.textContent = "Скопіювати повідомлення"), 900);
+    });
+
+    els.copyCardBtn?.addEventListener("click", async () => {
+      const c = byId(els.campaignSelect.value);
+      const text = c.cardNumber ? normalizeCardNumber(c.cardNumber) : "";
+      const ok = text ? await copyToClipboard(text) : false;
+      els.copyCardBtn.textContent = ok ? "Скопійовано" : "Не вдалось";
+      setTimeout(() => (els.copyCardBtn.textContent = "Скопіювати картку"), 900);
+    });
+
+    els.copyJarBtn?.addEventListener("click", async () => {
+      const c = byId(els.campaignSelect.value);
+      const text = c.jarUrl || "";
+      const ok = text ? await copyToClipboard(text) : false;
+      els.copyJarBtn.textContent = ok ? "Скопійовано" : "Не вдалось";
+      setTimeout(() => (els.copyJarBtn.textContent = "Скопіювати лінк банки"), 900);
+    });
+
+    ["input", "change"].forEach((evt) => {
+      els.contactInput?.addEventListener(evt, setTemplateText);
+      els.commentInput?.addEventListener(evt, setTemplateText);
+    });
+
+    setInterval(updateProgress, 90_000);
+  </script>
+</Base>

@@ -1,0 +1,597 @@
+---
+// src/pages/events.astro
+import Base from "../layouts/Base.astro";
+import "../styles/pages/events.css";
+
+const lang = "uk";
+const title =
+  "Події АВКУ — благодійні заходи, волонтерські майстерні, гуманітарні виїзди";
+const description =
+  "Календар подій та форматів АВКУ: благодійні ярмарки, волонтерські майстерні, гуманітарні виїзди, освітні та партнерські заходи. Долучайся як волонтер або підтримай донатом.";
+
+// Зовнішні посилання (офіційні)
+const links = {
+  facebookGroup: "https://www.facebook.com/groups/555103805361838/?locale=ru_RU",
+};
+
+// Контакти (зручно дублювати тут для сторінки подій)
+const contacts = {
+  city: "Київ",
+  address: "вул. Зодчих, 58-а, 03170",
+  phone1: "+38 (068) 847-34-01",
+  phone2: "+38 (063) 677-70-50",
+  email: "volunteer_ukraine@ukr.net",
+};
+
+// Формати подій (без “вигаданих” дат — лише те, що реально робить АВКУ)
+const formats = [
+  {
+    key: "format_support",
+    title: "Підтримка ЗСУ: закриття запитів підрозділів",
+    desc:
+      "Збір і передача необхідного спорядження, звʼязку, живлення, маскувальних засобів, технічних і побутових речей — за актуальними запитами.",
+    tags: ["ЗСУ", "збір", "передача"],
+    href: "/donate",
+    cta: "Підтримати донатом",
+  },
+  {
+    key: "format_humanitarian",
+    title: "Гуманітарна допомога та відправки",
+    desc:
+      "Регулярні відправки продуктів, ліків і засобів гігієни для військових і цивільних, координація доставок та пакування.",
+    tags: ["гуманітарка", "логістика"],
+    href: "/join",
+    cta: "Стати волонтером",
+  },
+  {
+    key: "format_workshops",
+    title: "Волонтерські майстерні",
+    desc:
+      "Спільні майстерні з виготовлення маскувальних сіток, окопних свічок та інших необхідних речей разом із волонтерами й партнерами.",
+    tags: ["майстерня", "сітки", "свічки"],
+    href: "/join",
+    cta: "Долучитися",
+  },
+  {
+    key: "format_charity",
+    title: "Благодійні ярмарки та збори",
+    desc:
+      "Публічні благодійні заходи, ярмарки, події в громадах і закладах освіти — для підсилення зборів на потреби захисників.",
+    tags: ["ярмарок", "збір"],
+    href: "/donate",
+    cta: "Підтримати",
+  },
+  {
+    key: "format_education",
+    title: "Освітні та культурні заходи",
+    desc:
+      "Зустрічі, лекції, патріотичні події, активності в громадах і навчальних закладах — щоб підтримувати єдність і мотивацію допомоги.",
+    tags: ["освіта", "культура"],
+    href: "/about",
+    cta: "Дізнатися більше",
+  },
+  {
+    key: "format_partnerships",
+    title: "Партнерства та меморандуми",
+    desc:
+      "Співпраця з організаціями та ініціативами: меморандуми, спільні проєкти, форуми та координація допомоги.",
+    tags: ["партнерство", "співпраця"],
+    href: "/contacts",
+    cta: "Зв’язатися",
+  },
+];
+
+// Найближчі події: без фейкових анонсів — коректно виводимо “де дивитися”
+const upcoming = [
+  {
+    title: "Анонси найближчих подій — у Facebook-групі АВКУ",
+    dateLabel: "Оновлюється постами та закріпами",
+    location: "Онлайн",
+    desc:
+      "Ми публікуємо актуальні анонси, місця зборів і потреби в нашій Facebook-спільноті. Натисни, щоб переглянути найсвіжіше.",
+    href: links.facebookGroup,
+    external: true,
+    cta: "Відкрити Facebook-групу",
+  },
+];
+
+// Архів (приклади подій, зафіксовані на старому сайті в “Галереї”)
+const archive = [
+  {
+    id: "e-2025-12-12",
+    dateISO: "2025-12-12",
+    dateLabel: "12 грудня 2025",
+    category: "ЗСУ / передача",
+    title: "Передача допомоги для підрозділу ТрО (маскувальні сітки та інше)",
+    desc:
+      "Спільно з освітньою спільнотою підтримали підрозділ — передали маскувальні сітки та необхідні речі.",
+    href: "/gallery",
+  },
+  {
+    id: "e-2025-12-05",
+    dateISO: "2025-12-05",
+    dateLabel: "5 грудня 2025",
+    category: "Спільнота / форум",
+    title: "Перший форум волонтерів до Міжнародного дня волонтера (Святошинський район)",
+    desc:
+      "Зустріч із друзями й партнерами: історії, підтримка та план наступних спільних справ.",
+    href: "/gallery",
+  },
+  {
+    id: "e-2025-12-04",
+    dateISO: "2025-12-04",
+    dateLabel: "4 грудня 2025",
+    category: "Освіта / зустріч",
+    title: "Зустріч учнів і військових у ліцеї №281 (формат «какао з військовим»)",
+    desc:
+      "Тепла зустріч напередодні Дня волонтера й Святого Миколая — спілкування, підтримка, подарунки.",
+    href: "/gallery",
+  },
+  {
+    id: "e-2025-06-15",
+    dateISO: "2025-06-15",
+    dateLabel: "15 червня 2025",
+    category: "Гуманітарка / передача",
+    title: "Передача гуманітарної допомоги підрозділу «Братство» (ГУР)",
+    desc:
+      "Чергове підсилення для тих, хто виконує завдання на напрямках.",
+    href: "/gallery",
+  },
+  {
+    id: "e-2025-05-13",
+    dateISO: "2025-05-13",
+    dateLabel: "13 травня 2025",
+    category: "Благодійність / ярмарок",
+    title: "Благодійний ярмарок: зібрали кошти на 13 FPV-дронів",
+    desc:
+      "Спільний захід із партнерами та громадою — результатом стала закупівля FPV-дронів для підрозділів.",
+    href: "/gallery",
+  },
+  {
+    id: "e-2025-05-31",
+    dateISO: "2025-05-31",
+    dateLabel: "31 травня 2025",
+    category: "Партнерство / меморандум",
+    title: "Підписання меморандуму з Київською православною богословською академією",
+    desc:
+      "Посилили співпрацю для спільних ініціатив і взаємної підтримки.",
+    href: "/gallery",
+  },
+  {
+    id: "e-2025-02-05",
+    dateISO: "2025-02-05",
+    dateLabel: "5 лютого 2025",
+    category: "Партнерство / форум",
+    title: "Інтерактивний форум «10 років змін: пробація, що наближає до справедливості»",
+    desc:
+      "Подія на базі філії Центру пробації — обʼєднання дій і взаємна підтримка.",
+    href: "/gallery",
+  },
+  {
+    id: "e-2025-02-19",
+    dateISO: "2025-02-19",
+    dateLabel: "19 лютого 2025",
+    category: "Партнерство / меморандум",
+    title: "Меморандум із соццентром «Перспектива Біличів і Новобіличів…»",
+    desc:
+      "Домовились про спільну роботу та координацію допомоги.",
+    href: "/gallery",
+  },
+  {
+    id: "e-2025-02-04",
+    dateISO: "2025-02-04",
+    dateLabel: "4 лютого 2025",
+    category: "Партнерство / меморандум",
+    title: "Меморандум зі спілкою «Святошинські маскувальні сіточки»",
+    desc:
+      "Обʼєднання зусиль у волонтерських та благодійних сферах.",
+    href: "/gallery",
+  },
+];
+
+// Фільтри (під архів)
+const filterTabs = [
+  { key: "all", label: "Усі" },
+  { key: "ЗСУ / передача", label: "ЗСУ" },
+  { key: "Гуманітарка / передача", label: "Гуманітарка" },
+  { key: "Волонтерська майстерня", label: "Майстерні" },
+  { key: "Благодійність / ярмарок", label: "Ярмарки" },
+  { key: "Освіта / зустріч", label: "Освіта" },
+  { key: "Партнерство / меморандум", label: "Партнерства" },
+  { key: "Спільнота / форум", label: "Форуми" },
+];
+
+// JSON-LD: WebPage + ItemList (події як приклади)
+const baseUrl = "https://avku.org";
+const pageUrl = `${baseUrl}/events`;
+const eventsJsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": `${baseUrl}/#organization`,
+      name: "ГС «Асоціація волонтерських команд України» (АВКУ)",
+      alternateName: "AVKU",
+      url: baseUrl,
+      email: contacts.email,
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: contacts.city,
+        streetAddress: contacts.address,
+        addressCountry: "UA",
+      },
+      sameAs: [links.facebookGroup, "https://www.youtube.com/@avkuorg"],
+    },
+    {
+      "@type": "CollectionPage",
+      "@id": `${pageUrl}#webpage`,
+      url: pageUrl,
+      name: "Події та заходи АВКУ",
+      description,
+      isPartOf: { "@id": `${baseUrl}/#website` },
+      about: { "@id": `${baseUrl}/#organization` },
+      mainEntity: {
+        "@type": "ItemList",
+        itemListElement: archive.map((e, idx) => ({
+          "@type": "ListItem",
+          position: idx + 1,
+          item: {
+            "@type": "Event",
+            "@id": `${pageUrl}#${e.id}`,
+            name: e.title,
+            startDate: e.dateISO,
+            eventStatus: "https://schema.org/EventCompleted",
+            eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+            location: {
+              "@type": "Place",
+              name: contacts.city,
+              address: {
+                "@type": "PostalAddress",
+                addressLocality: contacts.city,
+                addressCountry: "UA",
+              },
+            },
+            organizer: { "@id": `${baseUrl}/#organization` },
+          },
+        })),
+      },
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${baseUrl}/#website`,
+      url: baseUrl,
+      name: "АВКУ — Асоціація волонтерських команд України",
+      publisher: { "@id": `${baseUrl}/#organization` },
+    },
+  ],
+};
+---
+
+<Base lang={lang} title={title} description={description}>
+  <Fragment slot="head">
+    <meta name="author" content="ГС «Асоціація волонтерських команд України» (АВКУ)" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href={pageUrl} />
+
+    <meta property="og:locale" content="uk_UA" />
+    <meta property="og:site_name" content="АВКУ — Асоціація волонтерських команд України" />
+    <meta property="og:title" content="Події АВКУ — календар, формати, архів" />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={`${baseUrl}/logo.png`} />
+    <meta property="og:image:alt" content="Логотип АВКУ" />
+    <meta property="og:url" content={pageUrl} />
+    <meta property="og:type" content="website" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Події АВКУ — календар, формати, архів" />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={`${baseUrl}/logo.png`} />
+
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
+
+    <script type="application/ld+json" is:inline>
+      {JSON.stringify(eventsJsonLd)}
+    </script>
+  </Fragment>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container hero-content">
+      <h1 class="hero-header">Події та заходи АВКУ</h1>
+
+      <p class="hero-slogan">
+        Тут — формати подій, як долучитися, і вибраний архів.
+      </p>
+
+      <p>
+        Анонси найближчих подій ми публікуємо у Facebook-групі. На сайті — структура,
+        зрозумілі кроки для волонтера і приклади подій.
+      </p>
+
+      <div class="hero-actions" style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+        <a href="/donate" class="btn" aria-label="Перейти до донату">Підтримати</a>
+        <a href="/join" class="btn" aria-label="Перейти до сторінки волонтера">Стати волонтером</a>
+        <a href={links.facebookGroup} class="btn" target="_blank" rel="noopener noreferrer"
+           aria-label="Відкрити Facebook-групу АВКУ (нове вікно)">
+          Анонси у Facebook
+        </a>
+      </div>
+
+      <p style="margin-top:16px; font-size:0.95rem; opacity:0.9;">
+        Якщо не трудно, для швидкого включення напиши нам або прийди на подію з анонсу — підкажемо, що робити.
+      </p>
+    </div>
+  </section>
+
+  <!-- UPCOMING (коректно: без вигаданих дат) -->
+  <section class="activities" id="calendar">
+    <div class="container">
+      <h2 class="section-title">Найближчі події</h2>
+
+      <div class="activities-grid">
+        {upcoming.map((e) => (
+          <div class="activity-card">
+            <h3>{e.title}</h3>
+            <p style="opacity:0.9; margin-top:6px;">
+              <strong>{e.dateLabel}</strong> · {e.location}
+            </p>
+            <p>{e.desc}</p>
+            <div style="margin-top:16px;">
+              {e.external ? (
+                <a class="btn" href={e.href} target="_blank" rel="noopener noreferrer"
+                   aria-label={`Відкрити: ${e.title} (нове вікно)`}>
+                  {e.cta}
+                </a>
+              ) : (
+                <a class="btn" href={e.href} aria-label={`Відкрити: ${e.title}`}>{e.cta}</a>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div class="view-more-container" style="margin-top:24px;">
+        <a href="/contacts" class="btn" aria-label="Перейти до контактів">
+          Потрібна допомога з реєстрацією / питаннями
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW TO JOIN -->
+  <section class="trust-block">
+    <div class="container">
+      <h2 class="section-title">Як долучитися до події</h2>
+
+      <div class="activities-grid">
+        <div class="activity-card">
+          <h3>1) Обери формат</h3>
+          <p>
+            Подивись “Формати подій” нижче або відкрий анонс у Facebook-групі.
+          </p>
+        </div>
+
+        <div class="activity-card">
+          <h3>2) Звʼяжись із нами</h3>
+          <p>
+            Телефони: <a href={`tel:${contacts.phone1.replace(/[^+0-9]/g, "")}`}>{contacts.phone1}</a>,
+            {" "}<a href={`tel:${contacts.phone2.replace(/[^+0-9]/g, "")}`}>{contacts.phone2}</a><br />
+            Email: <a href={`mailto:${contacts.email}`}>{contacts.email}</a>
+          </p>
+          <p style="opacity:0.9;">
+            Локація: {contacts.city}, {contacts.address}
+          </p>
+        </div>
+
+        <div class="activity-card">
+          <h3>3) Приходь і допоможи</h3>
+          <p>
+            Пакування, сортування, логістика, майстерні, комунікації або організація — знайдемо роль під твої можливості.
+          </p>
+          <div style="margin-top:16px;">
+            <a class="btn" href="/join" aria-label="Заповнити анкету волонтера">Заповнити анкету</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FORMATS -->
+  <section class="activities">
+    <div class="container">
+      <h2 class="section-title">Формати подій</h2>
+
+      <div class="activities-grid">
+        {formats.map((f) => (
+          <div class="activity-card">
+            <h3>{f.title}</h3>
+            <p>{f.desc}</p>
+
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
+              {f.tags.map((t) => (
+                <span class="tag" style="padding:6px 10px; border-radius:999px; border:1px solid rgba(255,255,255,0.15); font-size:0.9rem;">
+                  {t}
+                </span>
+              ))}
+            </div>
+
+            <div style="margin-top:16px;">
+              <a class="btn" href={f.href} aria-label={f.cta}>{f.cta}</a>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ARCHIVE + FILTER -->
+  <section class="news" id="archive">
+    <div class="container">
+      <h2>Архів вибраних подій</h2>
+
+      <p style="max-width:860px; margin: 0 auto 16px; opacity:0.9;">
+        Це приклади подій, які вже відбулися (за матеріалами “Галереї”). Якщо не трудно, додай сюди нові події —
+        і сторінка стане ще сильнішим доказом прозорої діяльності.
+      </p>
+
+      <div class="filters" style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin: 14px 0 18px;">
+        {filterTabs.map((t, i) => (
+          <button
+            type="button"
+            class={`filter-btn${i === 0 ? " is-active" : ""}`}
+            data-filter={t.key}
+            aria-pressed={i === 0 ? "true" : "false"}
+            style="cursor:pointer; padding:10px 14px; border-radius:999px; border:1px solid rgba(255,255,255,0.16); background:transparent; color:inherit;">
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      <div class="news-items" data-archive>
+        {archive.map((e) => (
+          <article
+            id={e.id}
+            class="news-item"
+            data-category={e.category}
+            style="scroll-margin-top: 90px;">
+            <h3>{e.title}</h3>
+
+            <p class="news-meta">
+              <time datetime={e.dateISO} aria-label={e.dateLabel}>{e.dateLabel}</time>
+              {" · "}
+              <span style="opacity:0.9;">{e.category}</span>
+            </p>
+
+            <p>{e.desc}</p>
+
+            <a href={e.href} aria-label={`Відкрити матеріали: ${e.title}`}>Дивитися матеріали</a>
+          </article>
+        ))}
+      </div>
+
+      <div class="view-more-container">
+        <a href="/gallery" class="btn" aria-label="Перейти до галереї">
+          Галерея
+        </a>
+        <a href="/publications" class="btn" aria-label="Перейти до публікацій">
+          Публікації
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="trust-block">
+    <div class="container">
+      <h2 class="section-title">Питання, які часто виникають</h2>
+
+      <div class="activities-grid">
+        <div class="activity-card">
+          <h3>Де дивитися актуальний розклад?</h3>
+          <p>
+            У Facebook-групі: там найшвидше зʼявляються анонси, адреси та потреби.
+          </p>
+          <div style="margin-top:16px;">
+            <a class="btn" href={links.facebookGroup} target="_blank" rel="noopener noreferrer"
+               aria-label="Відкрити Facebook-групу (нове вікно)">
+              Відкрити Facebook
+            </a>
+          </div>
+        </div>
+
+        <div class="activity-card">
+          <h3>Чи потрібна реєстрація?</h3>
+          <p>
+            Залежить від формату. Напиши нам — підкажемо, що саме потрібно для конкретної події.
+          </p>
+          <div style="margin-top:16px;">
+            <a class="btn" href="/contacts" aria-label="Перейти до контактів">Контакти</a>
+          </div>
+        </div>
+
+        <div class="activity-card">
+          <h3>Хочу допомогти, але не знаю чим</h3>
+          <p>
+            Це нормально. Заповни коротку анкету — ми підберемо роль і пояснимо перші кроки.
+          </p>
+          <div style="margin-top:16px;">
+            <a class="btn" href="/join" aria-label="Заповнити анкету волонтера">Анкета волонтера</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FINAL CTA -->
+  <section class="activities">
+    <div class="container">
+      <h2 class="section-title">Долучайся до наступної події</h2>
+
+      <div class="activities-grid">
+        <div class="activity-card">
+          <h3>Підтримай донатом</h3>
+          <p>Кожен внесок перетворюється на конкретну допомогу за запитами.</p>
+          <div style="margin-top:16px;">
+            <a class="btn" href="/donate" aria-label="Підтримати донатом">Підтримати</a>
+          </div>
+        </div>
+
+        <div class="activity-card">
+          <h3>Стань волонтером</h3>
+          <p>Якщо не трудно, заповни анкету — ми швидко зорієнтуємо.</p>
+          <div style="margin-top:16px;">
+            <a class="btn" href="/join" aria-label="Стати волонтером">Заповнити анкету</a>
+          </div>
+        </div>
+
+        <div class="activity-card">
+          <h3>Запропонувати подію</h3>
+          <p>Маєш ідею, партнерів або локацію? Напиши — обговоримо формат і безпеку.</p>
+          <div style="margin-top:16px;">
+            <a class="btn" href="/contacts" aria-label="Зв’язатися">Зв’язатися</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Легкий фільтр архіву -->
+  <script is:inline>
+    {`
+      (function () {
+        const root = document.querySelector('[data-archive]');
+        const buttons = Array.from(document.querySelectorAll('.filter-btn[data-filter]'));
+        if (!root || !buttons.length) return;
+
+        const items = Array.from(root.querySelectorAll('.news-item[data-category]'));
+
+        const setActive = (btn) => {
+          buttons.forEach((b) => {
+            const on = b === btn;
+            b.classList.toggle('is-active', on);
+            b.setAttribute('aria-pressed', on ? 'true' : 'false');
+          });
+        };
+
+        const apply = (key) => {
+          items.forEach((el) => {
+            const cat = el.getAttribute('data-category') || '';
+            const show = key === 'all' ? true : cat === key;
+            el.style.display = show ? '' : 'none';
+          });
+        };
+
+        buttons.forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const key = btn.getAttribute('data-filter') || 'all';
+            setActive(btn);
+            apply(key);
+          });
+        });
+
+        // init
+        apply('all');
+      })();
+    `}
+  </script>
+</Base>

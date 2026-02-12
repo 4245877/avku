@@ -1,0 +1,68 @@
+# =========================
+# OS / Editor
+# =========================
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# =========================
+# Node / Package managers
+# =========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# =========================
+# Env / Secrets
+# =========================
+.env
+.env.*
+!.env.example
+
+# =========================
+# Builds / Dist
+# =========================
+dist/
+build/
+out/
+coverage/
+*.tsbuildinfo
+
+# =========================
+# Astro
+# =========================
+apps/web/.astro/
+apps/web/.astro-cache/
+apps/web/.cache/
+apps/web/dist/
+
+# =========================
+# Vercel
+# =========================
+.vercel/
+
+# =========================
+# Logs
+# =========================
+logs/
+*.log
+
+# =========================
+# Local / Temp
+# =========================
+tmp/
+temp/
+.cache/
