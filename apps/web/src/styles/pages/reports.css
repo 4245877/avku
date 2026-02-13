@@ -7,7 +7,16 @@
 #reports {
   /* если в проекте уже есть переменная высоты хедера — она подхватится */
   --reports-header-offset: var(--header-height, var(--site-header-height, 48px));
+
+  /* тонкая настройка расстояния между "Показано..." и списком */
+  --reports-list-gap: 0px; /* поставь var(--space-2) если нужен "воздух" */
+  --reports-list-nudge: 0px; /* если нужно чуть выше: calc(var(--space-2) * -1) */
+
   padding-top: calc(var(--reports-header-offset) + var(--space-6));
+
+  /* prevent horizontal overflow */
+  max-width: 100%;
+  overflow-x: clip; /* современно и безопасно */
 }
 
 /* ========== PAGE HERO ========== */
@@ -82,7 +91,6 @@
   line-height: var(--leading-relaxed);
   animation: fadeInUp var(--duration-slow) var(--ease-smooth) 0.1s both;
 }
-
 
 /* ========== TRUST WIDGET (Поточний збір) ========== */
 
@@ -197,8 +205,76 @@
   color: var(--dark-900);
 }
 
+/* ========== REPORTS LAYOUT: sidebar (categories) + content (search + posts) ========== */
 
-/* ========== CONTROLS: Фільтри та пошук ========== */
+.reports-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-8);
+  margin: var(--space-12) 0 var(--space-12);
+}
+
+/* Лівий блок (категорії) */
+.reports-sidebar {
+  background: var(--white);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-base);
+  padding: var(--space-6);
+  border: 1px solid transparent;
+}
+
+.reports-sidebar__title {
+  margin: 0 0 var(--space-4);
+  font-weight: var(--font-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+}
+
+/* Правий блок (пошук + список) */
+.reports-content {
+  min-width: 0;
+}
+
+.reports-searchbar {
+  margin-bottom: var(--space-6);
+  animation: fadeInUp var(--duration-slow) var(--ease-smooth) 0.3s both;
+}
+
+/* щоб не було “подвійних” відступів над списком */
+.reports-content .reports-list {
+  margin-top: 0;
+}
+
+/* ПК: категорії зліва, контент справа */
+@media (min-width: 1024px) {
+  .reports-layout {
+    grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  /* зручно: фільтри “прилипають” при скролі */
+  .reports-sidebar {
+    position: sticky;
+    top: calc(var(--reports-header-offset) + var(--space-6));
+  }
+
+  .reports-filters--sidebar {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-2);
+  }
+
+  .reports-filters--sidebar .filter-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: left;
+    white-space: normal;
+  }
+}
+
+/* ========== CONTROLS: Фільтри та пошук (совместимость со старой разметкой) ========== */
 
 .reports-controls {
   margin: var(--space-12) 0 var(--space-6);
@@ -227,7 +303,9 @@
   gap: var(--space-2);
 }
 
-.reports-search input {
+/* Единый стиль для input в старой и новой разметке */
+.reports-search input,
+.reports-searchbar input {
   width: 100%;
   padding: var(--space-4) var(--space-5);
   font-size: var(--text-base);
@@ -238,11 +316,13 @@
   box-shadow: var(--shadow-sm);
 }
 
-.reports-search input:hover {
+.reports-search input:hover,
+.reports-searchbar input:hover {
   border-color: var(--primary-light);
 }
 
-.reports-search input:focus {
+.reports-search input:focus,
+.reports-searchbar input:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 4px var(--primary-lightest), var(--shadow-base);
   transform: translateY(-1px);
@@ -315,24 +395,20 @@
   margin: var(--space-2) 0 0;
 }
 
-/* ========== LAYOUT FIXES: gap between count and list ========== */
-#reports {
-  /* тонкая настройка расстояния между "Показано..." и списком */
-  --reports-list-gap: 0px; /* поставь var(--space-2) если нужен "воздух" */
-  --reports-list-nudge: 0px; /* если нужно чуть выше: calc(var(--space-2) * -1) */
+/* Управляем верхним отступом списка через переменные (для новой разметки) */
+#reports .reports-content .reports-list {
+  margin-top: calc(var(--reports-list-gap) + var(--reports-list-nudge)) !important;
 }
 
-/* если глобальные стили дают margin у <section> — убираем именно тут */
+/* Если в старой разметке список стоит отдельной секцией — оставляем совместимость */
 #reports .reports-controls + section[aria-label="Список звітів"] {
   margin-top: 0 !important;
   padding-top: 0 !important;
 }
 
-/* верхний отступ списка управляем переменными */
 #reports .reports-controls + section[aria-label="Список звітів"] > .reports-list {
   margin-top: calc(var(--reports-list-gap) + var(--reports-list-nudge)) !important;
 }
-
 
 /* ========== REPORTS LIST ========== */
 
@@ -393,7 +469,6 @@
 .report-card > article:hover::before {
   transform: scaleX(1);
 }
-
 
 /* ========== REPORT CARD HEADER ========== */
 
@@ -457,7 +532,6 @@
   line-height: var(--leading-relaxed);
   margin: 0;
 }
-
 
 /* ========== REPORT MEDIA (INLINE PREVIEW / GALLERY) ========== */
 
@@ -549,7 +623,6 @@
   transform: translateY(0);
 }
 
-
 /* ========== REPORT CARD ACTIONS ========== */
 
 .report-card__actions {
@@ -587,7 +660,6 @@
   background: var(--primary-lightest);
   border-color: var(--primary);
 }
-
 
 /* ========== REPORT CARD DETAILS (accordion) ========== */
 
@@ -636,7 +708,6 @@ details[open] .report-card__summary-toggle::before {
 details[open] .report-card__summary-toggle {
   margin-bottom: var(--space-6);
 }
-
 
 /* ========== REPORT DOCS ========== */
 
@@ -688,7 +759,6 @@ details[open] .report-card__summary-toggle {
   transform: translateX(4px);
 }
 
-
 /* ========== REPORT NEXT STEPS (trust loop) ========== */
 
 .report-next-steps {
@@ -724,7 +794,6 @@ details[open] .report-card__summary-toggle {
   min-width: 160px;
 }
 
-
 /* ========== OFFICIAL DOCS SECTION ========== */
 
 .reports-official {
@@ -755,7 +824,6 @@ details[open] .report-card__summary-toggle {
   font-size: var(--text-lg);
   color: var(--dark-600);
 }
-
 
 /* ========== RETURN LOOP SECTION ========== */
 
@@ -832,7 +900,6 @@ details[open] .report-card__summary-toggle {
 .reports-return__actions .btn {
   min-width: 180px;
 }
-
 
 /* ========== LIGHTBOX (dialog) ========== */
 
@@ -962,23 +1029,6 @@ details[open] .report-card__summary-toggle {
   box-shadow: var(--focus-ring);
 }
 
-@media (max-width: 520px) {
-  .media-lightbox__content {
-    gap: var(--space-2);
-    padding: var(--space-4);
-  }
-
-  .media-lightbox__nav {
-    font-size: 28px;
-    padding: var(--space-2) var(--space-3);
-  }
-
-  .media-lightbox__figure img {
-    max-height: 68vh;
-  }
-}
-
-
 /* ========== MUTED TEXT ========== */
 
 .muted {
@@ -986,7 +1036,6 @@ details[open] .report-card__summary-toggle {
   font-size: var(--text-sm);
   font-weight: var(--font-regular);
 }
-
 
 /* ========== АДАПТИВНІСТЬ ========== */
 
@@ -1021,8 +1070,17 @@ details[open] .report-card__summary-toggle {
     gap: var(--space-4);
   }
 
+  /* на мобилке твой nowrap у фильтров может упираться в “min-content” и давать перелив */
+  .reports-filters {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2);
+  }
+
   .filter-btn {
-    flex: 1;
+    min-width: 0;
+    max-width: 100%;
+    white-space: normal; /* переопределяем nowrap */
     text-align: center;
   }
 
@@ -1071,7 +1129,6 @@ details[open] .report-card__summary-toggle {
   }
 }
 
-
 /* ========== АНІМАЦІЇ ДЛЯ ВЗАЄМОДІЇ ========== */
 
 /* Smooth scroll для якорних посилань */
@@ -1098,7 +1155,6 @@ html {
   opacity: 1;
   transform: translateY(0);
 }
-
 
 /* ========== ACCESSIBILITY ========== */
 
@@ -1146,7 +1202,6 @@ html {
   }
 }
 
-
 /* ========== СТАН ЗАВАНТАЖЕННЯ ========== */
 
 .trust-widget[aria-busy="true"] .trust-widget__title,
@@ -1157,7 +1212,6 @@ html {
   user-select: none;
   pointer-events: none;
 }
-
 
 /* ========== EMPTY STATE ========== */
 
@@ -1187,7 +1241,6 @@ html {
   margin: 0 auto;
 }
 
-
 /* ========== PRINT STYLES ========== */
 
 @media print {
@@ -1210,6 +1263,7 @@ html {
 
   .filter-btn,
   .reports-search,
+  .reports-searchbar,
   .trust-widget,
   .report-card__actions,
   .report-next-steps {
@@ -1225,17 +1279,10 @@ html {
   }
 }
 
-
-
-/* ========== REPORTS: prevent horizontal overflow ========== */
-
-/* 1) не даём странице раздуваться по X */
-#reports {
-  max-width: 100%;
-  overflow-x: clip; /* современно и безопасно */
-}
+/* ========== REPORTS: prevent horizontal overflow (children) ========== */
 
 /* 2) важное: в flex/grid дети по умолчанию могут не сжиматься из-за min-width:auto */
+.reports-layout,
 .reports-controls__row,
 .trust-widget__head,
 .trust-widget__meta,
@@ -1257,25 +1304,26 @@ html {
   word-break: break-word;
 }
 
-/* 3) на мобилке твой nowrap у фильтров может упираться в “min-content” и давать перелив */
-@media (max-width: 640px) {
-  .reports-filters {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-2);
-  }
-
-  .filter-btn {
-    min-width: 0;
-    max-width: 100%;
-    white-space: normal; /* переопределяем nowrap */
-  }
-}
-
 /* 4) на всякий случай: медиа не расширяет контейнер */
 .report-media__link,
 .report-media__item,
 .report-media__item figure,
 .report-media__item img {
   max-width: 100%;
+}
+
+@media (max-width: 520px) {
+  .media-lightbox__content {
+    gap: var(--space-2);
+    padding: var(--space-4);
+  }
+
+  .media-lightbox__nav {
+    font-size: 28px;
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .media-lightbox__figure img {
+    max-height: 68vh;
+  }
 }

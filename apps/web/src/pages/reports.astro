@@ -94,20 +94,12 @@ const categoryLabel = (id) => {
       </div>
     </section>
 
-    <section class="reports-controls" aria-label="Фільтри та пошук">
-      <div class="reports-controls__row">
-        <label class="reports-search">
-          <span class="muted" data-translate="reports_search_label">Пошук по звітах</span>
-          <input
-            id="reportsSearch"
-            type="search"
-            placeholder="Почни вводити ключові слова…"
-            data-translate-placeholder="reports_search_placeholder"
-            autocomplete="off"
-          />
-        </label>
+    <section class="reports-layout" aria-label="Фільтри, пошук та список звітів">
+      {/* ЛІВОРУЧ: категорії */}
+      <aside class="reports-sidebar" aria-label="Категорії">
+        <p class="reports-sidebar__title muted">Категорії</p>
 
-        <div class="reports-filters" role="tablist" aria-label="Фільтр категорій">
+        <div class="reports-filters reports-filters--sidebar" role="tablist" aria-label="Фільтр категорій">
           {categories.map((c) => (
             <button
               type="button"
@@ -121,146 +113,159 @@ const categoryLabel = (id) => {
             </button>
           ))}
         </div>
-      </div>
+      </aside>
 
-      <p class="muted" id="reportsCount" aria-live="polite"></p>
-    </section>
+      {/* ПРАВОРУЧ: пошук + лічильник + пости */}
+      <div class="reports-content">
+        <div class="reports-searchbar">
+          <label class="reports-search">
+            <span class="muted" data-translate="reports_search_label">Пошук по звітах</span>
+            <input
+              id="reportsSearch"
+              type="search"
+              placeholder="Почни вводити ключові слова…"
+              data-translate-placeholder="reports_search_placeholder"
+              autocomplete="off"
+            />
+          </label>
 
-    <section aria-label="Список звітів">
-      <ul class="reports-list" id="reportsList">
-        {reportsSorted.map((r) => {
-          const titleFallback = String(r.titleFallback ?? "");
-          const summaryFallback = String(r.summaryFallback ?? "");
-          const catText = categoryLabel(String(r.category ?? "other"));
-          const searchText = `${titleFallback} ${summaryFallback} ${catText}`.toLowerCase();
+          <p class="muted" id="reportsCount" aria-live="polite"></p>
+        </div>
 
-          const reportId = String(r.id ?? "");
-          const media = Array.isArray(r.media) ? r.media : [];
+        <section aria-label="Список звітів">
+          <ul class="reports-list" id="reportsList">
+            {reportsSorted.map((r) => {
+              const titleFallback = String(r.titleFallback ?? "");
+              const summaryFallback = String(r.summaryFallback ?? "");
+              const catText = categoryLabel(String(r.category ?? "other"));
+              const searchText = `${titleFallback} ${summaryFallback} ${catText}`.toLowerCase();
 
-          return (
-            <li
-              class="report-card"
-              data-category={String(r.category ?? "other")}
-              data-search={searchText}
-              id={`report-${reportId}`}
-            >
-              <article>
-                <header class="report-card__header">
-                  <div class="report-card__meta">
-                    <time datetime={String(r.dateISO ?? "")} class="muted">{formatDate(r.dateISO)}</time>
-                    <span class="badge" aria-label="Категорія">{catText}</span>
-                  </div>
+              const reportId = String(r.id ?? "");
+              const media = Array.isArray(r.media) ? r.media : [];
 
-                  <h2 class="report-card__title" data-translate={r.titleKey}>{titleFallback}</h2>
-                  <p class="report-card__summary" data-translate={r.summaryKey}>{summaryFallback}</p>
-                </header>
+              return (
+                <li
+                  class="report-card"
+                  data-category={String(r.category ?? "other")}
+                  data-search={searchText}
+                  id={`report-${reportId}`}
+                >
+                  <article>
+                    <header class="report-card__header">
+                      <div class="report-card__meta">
+                        <time datetime={String(r.dateISO ?? "")} class="muted">{formatDate(r.dateISO)}</time>
+                        <span class="badge" aria-label="Категорія">{catText}</span>
+                      </div>
 
-                {/* ✅ Фото тепер видно одразу в картці */}
-                {media.length ? (
-                  <section class="report-media report-media--inline" aria-label="Фото">
-                    <ul class="report-media__grid">
-                      {media.map((m, idx) => (
-                        <li class="report-media__item">
-                          <a
-                            class="report-media__link"
-                            href={url(m.src)}
-                            data-media-thumb="1"
-                            data-report={reportId}
-                            data-index={String(idx)}
-                            data-src={url(m.src)}
-                            data-alt={String(m.alt ?? "")}
-                            data-caption={String(m.caption ?? "")}
-                            data-title={titleFallback}
-                          >
-                            <figure>
-                              <img
-                                src={url(m.src)}
-                                alt={m.alt || ""}
-                                loading="lazy"
-                              />
-                              {m.caption ? <figcaption class="muted">{m.caption}</figcaption> : null}
-                            </figure>
+                      <h2 class="report-card__title" data-translate={r.titleKey}>{titleFallback}</h2>
+                      <p class="report-card__summary" data-translate={r.summaryKey}>{summaryFallback}</p>
+                    </header>
+
+                    {media.length ? (
+                      <section class="report-media report-media--inline" aria-label="Фото">
+                        <ul class="report-media__grid">
+                          {media.map((m, idx) => (
+                            <li class="report-media__item">
+                              <a
+                                class="report-media__link"
+                                href={url(m.src)}
+                                data-media-thumb="1"
+                                data-report={reportId}
+                                data-index={String(idx)}
+                                data-src={url(m.src)}
+                                data-alt={String(m.alt ?? "")}
+                                data-caption={String(m.caption ?? "")}
+                                data-title={titleFallback}
+                              >
+                                <figure>
+                                  <img
+                                    src={url(m.src)}
+                                    alt={m.alt || ""}
+                                    loading="lazy"
+                                  />
+                                  {m.caption ? <figcaption class="muted">{m.caption}</figcaption> : null}
+                                </figure>
+                              </a>
+                            </li>
+                          ))}
+                        </ul>
+                      </section>
+                    ) : (
+                      <p class="muted" data-translate="reports_no_media">
+                        Фото для цього звіту буде додано, якщо не трудно.
+                      </p>
+                    )}
+
+                    <div class="report-card__actions">
+                      {r.donation?.href ? (
+                        <a class="btn btn-outline" href={url(r.donation.href)} data-translate={r.donation.labelKey}>
+                          {r.donation.labelFallback}
+                        </a>
+                      ) : null}
+
+                      {r.social?.href ? (
+                        <a class="btn btn-outline" href={url(r.social.href)} target="_blank" rel="noopener">
+                          <span data-translate={r.social.labelKey}>{r.social.labelFallback}</span>
+                        </a>
+                      ) : null}
+
+                      <a class="btn btn-primary" href={url("donate")} data-translate="reports_support_btn">
+                        Підтримати
+                      </a>
+                    </div>
+
+                    <details class="report-card__details">
+                      <summary class="report-card__summary-toggle" data-translate="reports_details_toggle">
+                        Деталі: документи та посилання
+                      </summary>
+
+                      {r.docs?.length ? (
+                        <div class="report-docs" aria-label="Документи">
+                          <strong data-translate="reports_docs_title">Документи/підтвердження</strong>
+                          <ul>
+                            {r.docs.map((d) => (
+                              <li>
+                                <a href={url(d.href)} class="link" data-translate={d.labelKey}>
+                                  {d.labelFallback}
+                                </a>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : (
+                        <p class="muted" data-translate="reports_no_docs">
+                          Документи для цього кейсу дивись у розділі «Публікації».
+                        </p>
+                      )}
+
+                      <div class="report-next-steps" aria-label="Наступні кроки">
+                        <strong data-translate="reports_next_title">Хочеш бачити результат частіше?</strong>
+                        <div class="report-next-steps__actions">
+                          <a class="btn btn-primary" href={url("donate")} data-translate="reports_next_donate">
+                            Підтримати наступний крок
                           </a>
-                        </li>
-                      ))}
-                    </ul>
-                  </section>
-                ) : (
-                  <p class="muted" data-translate="reports_no_media">
-                    Фото для цього звіту буде додано, якщо не трудно.
-                  </p>
-                )}
-
-                <div class="report-card__actions">
-                  {r.donation?.href ? (
-                    <a class="btn btn-outline" href={url(r.donation.href)} data-translate={r.donation.labelKey}>
-                      {r.donation.labelFallback}
-                    </a>
-                  ) : null}
-
-                  {r.social?.href ? (
-                    <a class="btn btn-outline" href={url(r.social.href)} target="_blank" rel="noopener">
-                      <span data-translate={r.social.labelKey}>{r.social.labelFallback}</span>
-                    </a>
-                  ) : null}
-
-                  <a class="btn btn-primary" href={url("donate")} data-translate="reports_support_btn">
-                    Підтримати
-                  </a>
-                </div>
-
-                {/* ✅ Деталі лишаємо для документів/посилань */}
-                <details class="report-card__details">
-                  <summary class="report-card__summary-toggle" data-translate="reports_details_toggle">
-                    Деталі: документи та посилання
-                  </summary>
-
-                  {/* DOCS */}
-                  {r.docs?.length ? (
-                    <div class="report-docs" aria-label="Документи">
-                      <strong data-translate="reports_docs_title">Документи/підтвердження</strong>
-                      <ul>
-                        {r.docs.map((d) => (
-                          <li>
-                            <a href={url(d.href)} class="link" data-translate={d.labelKey}>
-                              {d.labelFallback}
-                            </a>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ) : (
-                    <p class="muted" data-translate="reports_no_docs">
-                      Документи для цього кейсу дивись у розділі «Публікації».
-                    </p>
-                  )}
-
-                  <div class="report-next-steps" aria-label="Наступні кроки">
-                    <strong data-translate="reports_next_title">Хочеш бачити результат частіше?</strong>
-                    <div class="report-next-steps__actions">
-                      <a class="btn btn-primary" href={url("donate")} data-translate="reports_next_donate">
-                        Підтримати наступний крок
-                      </a>
-                      <a
-                        class="btn btn-outline"
-                        href="https://www.facebook.com/groups/555103805361838"
-                        target="_blank"
-                        rel="noopener"
-                        data-translate="reports_next_follow"
-                      >
-                        Слідкувати у Facebook
-                      </a>
-                      <a class="btn btn-outline" href={url("contacts")} data-translate="reports_next_contact">
-                        Зв’язатися
-                      </a>
-                    </div>
-                  </div>
-                </details>
-              </article>
-            </li>
-          );
-        })}
-      </ul>
+                          <a
+                            class="btn btn-outline"
+                            href="https://www.facebook.com/groups/555103805361838"
+                            target="_blank"
+                            rel="noopener"
+                            data-translate="reports_next_follow"
+                          >
+                            Слідкувати у Facebook
+                          </a>
+                          <a class="btn btn-outline" href={url("contacts")} data-translate="reports_next_contact">
+                            Зв’язатися
+                          </a>
+                        </div>
+                      </div>
+                    </details>
+                  </article>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      </div>
     </section>
 
     <section class="reports-official" aria-label="Офіційні звіти та документи">
