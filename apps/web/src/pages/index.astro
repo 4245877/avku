@@ -4,6 +4,12 @@ import "../styles/pages/home.css";
 import fs from "node:fs";
 import reportsData from "../data/reports.json";
 
+const formatCounter = (n) => {
+  const num = Number(n);
+  if (!Number.isFinite(num) || num <= 0) return "-";
+  return new Intl.NumberFormat("uk-UA").format(num);
+};
+
 const lang = "uk";
 const title =
   'ГС «Асоціація волонтерських команд України» — допомога ЗСУ, гуманітарна підтримка, волонтерські ініціативи';
@@ -80,10 +86,10 @@ const activities = [
 
 // Показники (оновлюйте обережно: тільки реальні дані)
 const counters = [
-  { target: 5250000, labelKey: "funds_raised", labelFallback: "Зібрано коштів (₴)" },
-  { target: 86, labelKey: "cars_purchased", labelFallback: "Закуплено автомобілів" },
-  { target: 215, labelKey: "drones_delivered", labelFallback: "Передано дронів" },
-  { target: 1500, labelKey: "nets_made", labelFallback: "Сплетено маскувальних сіток" },
+  { target: 0, labelKey: "funds_raised", labelFallback: "Зібрано коштів (₴)" },
+  { target: 11, labelKey: "cars_purchased", labelFallback: "Закуплено автомобілів" },
+  { target: 42, labelKey: "drones_delivered", labelFallback: "Передано дронів" },
+  { target: 3120, labelKey: "nets_made", labelFallback: "Сплетено маскувальних сіток" },
 ];
 
 // Фотозвіти (беремо 3 останні пости з reports.json)
@@ -476,7 +482,9 @@ const orgJsonLd = {
       <div class="counters-container">
         {counters.map((c) => (
           <div class="counter-item">
-            <div class="counter" data-target={String(c.target)}>-</div>
+            <div class="counter" data-target={String(c.target)}>
+              {formatCounter(c.target)}
+            </div>
             <p class="counter-label" data-translate={c.labelKey}>{c.labelFallback}</p>
           </div>
         ))}
@@ -641,72 +649,79 @@ const orgJsonLd = {
   </section>
 
   <!-- Легкий скрипт для лічильників -->
-  <script is:inline>
+  <script is:inline data-astro-rerun>
   {`
-    (function () {
-      function run() {
-        const els = Array.from(document.querySelectorAll('.counter[data-target]'));
-        if (!els.length) return;
+(function () {
+  function run() {
+    const els = Array.from(document.querySelectorAll('.counter[data-target]'));
+    if (!els.length) return;
 
-        const prefersReduced =
-          window.matchMedia &&
-          window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const prefersReduced =
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 
-        const format = (n) => {
-          try { return Number(n).toLocaleString('uk-UA'); }
-          catch { return String(n); }
-        };
+    const format = (n) => {
+      try { return Number(n).toLocaleString('uk-UA'); }
+      catch { return String(n); }
+    };
 
-        const setFinal = (el) => {
-          const target = Number(el.getAttribute('data-target') || '0');
-          el.textContent = Number.isFinite(target) && target > 0 ? format(target) : '-';
-        };
+    const setFinal = (el) => {
+      const target = Number(el.getAttribute('data-target') || '0');
+      el.textContent = Number.isFinite(target) && target > 0 ? format(target) : '-';
+    };
 
-        if (prefersReduced) {
-          els.forEach(setFinal);
-          return;
+    // Фоллбек: если анимация/observer недоступны — просто показать финальные числа
+    if (prefersReduced || !('IntersectionObserver' in window)) {
+      els.forEach(setFinal);
+      return;
+    }
+
+    const animate = (el) => {
+      if (el.dataset.animated === '1') return;
+      el.dataset.animated = '1';
+
+      const target = Number(el.getAttribute('data-target') || '0');
+      if (!Number.isFinite(target) || target <= 0) {
+        el.textContent = '-';
+        return;
+      }
+
+      const duration = 1100;
+      const start = performance.now();
+
+      function tick(now) {
+        const t = Math.min(1, (now - start) / duration);
+        const eased = 1 - Math.pow(1 - t, 3);
+        const value = Math.floor(target * eased);
+        el.textContent = format(value);
+        if (t < 1) requestAnimationFrame(tick);
+        else el.textContent = format(target);
+      }
+
+      requestAnimationFrame(tick);
+    };
+
+    const io = new IntersectionObserver((entries, obs) => {
+      for (const e of entries) {
+        if (e.isIntersecting) {
+          animate(e.target);
+          obs.unobserve(e.target);
         }
-
-        const animate = (el) => {
-          const target = Number(el.getAttribute('data-target') || '0');
-          if (!Number.isFinite(target) || target <= 0) {
-            el.textContent = '-';
-            return;
-          }
-
-          const duration = 1100;
-          const start = performance.now();
-
-          function tick(now) {
-            const t = Math.min(1, (now - start) / duration);
-            const eased = 1 - Math.pow(1 - t, 3);
-            const value = Math.floor(target * eased);
-            el.textContent = format(value);
-            if (t < 1) requestAnimationFrame(tick);
-            else el.textContent = format(target);
-          }
-
-          requestAnimationFrame(tick);
-        };
-
-        const io = new IntersectionObserver((entries, obs) => {
-          for (const e of entries) {
-            if (e.isIntersecting) {
-              animate(e.target);
-              obs.unobserve(e.target);
-            }
-          }
-        }, { threshold: 0.2 });
-
-        els.forEach((el) => io.observe(el));
       }
+    }, { threshold: 0.2 });
 
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', run, { once: true });
-      } else {
-        run();
-      }
-    })();
+    els.forEach((el) => io.observe(el));
+  }
+
+  // Astro transitions (и обычная загрузка тоже)
+  document.addEventListener('astro:page-load', run);
+
+  // На случай если transitions нет
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', run, { once: true });
+  } else {
+    run();
+  }
+})();
   `}
 </script>
 
