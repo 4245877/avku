@@ -645,4 +645,6 @@ module.exports = async (req, res) => {
   // важно: запланировать обработку, иначе Vercel может остановить выполнение
   waitUntil(processUpdate(update));
   return;
+
+  
 };
