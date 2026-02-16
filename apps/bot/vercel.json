@@ -1,5 +1,10 @@
 ﻿{
   "functions": {
+    "api/tg-reports-webhook.js": {
+      "runtime": "nodejs20.x",
+      "regions": ["fra1"],
+      "maxDuration": 300
+    },
     "api/**/*.js": {
       "runtime": "nodejs20.x",
       "regions": ["fra1"]
