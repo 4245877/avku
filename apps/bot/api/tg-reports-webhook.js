@@ -13,6 +13,41 @@ const GALLERY_FOLDER = process.env.GALLERY_FOLDER || "Фото звіт 2026";
 const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 const GITHUB_BRANCH = process.env.GITHUB_BRANCH || "main";
 
+function getMsg(update) {
+  return (
+    update?.message ||
+    update?.edited_message ||
+    update?.channel_post ||
+    update?.edited_channel_post ||
+    update?.callback_query?.message ||
+    null
+  );
+}
+
+function extractCommands(msg) {
+  const text = msg?.text || msg?.caption || "";
+  const ents = msg?.entities || msg?.caption_entities || [];
+  const out = new Set();
+
+  for (const e of ents) {
+    if (e.type !== "bot_command") continue;
+    const raw = text.slice(e.offset, e.offset + e.length); // "/publish@Bot"
+    const cmd = raw
+      .split(/\s+/)[0]
+      .replace(/@[\w_]+$/i, "")
+      .toLowerCase();
+    out.add(cmd);
+  }
+
+  // запасной вариант, если entities нет
+  if (out.size === 0 && text) {
+    const m = text.match(/(^|\s)(\/[a-z0-9_]+)(@[\w_]+)?(\s|$)/i);
+    if (m?.[2]) out.add(m[2].toLowerCase());
+  }
+
+  return out;
+}
+
 function encGhPath(path) {
   return path.split("/").map(encodeURIComponent).join("/");
 }
@@ -47,12 +82,72 @@ function stripMeta(text) {
 
 function slugifyUA(str) {
   const map = {
-    а:"a",б:"b",в:"v",г:"h",ґ:"g",д:"d",е:"e",є:"ie",ж:"zh",з:"z",и:"y",і:"i",ї:"i",й:"i",
-    к:"k",л:"l",м:"m",н:"n",о:"o",п:"p",р:"r",с:"s",т:"t",у:"u",ф:"f",х:"kh",ц:"ts",ч:"ch",
-    ш:"sh",щ:"shch",ь:"",ю:"iu",я:"ia",
-    А:"a",Б:"b",В:"v",Г:"h",Ґ:"g",Д:"d",Е:"e",Є:"ie",Ж:"zh",З:"z",И:"y",І:"i",Ї:"i",Й:"i",
-    К:"k",Л:"l",М:"m",Н:"n",О:"o",П:"p",Р:"r",С:"s",Т:"t",У:"u",Ф:"f",Х:"kh",Ц:"ts",Ч:"ch",
-    Ш:"sh",Щ:"shch",Ь:"",Ю:"iu",Я:"ia",
+    а: "a",
+    б: "b",
+    в: "v",
+    г: "h",
+    ґ: "g",
+    д: "d",
+    е: "e",
+    є: "ie",
+    ж: "zh",
+    з: "z",
+    и: "y",
+    і: "i",
+    ї: "i",
+    й: "i",
+    к: "k",
+    л: "l",
+    м: "m",
+    н: "n",
+    о: "o",
+    п: "p",
+    р: "r",
+    с: "s",
+    т: "t",
+    у: "u",
+    ф: "f",
+    х: "kh",
+    ц: "ts",
+    ч: "ch",
+    ш: "sh",
+    щ: "shch",
+    ь: "",
+    ю: "iu",
+    я: "ia",
+    А: "a",
+    Б: "b",
+    В: "v",
+    Г: "h",
+    Ґ: "g",
+    Д: "d",
+    Е: "e",
+    Є: "ie",
+    Ж: "zh",
+    З: "z",
+    И: "y",
+    І: "i",
+    Ї: "i",
+    Й: "i",
+    К: "k",
+    Л: "l",
+    М: "m",
+    Н: "n",
+    О: "o",
+    П: "p",
+    Р: "r",
+    С: "s",
+    Т: "t",
+    У: "u",
+    Ф: "f",
+    Х: "kh",
+    Ц: "ts",
+    Ч: "ch",
+    Ш: "sh",
+    Щ: "shch",
+    Ь: "",
+    Ю: "iu",
+    Я: "ia",
   };
   const tr = (str || "")
     .split("")
@@ -89,7 +184,10 @@ async function tgSend(chatId, text) {
 
   // если телега вернула ошибку — не молчим
   const j = await r.json().catch(() => null);
-  if (!j?.ok) throw new Error(`Telegram sendMessage failed: ${j?.description || r.status}`);
+  if (!j?.ok)
+    throw new Error(
+      `Telegram sendMessage failed: ${j?.description || r.status}`
+    );
 }
 
 async function tgGetFileUrl(fileId) {
@@ -176,7 +274,9 @@ async function ghRequest(method, urlPath, body) {
 
   const text = await r.text();
   let json = null;
-  try { json = text ? JSON.parse(text) : null; } catch {}
+  try {
+    json = text ? JSON.parse(text) : null;
+  } catch {}
   if (!r.ok) throw new Error(`GitHub API error: ${json?.message || text || r.status}`);
   return json;
 }
@@ -275,7 +375,10 @@ function extractPhotoFileIds(msg) {
 module.exports = async (req, res) => {
   // Telegram secret header (ты задавал secret_token при setWebhook)
   const secretHeader = req.headers["x-telegram-bot-api-secret-token"];
-  if (process.env.TG_WEBHOOK_SECRET && secretHeader !== process.env.TG_WEBHOOK_SECRET) {
+  if (
+    process.env.TG_WEBHOOK_SECRET &&
+    secretHeader !== process.env.TG_WEBHOOK_SECRET
+  ) {
     res.status(401).send("Unauthorized");
     return;
   }
@@ -298,22 +401,55 @@ module.exports = async (req, res) => {
   // Telegram ждёт 200 всегда быстро
   res.status(200).send("OK");
 
-  const msg = update.message || update.channel_post;
-  if (!msg) return;
-
-  const chatId = msg.chat?.id;
-  const fromId = msg.from?.id;
-  if (!chatId || !fromId) return;
-
-  if (!allowedUser(fromId)) {
-    try { await tgSend(chatId, "Вибач, у тебе немає доступу до публікації."); } catch {}
+  const msg = getMsg(update);
+  if (!msg) {
+    console.log("[tg] skip: no msg keys", Object.keys(update || {}));
     return;
   }
 
+  const chatId = msg.chat?.id;
+  const fromId = msg.from?.id || update?.callback_query?.from?.id; // может быть undefined у channel_post
   const text = (msg.text || msg.caption || "").trim();
+  const commands = extractCommands(msg);
+
+  const kind = update.message
+    ? "message"
+    : update.edited_message
+    ? "edited_message"
+    : update.channel_post
+    ? "channel_post"
+    : update.edited_channel_post
+    ? "edited_channel_post"
+    : update.callback_query
+    ? "callback_query"
+    : "other";
+
+  console.log("[tg] update", {
+    update_id: update?.update_id,
+    kind,
+    chatId,
+    fromId,
+    text: text.slice(0, 80),
+    commands: Array.from(commands),
+  });
+
+  if (!chatId) return;
+
+  // если ты НЕ планируешь постить из каналов — просто игнорируй такие апдейты явно:
+  if (!fromId) {
+    console.log("[tg] skip: no fromId (likely channel_post)");
+    return;
+  }
+
+  if (!allowedUser(fromId)) {
+    try {
+      await tgSend(chatId, "Вибач, у тебе немає доступу до публікації.");
+    } catch {}
+    return;
+  }
 
   // команды
-  if (text === "/start" || text === "/help") {
+  if (commands.has("/start") || commands.has("/help")) {
     await tgSend(
       chatId,
       [
@@ -327,13 +463,13 @@ module.exports = async (req, res) => {
     return;
   }
 
-  if (text === "/cancel") {
+  if (commands.has("/cancel")) {
     await clearDraft(chatId);
     await tgSend(chatId, "Добре. Чернетку скасовано.");
     return;
   }
 
-  if (text === "/publish") {
+  if (commands.has("/publish")) {
     const draft = await loadDraft(chatId);
     if (!draft || !draft.photos?.length) {
       await tgSend(chatId, "Я не бачу чернетки з фото. Надішли текст і фото, будь ласка.");
@@ -355,7 +491,9 @@ module.exports = async (req, res) => {
       const { text: jsonText } = await ghGetFile(REPORTS_JSON_PATH, GITHUB_BRANCH);
 
       let root = {};
-      try { root = JSON.parse(jsonText); } catch {}
+      try {
+        root = JSON.parse(jsonText);
+      } catch {}
       const reports = Array.isArray(root.reports) ? root.reports : [];
 
       let idx = nextIndex(reports, GALLERY_FOLDER);
