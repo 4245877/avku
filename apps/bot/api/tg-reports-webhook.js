@@ -31,6 +31,7 @@ async function fetchRetry(
     try {
       const r = await fetch(url, { ...opts, signal: ac.signal });
       clearTimeout(t);
+
       // ретраим 429 и 5xx
       if (
         (r.status === 429 || (r.status >= 500 && r.status <= 599)) &&
@@ -50,7 +51,9 @@ async function fetchRetry(
       const transient =
         e?.name === "AbortError" ||
         ["ECONNRESET", "ETIMEDOUT", "EAI_AGAIN", "ENOTFOUND"].includes(code);
+
       if (!transient || attempt >= retries) throw e;
+
       const backoff =
         Math.min(5000, 300 * 2 ** attempt) +
         Math.floor(Math.random() * 200);
@@ -75,6 +78,7 @@ function extractCommands(msg) {
   const text = msg?.text || msg?.caption || "";
   const ents = msg?.entities || msg?.caption_entities || [];
   const out = new Set();
+
   for (const e of ents) {
     if (e.type !== "bot_command") continue;
     const raw = text.slice(e.offset, e.offset + e.length); // "/publish@Bot"
@@ -84,11 +88,13 @@ function extractCommands(msg) {
       .toLowerCase();
     out.add(cmd);
   }
+
   // запасной вариант, если entities нет
   if (out.size === 0 && text) {
     const m = text.match(/(^|\s)(\/[a-z0-9_]+)(@[\w_]+)?(\s|$)/i);
     if (m?.[2]) out.add(m[2].toLowerCase());
   }
+
   return out;
 }
 
@@ -215,6 +221,7 @@ function allowedUser(fromId) {
 async function tgSend(chatId, text) {
   const token = process.env.TG_REPORTS_BOT_TOKEN;
   if (!token) throw new Error("Missing TG_REPORTS_BOT_TOKEN");
+
   const r = await fetchRetry(
     `https://api.telegram.org/bot${token}/sendMessage`,
     {
@@ -228,12 +235,13 @@ async function tgSend(chatId, text) {
     },
     { timeoutMs: 12000, retries: 6 }
   );
-  // если телега вернула ошибку — не молчим
+
   const j = await r.json().catch(() => null);
-  if (!j?.ok)
+  if (!j?.ok) {
     throw new Error(
       `Telegram sendMessage failed: ${j?.description || r.status}`
     );
+  }
 }
 
 // мягкая отправка — чтобы сетевые сбои/ошибки телеги не рвали логику
@@ -258,6 +266,7 @@ async function tgGetFileUrl(fileId) {
   );
   const j = await r.json();
   if (!j.ok) throw new Error(`Telegram getFile failed: ${j.description || "?"}`);
+
   const filePath = j.result.file_path;
   const url = `https://api.telegram.org/file/bot${token}/${filePath}`;
   const ext = (filePath.split(".").pop() || "jpg").toLowerCase();
@@ -268,6 +277,7 @@ async function tgGetFileUrl(fileId) {
 async function openaiTransform({ text, nPhotos }) {
   const key = process.env.OPENAI_API_KEY;
   if (!key) throw new Error("Missing OPENAI_API_KEY");
+
   const system = [
     "Ти редактор сайту АВКУ.",
     "Зроби заголовок і короткий підсумок українською.",
@@ -276,6 +286,7 @@ async function openaiTransform({ text, nPhotos }) {
     `Схема: {"title":"...","summary":"...","media":[{"alt":"...","caption":"..."}]}`,
     `Масив media має бути довжини ${nPhotos}.`,
   ].join("\n");
+
   const r = await fetchRetry("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -291,16 +302,20 @@ async function openaiTransform({ text, nPhotos }) {
       ],
     }),
   });
+
   const data = await r.json().catch(() => null);
   if (!r.ok) throw new Error(`OpenAI error: ${data?.error?.message || r.status}`);
+
   let obj = {};
   try {
     obj = JSON.parse(data?.choices?.[0]?.message?.content || "{}");
   } catch {}
+
   const title = String(obj.title || "").trim() || "Фото звіт";
   const summary = String(obj.summary || "").trim() || "Короткий опис події.";
   const media = Array.isArray(obj.media) ? obj.media : [];
   while (media.length < nPhotos) media.push({ alt: "Фото звіт", caption: "" });
+
   return { title, summary, media: media.slice(0, nPhotos) };
 }
 
@@ -309,6 +324,7 @@ async function ghRequest(method, urlPath, body) {
   const repo = process.env.GITHUB_REPO;
   const token = process.env.GITHUB_TOKEN;
   if (!owner || !repo || !token) throw new Error("Missing GitHub env");
+
   const url = `https://api.github.com/repos/${owner}/${repo}${urlPath}`;
   const r = await fetchRetry(url, {
     method,
@@ -320,13 +336,17 @@ async function ghRequest(method, urlPath, body) {
     },
     body: body ? JSON.stringify(body) : undefined,
   });
+
   const text = await r.text();
   let json = null;
   try {
     json = text ? JSON.parse(text) : null;
   } catch {}
-  if (!r.ok)
+
+  if (!r.ok) {
     throw new Error(`GitHub API error: ${json?.message || text || r.status}`);
+  }
+
   return json;
 }
 
@@ -380,12 +400,14 @@ async function ghCommitMany({ branch, message, files }) {
       force: false,
     }
   );
+
   return commit.sha;
 }
 
 function nextIndex(reports, folderName) {
   const prefix = `images/gallery/${folderName}/`;
   let max = 0;
+
   for (const r of reports) {
     for (const m of r.media || []) {
       const src = String(m.src || "");
@@ -395,6 +417,7 @@ function nextIndex(reports, folderName) {
       if (!Number.isNaN(n)) max = Math.max(max, n);
     }
   }
+
   return max + 1;
 }
 
@@ -412,16 +435,19 @@ async function clearDraft(chatId) {
 
 function extractPhotoFileIds(msg) {
   const ids = [];
+
   // обычные фото
   if (Array.isArray(msg.photo) && msg.photo.length) {
     const largest = msg.photo[msg.photo.length - 1];
     if (largest?.file_id) ids.push(largest.file_id);
   }
+
   // если отправят "файлом" (document), но это картинка
   const doc = msg.document;
   if (doc?.file_id && typeof doc.mime_type === "string") {
     if (doc.mime_type.startsWith("image/")) ids.push(doc.file_id);
   }
+
   return ids;
 }
 
@@ -435,7 +461,14 @@ async function processUpdate(update) {
     }
 
     const chatId = msg.chat?.id;
-    const fromId = msg.from?.id || update?.callback_query?.from?.id;
+
+    // ВАЖНО: для callback_query правильный fromId — update.callback_query.from.id
+    const fromId =
+      update?.callback_query?.from?.id ||
+      update?.inline_query?.from?.id ||
+      msg.from?.id ||
+      null;
+
     const text = (msg.text || msg.caption || "").trim();
     const commands = extractCommands(msg);
 
@@ -518,8 +551,7 @@ async function processUpdate(update) {
           const { url, ext } = await tgGetFileUrl(fileId);
 
           const imgRes = await fetchRetry(url, {}, { timeoutMs: 20000, retries: 6 });
-          if (!imgRes.ok)
-            throw new Error(`Photo download failed: ${imgRes.status}`);
+          if (!imgRes.ok) throw new Error(`Photo download failed: ${imgRes.status}`);
 
           const buf = Buffer.from(await imgRes.arrayBuffer());
           const fileName = `${idx}.${ext}`;
@@ -547,7 +579,7 @@ async function processUpdate(update) {
             .digest("hex")
             .slice(0, 10);
 
-        // у тебя логика по годам: report-2026-...
+        // логика по годам: report-2026-...
         let id = `report-${year}-${slug}`;
         const exists = new Set(reports.map((r) => r.id));
         if (exists.has(id)) id = `${id}-${Date.now().toString().slice(-4)}`;
@@ -644,7 +676,4 @@ module.exports = async (req, res) => {
 
   // важно: запланировать обработку, иначе Vercel может остановить выполнение
   waitUntil(processUpdate(update));
-  return;
-
-  
 };
