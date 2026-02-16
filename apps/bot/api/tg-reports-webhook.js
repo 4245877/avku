@@ -3,6 +3,9 @@ const crypto = require("crypto");
 const { Redis } = require("@upstash/redis");
 const { waitUntil } = require("@vercel/functions");
 
+const dns = require("node:dns");
+dns.setDefaultResultOrder("ipv4first");
+
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL,
   token: process.env.UPSTASH_REDIS_REST_TOKEN,
@@ -13,6 +16,54 @@ const REPORTS_JSON_PATH =
 const GALLERY_FOLDER = process.env.GALLERY_FOLDER || "Фото звіт 2026";
 const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 const GITHUB_BRANCH = process.env.GITHUB_BRANCH || "main";
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+async function fetchRetry(
+  url,
+  opts = {},
+  { retries = 4, timeoutMs = 12000 } = {}
+) {
+  let attempt = 0;
+
+  while (true) {
+    const ac = new AbortController();
+    const t = setTimeout(() => ac.abort(), timeoutMs);
+
+    try {
+      const r = await fetch(url, { ...opts, signal: ac.signal });
+      clearTimeout(t);
+
+      // ретраи на 429/5xx
+      if (
+        (r.status === 429 || (r.status >= 500 && r.status <= 599)) &&
+        attempt < retries
+      ) {
+        const backoff =
+          Math.min(4000, 300 * 2 ** attempt) + Math.floor(Math.random() * 200);
+        await sleep(backoff);
+        attempt++;
+        continue;
+      }
+
+      return r;
+    } catch (e) {
+      clearTimeout(t);
+
+      const code = e?.cause?.code;
+      const transient =
+        e?.name === "AbortError" ||
+        ["ECONNRESET", "ETIMEDOUT", "EAI_AGAIN", "ENOTFOUND"].includes(code);
+
+      if (!transient || attempt >= retries) throw e;
+
+      const backoff =
+        Math.min(4000, 300 * 2 ** attempt) + Math.floor(Math.random() * 200);
+      await sleep(backoff);
+      attempt++;
+    }
+  }
+}
 
 function getMsg(update) {
   return (
@@ -173,15 +224,19 @@ async function tgSend(chatId, text) {
   const token = process.env.TG_REPORTS_BOT_TOKEN;
   if (!token) throw new Error("Missing TG_REPORTS_BOT_TOKEN");
 
-  const r = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({
-      chat_id: chatId,
-      text,
-      disable_web_page_preview: true,
-    }),
-  });
+  const r = await fetchRetry(
+    `https://api.telegram.org/bot${token}/sendMessage`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text,
+        disable_web_page_preview: true,
+      }),
+    },
+    { timeoutMs: 12000, retries: 5 }
+  );
 
   // если телега вернула ошибку — не молчим
   const j = await r.json().catch(() => null);
@@ -193,11 +248,15 @@ async function tgSend(chatId, text) {
 
 async function tgGetFileUrl(fileId) {
   const token = process.env.TG_REPORTS_BOT_TOKEN;
-  const r = await fetch(`https://api.telegram.org/bot${token}/getFile`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ file_id: fileId }),
-  });
+  const r = await fetchRetry(
+    `https://api.telegram.org/bot${token}/getFile`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ file_id: fileId }),
+    },
+    { timeoutMs: 12000, retries: 5 }
+  );
 
   const j = await r.json();
   if (!j.ok) throw new Error(`Telegram getFile failed: ${j.description || "?"}`);
@@ -478,7 +537,7 @@ async function processUpdate(update) {
           const fileId = draft.photos[i];
           const { url, ext } = await tgGetFileUrl(fileId);
 
-          const imgRes = await fetch(url);
+          const imgRes = await fetchRetry(url, {}, { timeoutMs: 20000, retries: 5 });
           if (!imgRes.ok)
             throw new Error(`Photo download failed: ${imgRes.status}`);
           const buf = Buffer.from(await imgRes.arrayBuffer());
@@ -544,7 +603,15 @@ async function processUpdate(update) {
         await clearDraft(chatId);
         await tgSend(chatId, `Готово. Додано: ${id}\nCommit: ${commitSha}`);
       } catch (e) {
-        await tgSend(chatId, `Сталася помилка: ${String(e.message || e)}`);
+        console.error("[publish] error", e?.stack || e);
+        try {
+          await tgSend(chatId, `Сталася помилка: ${String(e.message || e)}`);
+        } catch (e2) {
+          console.error(
+            "[publish] tgSend failed",
+            e2?.cause?.code || e2?.message || e2
+          );
+        }
       }
 
       return;
