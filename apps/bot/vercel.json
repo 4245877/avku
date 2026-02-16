@@ -1,8 +1,9 @@
 ﻿{
+  "regions": ["fra1"],
   "functions": {
     "api/tg-reports-webhook.js": {
-      "regions": ["fra1"],
-      "maxDuration": 300
+      "maxDuration": 300,
+      "memory": 1024
     }
   }
 }
