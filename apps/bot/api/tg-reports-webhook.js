@@ -244,6 +244,47 @@ async function tgSend(chatId, text) {
   }
 }
 
+async function tgSendKb(chatId, text, reply_markup) {
+  const token = process.env.TG_REPORTS_BOT_TOKEN;
+  const r = await fetchRetry(
+    `https://api.telegram.org/bot${token}/sendMessage`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text,
+        reply_markup,
+        disable_web_page_preview: true,
+      }),
+    },
+    { timeoutMs: 12000, retries: 6 }
+  );
+
+  const j = await r.json().catch(() => null);
+  if (!j?.ok) {
+    throw new Error(
+      `Telegram sendMessage failed: ${j?.description || r.status}`
+    );
+  }
+}
+
+async function tgAnswerCallback(id) {
+  const token = process.env.TG_REPORTS_BOT_TOKEN;
+  const r = await fetchRetry(
+    `https://api.telegram.org/bot${token}/answerCallbackQuery`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ callback_query_id: id }),
+    },
+    { timeoutMs: 12000, retries: 6 }
+  );
+
+  const j = await r.json().catch(() => null);
+  if (!j?.ok) console.error("[tg] answerCallbackQuery failed", j?.description || r.status);
+}
+
 // мягкая отправка — чтобы сетевые сбои/ошибки телеги не рвали логику
 async function tgSendSafe(chatId, text) {
   try {
@@ -274,14 +315,21 @@ async function tgGetFileUrl(fileId) {
   return { url, ext: safeExt === "jpeg" ? "jpg" : safeExt };
 }
 
-async function openaiTransform({ text, nPhotos }) {
+async function openaiTransform({ text, nPhotos, isPartners }) {
   const key = process.env.OPENAI_API_KEY;
   if (!key) throw new Error("Missing OPENAI_API_KEY");
 
+  const basePromptPartners =
+    "Напиши цей пост суцільним текстом — коротко, чітко й грамотно — від імені Асоціації волонтерських команд України. " +
+    "Обов’язково зазнач, що описані дії/результати виконали наші партнери (вкажи їх як партнерів), а Асоціація інформує та висловлює подяку.";
+
+  const basePromptDefault =
+    "Напиши цей пост суцільним текстом — коротко, чітко й грамотно — від імені Асоціації волонтерських команд України.";
+
   const system = [
     "Ти редактор сайту АВКУ.",
-    "Зроби заголовок і короткий підсумок українською.",
-    "Без хештегів. Тон нейтральний, ввічливий.",
+    isPartners ? basePromptPartners : basePromptDefault,
+    "Без хештегів. Без списків. Один абзац (суцільним текстом).",
     "Поверни СУВОРО JSON без markdown.",
     `Схема: {"title":"...","summary":"...","media":[{"alt":"...","caption":"..."}]}`,
     `Масив media має бути довжини ${nPhotos}.`,
@@ -298,7 +346,7 @@ async function openaiTransform({ text, nPhotos }) {
       response_format: { type: "json_object" },
       messages: [
         { role: "system", content: system },
-        { role: "user", content: text || "" },
+        { role: "user", content: `Контекст:\n${text || ""}` },
       ],
     }),
   });
@@ -317,6 +365,35 @@ async function openaiTransform({ text, nPhotos }) {
   while (media.length < nPhotos) media.push({ alt: "Фото звіт", caption: "" });
 
   return { title, summary, media: media.slice(0, nPhotos) };
+}
+
+function fallbackTransform({ text, nPhotos, isPartners }) {
+  const clean = String(text || "").trim();
+  const base = clean.replace(/\s+/g, " ").trim();
+
+  const title =
+    base.split(".")[0]?.slice(0, 80).trim() ||
+    (isPartners ? "Пост від партнерів" : "Фото звіт");
+
+  // “суцільним текстом”
+  const summary =
+    base ||
+    (isPartners ? "Наші партнери передали допомогу." : "Короткий опис події.");
+
+  const media = Array.from({ length: nPhotos }, () => ({
+    alt: "Фото",
+    caption: "",
+  }));
+  return { title, summary, media };
+}
+
+async function openaiTransformSafe(args) {
+  try {
+    return await openaiTransform(args);
+  } catch (e) {
+    console.error("[openai] failed, fallback", e?.message || e);
+    return fallbackTransform(args);
+  }
 }
 
 async function ghRequest(method, urlPath, body) {
@@ -454,6 +531,42 @@ function extractPhotoFileIds(msg) {
 // Вся обработка "после 200 OK" — здесь
 async function processUpdate(update) {
   try {
+    // callback_query — обработка в самом начале
+    if (update?.callback_query) {
+      const cq = update.callback_query;
+      const chatId = cq.message?.chat?.id;
+      const fromId = cq.from?.id;
+      const data = String(cq.data || "");
+
+      console.log("[tg] callback", { chatId, fromId, data });
+
+      if (chatId && fromId && allowedUser(fromId) && data.startsWith("kind:")) {
+        const kind = data.slice(5); // "partners" | "reports"
+
+        const draft = (await loadDraft(chatId)) || {
+          text: "",
+          photos: [],
+          timestamp: Date.now(),
+        };
+
+        draft.kind = kind;
+        await saveDraft(chatId, draft);
+
+        await tgAnswerCallback(cq.id);
+        await tgSendSafe(
+          chatId,
+          kind === "partners"
+            ? "Добре, це пост про партнерів. Тепер надішли /publish."
+            : "Добре, це звичайний пост. Тепер надішли /publish."
+        );
+      } else {
+        // щоб у Телеграмі не крутився “loading…”
+        if (cq?.id) await tgAnswerCallback(cq.id);
+      }
+
+      return;
+    }
+
     const msg = getMsg(update);
     if (!msg) {
       console.log("[tg] skip: no msg keys", Object.keys(update || {}));
@@ -494,9 +607,9 @@ async function processUpdate(update) {
         chatId,
         [
           "Як користуватись:",
-          "1) Надішли текст (можна з #category partners).",
+          "1) Надішли текст.",
           "2) Надішли фото (можна альбомом або кількома повідомленнями).",
-          "3) Надішли /publish — я додам звіт на сайт.",
+          "3) Надішли /publish — я спитаю, чи це пост від партнерів, і додам на сайт.",
           "Команди: /publish, /cancel",
         ].join("\n")
       );
@@ -519,15 +632,28 @@ async function processUpdate(update) {
         return;
       }
 
+      if (!draft.kind) {
+        await tgSendKb(chatId, "Це пост від партнерів?", {
+          inline_keyboard: [
+            [{ text: "Так, партнери", callback_data: "kind:partners" }],
+            [{ text: "Ні", callback_data: "kind:reports" }],
+          ],
+        });
+        return;
+      }
+
       try {
         const dateISO = kyivDateISO(draft.timestamp || Date.now());
         const year = dateISO.slice(0, 4);
         const cleanText = stripMeta(draft.text || "");
-        const category = pickCategory(draft.text || "");
 
-        const ai = await openaiTransform({
+        const category = draft.kind === "partners" ? "partners" : "reports";
+        const isPartners = category === "partners";
+
+        const ai = await openaiTransformSafe({
           text: cleanText,
           nPhotos: draft.photos.length,
+          isPartners,
         });
 
         const { text: jsonText } = await ghGetFile(
@@ -627,9 +753,18 @@ async function processUpdate(update) {
       text: "",
       photos: [],
       timestamp: msg.date ? msg.date * 1000 : Date.now(),
+      // kind: "partners" | "reports" (если уже выбран — сохранится)
     };
 
     if (text) draft.text = text;
+
+    // (не обязательно, но удобно) если в тексте явно указали #category partners — сразу сохраним kind
+    if (text) {
+      const cat = pickCategory(text);
+      if (cat === "partners") draft.kind = "partners";
+      else if (cat === "reports") draft.kind = "reports";
+    }
+
     if (fileIds.length) draft.photos.push(...fileIds);
     draft.timestamp = msg.date ? msg.date * 1000 : Date.now();
 
