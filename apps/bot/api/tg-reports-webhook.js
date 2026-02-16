@@ -646,18 +646,19 @@ async function processUpdate(update) {
 }
 
 module.exports = async (req, res) => {
-  // Telegram secret header (ты задавал secret_token при setWebhook)
+  // Для проверки в браузере разрешаем GET/HEAD без секрета
+  if (req.method !== "POST") {
+    res.status(200).send("OK");
+    return;
+  }
+
+  // Telegram secret header (secret_token при setWebhook)
   const secretHeader = req.headers["x-telegram-bot-api-secret-token"];
   if (
     process.env.TG_WEBHOOK_SECRET &&
     secretHeader !== process.env.TG_WEBHOOK_SECRET
   ) {
     res.status(401).send("Unauthorized");
-    return;
-  }
-
-  if (req.method !== "POST") {
-    res.status(200).send("OK");
     return;
   }
 
@@ -671,9 +672,6 @@ module.exports = async (req, res) => {
     return;
   }
 
-  // Telegram ждёт 200 всегда быстро
   res.status(200).send("OK");
-
-  // важно: запланировать обработку, иначе Vercel может остановить выполнение
   waitUntil(processUpdate(update));
 };

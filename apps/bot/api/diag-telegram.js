@@ -1,4 +1,4 @@
-const dns = require("node:dns");
+﻿const dns = require("node:dns");
 dns.setDefaultResultOrder("ipv4first");
 
 module.exports = async (req, res) => {
