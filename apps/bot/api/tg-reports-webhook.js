@@ -1,6 +1,7 @@
 // apps/bot/api/tg-reports-webhook.js
 const crypto = require("crypto");
 const { Redis } = require("@upstash/redis");
+const { waitUntil } = require("@vercel/functions");
 
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL,
@@ -277,7 +278,8 @@ async function ghRequest(method, urlPath, body) {
   try {
     json = text ? JSON.parse(text) : null;
   } catch {}
-  if (!r.ok) throw new Error(`GitHub API error: ${json?.message || text || r.status}`);
+  if (!r.ok)
+    throw new Error(`GitHub API error: ${json?.message || text || r.status}`);
   return json;
 }
 
@@ -290,7 +292,10 @@ async function ghGetFile(path, ref) {
 }
 
 async function ghCommitMany({ branch, message, files }) {
-  const ref = await ghRequest("GET", `/git/ref/heads/${encodeURIComponent(branch)}`);
+  const ref = await ghRequest(
+    "GET",
+    `/git/ref/heads/${encodeURIComponent(branch)}`
+  );
   const headSha = ref.object.sha;
 
   const headCommit = await ghRequest("GET", `/git/commits/${headSha}`);
@@ -321,10 +326,14 @@ async function ghCommitMany({ branch, message, files }) {
     parents: [headSha],
   });
 
-  await ghRequest("PATCH", `/git/refs/heads/${encodeURIComponent(branch)}`, {
-    sha: commit.sha,
-    force: false,
-  });
+  await ghRequest(
+    "PATCH",
+    `/git/refs/heads/${encodeURIComponent(branch)}`,
+    {
+      sha: commit.sha,
+      force: false,
+    }
+  );
 
   return commit.sha;
 }
@@ -372,6 +381,200 @@ function extractPhotoFileIds(msg) {
   return ids;
 }
 
+// Вся обработка "после 200 OK" — здесь
+async function processUpdate(update) {
+  try {
+    const msg = getMsg(update);
+    if (!msg) {
+      console.log("[tg] skip: no msg keys", Object.keys(update || {}));
+      return;
+    }
+
+    const chatId = msg.chat?.id;
+    const fromId = msg.from?.id || update?.callback_query?.from?.id;
+    const text = (msg.text || msg.caption || "").trim();
+    const commands = extractCommands(msg);
+
+    console.log("[tg] update", {
+      update_id: update?.update_id,
+      chatId,
+      fromId,
+      text: text.slice(0, 80),
+      commands: Array.from(commands),
+    });
+
+    if (!chatId) return;
+    if (!fromId) return;
+
+    if (!allowedUser(fromId)) {
+      try {
+        await tgSend(chatId, "Вибач, у тебе немає доступу до публікації.");
+      } catch (e) {
+        console.error("[tg] deny-send failed", e?.message || e);
+      }
+      return;
+    }
+
+    // команды
+    if (commands.has("/start") || commands.has("/help")) {
+      await tgSend(
+        chatId,
+        [
+          "Як користуватись:",
+          "1) Надішли текст (можна з #category partners).",
+          "2) Надішли фото (можна альбомом або кількома повідомленнями).",
+          "3) Надішли /publish — я додам звіт на сайт.",
+          "Команди: /publish, /cancel",
+        ].join("\n")
+      );
+      return;
+    }
+
+    if (commands.has("/cancel")) {
+      await clearDraft(chatId);
+      await tgSend(chatId, "Добре. Чернетку скасовано.");
+      return;
+    }
+
+    if (commands.has("/publish")) {
+      const draft = await loadDraft(chatId);
+      if (!draft || !draft.photos?.length) {
+        await tgSend(
+          chatId,
+          "Я не бачу чернетки з фото. Надішли текст і фото, будь ласка."
+        );
+        return;
+      }
+
+      try {
+        const dateISO = kyivDateISO(draft.timestamp || Date.now());
+        const year = dateISO.slice(0, 4);
+
+        const cleanText = stripMeta(draft.text || "");
+        const category = pickCategory(draft.text || "");
+
+        const ai = await openaiTransform({
+          text: cleanText,
+          nPhotos: draft.photos.length,
+        });
+
+        const { text: jsonText } = await ghGetFile(
+          REPORTS_JSON_PATH,
+          GITHUB_BRANCH
+        );
+
+        let root = {};
+        try {
+          root = JSON.parse(jsonText);
+        } catch {}
+        const reports = Array.isArray(root.reports) ? root.reports : [];
+
+        let idx = nextIndex(reports, GALLERY_FOLDER);
+
+        const filesToCommit = [];
+        const mediaEntries = [];
+
+        for (let i = 0; i < draft.photos.length; i++) {
+          const fileId = draft.photos[i];
+          const { url, ext } = await tgGetFileUrl(fileId);
+
+          const imgRes = await fetch(url);
+          if (!imgRes.ok)
+            throw new Error(`Photo download failed: ${imgRes.status}`);
+          const buf = Buffer.from(await imgRes.arrayBuffer());
+
+          const fileName = `${idx}.${ext}`;
+          idx++;
+
+          const repoPath = `apps/web/public/images/gallery/${GALLERY_FOLDER}/${fileName}`;
+          filesToCommit.push({
+            path: repoPath,
+            contentBase64: buf.toString("base64"),
+          });
+
+          const meta = ai.media[i] || {};
+          mediaEntries.push({
+            src: `images/gallery/${GALLERY_FOLDER}/${fileName}`,
+            alt: String(meta.alt || "Фото звіт").trim(),
+            caption: String(meta.caption || "").trim(),
+          });
+        }
+
+        const slug =
+          slugifyUA(ai.title) ||
+          crypto
+            .createHash("sha1")
+            .update(ai.title + dateISO)
+            .digest("hex")
+            .slice(0, 10);
+
+        // у тебя логика по годам: report-2026-...
+        let id = `report-${year}-${slug}`;
+        const exists = new Set(reports.map((r) => r.id));
+        if (exists.has(id)) id = `${id}-${Date.now().toString().slice(-4)}`;
+
+        const titleKey = `report_${year}_${slug}_title`;
+        const summaryKey = `report_${year}_${slug}_sum`;
+
+        const record = {
+          id,
+          dateISO,
+          category,
+          titleKey,
+          titleFallback: ai.title,
+          summaryKey,
+          summaryFallback: ai.summary,
+          media: mediaEntries,
+        };
+
+        const nextRoot = { ...root, reports: [record, ...reports] };
+        const nextText = JSON.stringify(nextRoot, null, 2) + "\n";
+
+        filesToCommit.push({
+          path: REPORTS_JSON_PATH,
+          contentBase64: Buffer.from(nextText, "utf8").toString("base64"),
+        });
+
+        const commitSha = await ghCommitMany({
+          branch: GITHUB_BRANCH,
+          message: `chore(reports): add ${id}`,
+          files: filesToCommit,
+        });
+
+        await clearDraft(chatId);
+        await tgSend(chatId, `Готово. Додано: ${id}\nCommit: ${commitSha}`);
+      } catch (e) {
+        await tgSend(chatId, `Сталася помилка: ${String(e.message || e)}`);
+      }
+
+      return;
+    }
+
+    // обычное сообщение: сохраняем/обновляем черновик
+    const fileIds = extractPhotoFileIds(msg);
+
+    const draft = (await loadDraft(chatId)) || {
+      text: "",
+      photos: [],
+      timestamp: msg.date ? msg.date * 1000 : Date.now(),
+    };
+
+    if (text) draft.text = text;
+    if (fileIds.length) draft.photos.push(...fileIds);
+    draft.timestamp = msg.date ? msg.date * 1000 : Date.now();
+
+    await saveDraft(chatId, draft);
+
+    const hint = draft.photos.length
+      ? `Чернетку збережено: фото=${draft.photos.length}. Надішли /publish.`
+      : "Текст збережено. Тепер додай фото і надішли /publish.";
+
+    await tgSend(chatId, hint);
+  } catch (e) {
+    console.error("[tg] processUpdate failed", e?.message || e);
+  }
+}
+
 module.exports = async (req, res) => {
   // Telegram secret header (ты задавал secret_token при setWebhook)
   const secretHeader = req.headers["x-telegram-bot-api-secret-token"];
@@ -401,195 +604,7 @@ module.exports = async (req, res) => {
   // Telegram ждёт 200 всегда быстро
   res.status(200).send("OK");
 
-  const msg = getMsg(update);
-  if (!msg) {
-    console.log("[tg] skip: no msg keys", Object.keys(update || {}));
-    return;
-  }
-
-  const chatId = msg.chat?.id;
-  const fromId = msg.from?.id || update?.callback_query?.from?.id; // может быть undefined у channel_post
-  const text = (msg.text || msg.caption || "").trim();
-  const commands = extractCommands(msg);
-
-  const kind = update.message
-    ? "message"
-    : update.edited_message
-    ? "edited_message"
-    : update.channel_post
-    ? "channel_post"
-    : update.edited_channel_post
-    ? "edited_channel_post"
-    : update.callback_query
-    ? "callback_query"
-    : "other";
-
-  console.log("[tg] update", {
-    update_id: update?.update_id,
-    kind,
-    chatId,
-    fromId,
-    text: text.slice(0, 80),
-    commands: Array.from(commands),
-  });
-
-  if (!chatId) return;
-
-  // если ты НЕ планируешь постить из каналов — просто игнорируй такие апдейты явно:
-  if (!fromId) {
-    console.log("[tg] skip: no fromId (likely channel_post)");
-    return;
-  }
-
-  if (!allowedUser(fromId)) {
-    try {
-      await tgSend(chatId, "Вибач, у тебе немає доступу до публікації.");
-    } catch {}
-    return;
-  }
-
-  // команды
-  if (commands.has("/start") || commands.has("/help")) {
-    await tgSend(
-      chatId,
-      [
-        "Як користуватись:",
-        "1) Надішли текст (можна з #category partners).",
-        "2) Надішли фото (можна альбомом або кількома повідомленнями).",
-        "3) Надішли /publish — я додам звіт на сайт.",
-        "Команди: /publish, /cancel",
-      ].join("\n")
-    );
-    return;
-  }
-
-  if (commands.has("/cancel")) {
-    await clearDraft(chatId);
-    await tgSend(chatId, "Добре. Чернетку скасовано.");
-    return;
-  }
-
-  if (commands.has("/publish")) {
-    const draft = await loadDraft(chatId);
-    if (!draft || !draft.photos?.length) {
-      await tgSend(chatId, "Я не бачу чернетки з фото. Надішли текст і фото, будь ласка.");
-      return;
-    }
-
-    try {
-      const dateISO = kyivDateISO(draft.timestamp || Date.now());
-      const year = dateISO.slice(0, 4);
-
-      const cleanText = stripMeta(draft.text || "");
-      const category = pickCategory(draft.text || "");
-
-      const ai = await openaiTransform({
-        text: cleanText,
-        nPhotos: draft.photos.length,
-      });
-
-      const { text: jsonText } = await ghGetFile(REPORTS_JSON_PATH, GITHUB_BRANCH);
-
-      let root = {};
-      try {
-        root = JSON.parse(jsonText);
-      } catch {}
-      const reports = Array.isArray(root.reports) ? root.reports : [];
-
-      let idx = nextIndex(reports, GALLERY_FOLDER);
-
-      const filesToCommit = [];
-      const mediaEntries = [];
-
-      for (let i = 0; i < draft.photos.length; i++) {
-        const fileId = draft.photos[i];
-        const { url, ext } = await tgGetFileUrl(fileId);
-
-        const imgRes = await fetch(url);
-        if (!imgRes.ok) throw new Error(`Photo download failed: ${imgRes.status}`);
-        const buf = Buffer.from(await imgRes.arrayBuffer());
-
-        const fileName = `${idx}.${ext}`;
-        idx++;
-
-        const repoPath = `apps/web/public/images/gallery/${GALLERY_FOLDER}/${fileName}`;
-        filesToCommit.push({
-          path: repoPath,
-          contentBase64: buf.toString("base64"),
-        });
-
-        const meta = ai.media[i] || {};
-        mediaEntries.push({
-          src: `images/gallery/${GALLERY_FOLDER}/${fileName}`,
-          alt: String(meta.alt || "Фото звіт").trim(),
-          caption: String(meta.caption || "").trim(),
-        });
-      }
-
-      const slug =
-        slugifyUA(ai.title) ||
-        crypto.createHash("sha1").update(ai.title + dateISO).digest("hex").slice(0, 10);
-
-      // у тебя логика по годам: report-2026-...
-      let id = `report-${year}-${slug}`;
-      const exists = new Set(reports.map((r) => r.id));
-      if (exists.has(id)) id = `${id}-${Date.now().toString().slice(-4)}`;
-
-      const titleKey = `report_${year}_${slug}_title`;
-      const summaryKey = `report_${year}_${slug}_sum`;
-
-      const record = {
-        id,
-        dateISO,
-        category,
-        titleKey,
-        titleFallback: ai.title,
-        summaryKey,
-        summaryFallback: ai.summary,
-        media: mediaEntries,
-      };
-
-      const nextRoot = { ...root, reports: [record, ...reports] };
-      const nextText = JSON.stringify(nextRoot, null, 2) + "\n";
-
-      filesToCommit.push({
-        path: REPORTS_JSON_PATH,
-        contentBase64: Buffer.from(nextText, "utf8").toString("base64"),
-      });
-
-      const commitSha = await ghCommitMany({
-        branch: GITHUB_BRANCH,
-        message: `chore(reports): add ${id}`,
-        files: filesToCommit,
-      });
-
-      await clearDraft(chatId);
-      await tgSend(chatId, `Готово. Додано: ${id}\nCommit: ${commitSha}`);
-    } catch (e) {
-      await tgSend(chatId, `Сталася помилка: ${String(e.message || e)}`);
-    }
-
-    return;
-  }
-
-  // обычное сообщение: сохраняем/обновляем черновик
-  const fileIds = extractPhotoFileIds(msg);
-
-  const draft = (await loadDraft(chatId)) || {
-    text: "",
-    photos: [],
-    timestamp: msg.date ? msg.date * 1000 : Date.now(),
-  };
-
-  if (text) draft.text = text;
-  if (fileIds.length) draft.photos.push(...fileIds);
-  draft.timestamp = msg.date ? msg.date * 1000 : Date.now();
-
-  await saveDraft(chatId, draft);
-
-  const hint = draft.photos.length
-    ? `Чернетку збережено: фото=${draft.photos.length}. Надішли /publish.`
-    : "Текст збережено. Тепер додай фото і надішли /publish.";
-
-  await tgSend(chatId, hint);
+  // важно: запланировать обработку, иначе Vercel может остановить выполнение
+  waitUntil(processUpdate(update));
+  return;
 };
