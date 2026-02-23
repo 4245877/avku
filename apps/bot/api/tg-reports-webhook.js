@@ -13,7 +13,10 @@ const redis = new Redis({
 
 const REPORTS_JSON_PATH =
   process.env.REPORTS_JSON_PATH || "apps/web/src/data/reports.json";
-const GALLERY_FOLDER = process.env.GALLERY_FOLDER || "Фото звіт 2026";
+
+const GALLERY_FOLDER_PREFIX =
+  process.env.GALLERY_FOLDER_PREFIX || "Фото звіт"; // => "Фото звіт 2026"
+
 const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 const GITHUB_BRANCH = process.env.GITHUB_BRANCH || "main";
 
@@ -32,14 +35,14 @@ async function fetchRetry(
       const r = await fetch(url, { ...opts, signal: ac.signal });
       clearTimeout(t);
 
-      // ретраим 429 и 5xx
       if (
-        (r.status === 429 || (r.status >= 500 && r.status <= 599)) &&
+        (r.status === 409 ||
+          r.status === 429 ||
+          (r.status >= 500 && r.status <= 599)) &&
         attempt < retries
       ) {
         const backoff =
-          Math.min(5000, 300 * 2 ** attempt) +
-          Math.floor(Math.random() * 200);
+          Math.min(5000, 300 * 2 ** attempt) + Math.floor(Math.random() * 200);
         await sleep(backoff);
         attempt++;
         continue;
@@ -55,11 +58,18 @@ async function fetchRetry(
       if (!transient || attempt >= retries) throw e;
 
       const backoff =
-        Math.min(5000, 300 * 2 ** attempt) +
-        Math.floor(Math.random() * 200);
+        Math.min(5000, 300 * 2 ** attempt) + Math.floor(Math.random() * 200);
       await sleep(backoff);
       attempt++;
     }
+  }
+}
+
+function safeJsonParse(s, fallback = null) {
+  try {
+    return JSON.parse(s);
+  } catch {
+    return fallback;
   }
 }
 
@@ -81,7 +91,7 @@ function extractCommands(msg) {
 
   for (const e of ents) {
     if (e.type !== "bot_command") continue;
-    const raw = text.slice(e.offset, e.offset + e.length); // "/publish@Bot"
+    const raw = text.slice(e.offset, e.offset + e.length);
     const cmd = raw
       .split(/\s+/)[0]
       .replace(/@[\w_]+$/i, "")
@@ -89,7 +99,6 @@ function extractCommands(msg) {
     out.add(cmd);
   }
 
-  // запасной вариант, если entities нет
   if (out.size === 0 && text) {
     const m = text.match(/(^|\s)(\/[a-z0-9_]+)(@[\w_]+)?(\s|$)/i);
     if (m?.[2]) out.add(m[2].toLowerCase());
@@ -112,20 +121,13 @@ function kyivDateISO(ts) {
   return fmt.format(new Date(ts));
 }
 
-function pickCategory(text) {
-  const t = (text || "").toLowerCase();
-  const m = t.match(/#category\s+([a-z0-9_-]+)/i);
-  if (m) return m[1];
-  if (t.includes("#partners")) return "partners";
-  if (t.includes("#events")) return "events";
-  if (t.includes("#aid")) return "aid";
-  return "reports";
-}
-
 function stripMeta(text) {
   return (text || "")
     .split("\n")
-    .filter((l) => !l.trim().toLowerCase().startsWith("#category"))
+    .filter((l) => {
+      const t = l.trim().toLowerCase();
+      return !t.startsWith("#category");
+    })
     .join("\n")
     .trim();
 }
@@ -199,10 +201,12 @@ function slugifyUA(str) {
     Ю: "iu",
     Я: "ia",
   };
+
   const tr = (str || "")
     .split("")
     .map((c) => (map[c] !== undefined ? map[c] : c))
     .join("");
+
   return tr
     .toLowerCase()
     .replace(/['"`]/g, "")
@@ -213,11 +217,44 @@ function slugifyUA(str) {
 
 function allowedUser(fromId) {
   const s = (process.env.TG_ALLOWED_USER_IDS || "").trim();
-  if (!s) return true; // если не задано — доступ открыт
+  if (!s) return true;
   const set = new Set(s.split(",").map((x) => x.trim()).filter(Boolean));
   return set.has(String(fromId));
 }
 
+function mimeByExt(ext) {
+  const e = String(ext || "jpg").toLowerCase();
+  if (e === "png") return "image/png";
+  if (e === "webp") return "image/webp";
+  return "image/jpeg";
+}
+
+function tgFileExtFromPath(filePath) {
+  const ext = (filePath.split(".").pop() || "jpg").toLowerCase();
+  return ["jpg", "jpeg", "png", "webp"].includes(ext)
+    ? ext === "jpeg"
+      ? "jpg"
+      : ext
+    : "jpg";
+}
+
+function pendingKey(chatId, originMessageId) {
+  return `pending:reports:${chatId}:${originMessageId}`;
+}
+
+function lastPendingKey(chatId) {
+  return `pending:reports:last:${chatId}`;
+}
+
+function lockKey(chatId, originMessageId) {
+  return `lock:reports:${chatId}:${originMessageId}`;
+}
+
+function dedupeUpdateKey(updateId) {
+  return `dedupe:tg:update:${updateId}`;
+}
+
+// ---------- Telegram ----------
 async function tgSend(chatId, text) {
   const token = process.env.TG_REPORTS_BOT_TOKEN;
   if (!token) throw new Error("Missing TG_REPORTS_BOT_TOKEN");
@@ -242,10 +279,13 @@ async function tgSend(chatId, text) {
       `Telegram sendMessage failed: ${j?.description || r.status}`
     );
   }
+  return j.result;
 }
 
 async function tgSendKb(chatId, text, reply_markup) {
   const token = process.env.TG_REPORTS_BOT_TOKEN;
+  if (!token) throw new Error("Missing TG_REPORTS_BOT_TOKEN");
+
   const r = await fetchRetry(
     `https://api.telegram.org/bot${token}/sendMessage`,
     {
@@ -267,25 +307,35 @@ async function tgSendKb(chatId, text, reply_markup) {
       `Telegram sendMessage failed: ${j?.description || r.status}`
     );
   }
+  return j.result;
 }
 
-async function tgAnswerCallback(id) {
+async function tgAnswerCallback(id, text) {
   const token = process.env.TG_REPORTS_BOT_TOKEN;
+  if (!token) throw new Error("Missing TG_REPORTS_BOT_TOKEN");
+
   const r = await fetchRetry(
     `https://api.telegram.org/bot${token}/answerCallbackQuery`,
     {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ callback_query_id: id }),
+      body: JSON.stringify({
+        callback_query_id: id,
+        ...(text ? { text } : {}),
+      }),
     },
     { timeoutMs: 12000, retries: 6 }
   );
 
   const j = await r.json().catch(() => null);
-  if (!j?.ok) console.error("[tg] answerCallbackQuery failed", j?.description || r.status);
+  if (!j?.ok) {
+    console.error(
+      "[tg] answerCallbackQuery failed",
+      j?.description || r.status
+    );
+  }
 }
 
-// мягкая отправка — чтобы сетевые сбои/ошибки телеги не рвали логику
 async function tgSendSafe(chatId, text) {
   try {
     await tgSend(chatId, text);
@@ -294,7 +344,7 @@ async function tgSendSafe(chatId, text) {
   }
 }
 
-async function tgGetFileUrl(fileId) {
+async function tgGetFileMeta(fileId) {
   const token = process.env.TG_REPORTS_BOT_TOKEN;
   const r = await fetchRetry(
     `https://api.telegram.org/bot${token}/getFile`,
@@ -305,86 +355,214 @@ async function tgGetFileUrl(fileId) {
     },
     { timeoutMs: 12000, retries: 6 }
   );
-  const j = await r.json();
-  if (!j.ok) throw new Error(`Telegram getFile failed: ${j.description || "?"}`);
+
+  const j = await r.json().catch(() => null);
+  if (!j?.ok) throw new Error(`Telegram getFile failed: ${j?.description || "?"}`);
 
   const filePath = j.result.file_path;
-  const url = `https://api.telegram.org/file/bot${token}/${filePath}`;
-  const ext = (filePath.split(".").pop() || "jpg").toLowerCase();
-  const safeExt = ["jpg", "jpeg", "png", "webp"].includes(ext) ? ext : "jpg";
-  return { url, ext: safeExt === "jpeg" ? "jpg" : safeExt };
+  return {
+    filePath,
+    ext: tgFileExtFromPath(filePath),
+    url: `https://api.telegram.org/file/bot${token}/${filePath}`,
+  };
 }
 
-async function openaiTransform({ text, nPhotos, isPartners }) {
+async function tgDownloadFile(fileId) {
+  const meta = await tgGetFileMeta(fileId);
+  const imgRes = await fetchRetry(meta.url, {}, { timeoutMs: 20000, retries: 6 });
+  if (!imgRes.ok) throw new Error(`Photo download failed: ${imgRes.status}`);
+
+  const buf = Buffer.from(await imgRes.arrayBuffer());
+  return { ...meta, buffer: buf };
+}
+
+// ---------- OpenAI ----------
+function fallbackTransform({ text, nPhotos, isPartners, defaultDateISO }) {
+  const clean = String(text || "").trim().replace(/\s+/g, " ");
+  const title =
+    clean.split(".")[0]?.slice(0, 96).trim() ||
+    (isPartners ? "Звіт від партнерів" : "Фото звіт");
+  const summary =
+    clean ||
+    (isPartners
+      ? "Наші партнери передали допомогу. Дякуємо за підтримку."
+      : "Короткий опис події.");
+
+  const media = Array.from({ length: nPhotos }, () => ({
+    alt: "Фото звіт",
+    caption: "",
+  }));
+
+  return {
+    dateISO: defaultDateISO,
+    category: "zsu",
+    title,
+    summary,
+    media,
+  };
+}
+
+function extractResponsesOutputText(data) {
+  if (typeof data?.output_text === "string" && data.output_text.trim()) {
+    return data.output_text.trim();
+  }
+
+  if (Array.isArray(data?.output)) {
+    let out = "";
+    for (const item of data.output) {
+      if (!Array.isArray(item?.content)) continue;
+      for (const c of item.content) {
+        if (c?.type === "output_text" && typeof c.text === "string") {
+          out += c.text;
+        }
+      }
+    }
+    if (out.trim()) return out.trim();
+  }
+
+  return "";
+}
+
+function sanitizeAiResult(obj, { nPhotos, defaultDateISO, isPartners }) {
+  const title = String(obj?.title || "").trim() || (isPartners ? "Звіт від партнерів" : "Фото звіт");
+  const summary = String(obj?.summary || "").trim() || "Короткий опис події.";
+  const dateISO =
+    /^\d{4}-\d{2}-\d{2}$/.test(String(obj?.dateISO || ""))
+      ? String(obj.dateISO)
+      : defaultDateISO;
+
+  const allowedCats = new Set(["zsu", "civilians", "med", "evac", "humanitarian", "events", "other"]);
+  const category = allowedCats.has(String(obj?.category || ""))
+    ? String(obj.category)
+    : "other";
+
+  const media = Array.isArray(obj?.media) ? obj.media.slice(0, nPhotos) : [];
+  while (media.length < nPhotos) media.push({ alt: "Фото звіт", caption: "" });
+
+  return {
+    dateISO,
+    category,
+    title,
+    summary,
+    media: media.map((m) => ({
+      alt: String(m?.alt || "Фото звіт").trim().slice(0, 160),
+      caption: String(m?.caption || "").trim().slice(0, 200),
+    })),
+  };
+}
+
+async function openaiTransform({ text, images, isPartners, defaultDateISO }) {
   const key = process.env.OPENAI_API_KEY;
   if (!key) throw new Error("Missing OPENAI_API_KEY");
 
-  const basePromptPartners =
-    "Напиши цей пост суцільним текстом — коротко, чітко й грамотно — від імені Асоціації волонтерських команд України. " +
-    "Обов’язково зазнач, що описані дії/результати виконали наші партнери (вкажи їх як партнерів), а Асоціація інформує та висловлює подяку.";
+  const nPhotos = images.length;
 
-  const basePromptDefault =
-    "Напиши цей пост суцільним текстом — коротко, чітко й грамотно — від імені Асоціації волонтерських команд України.";
+  const partnersLine = isPartners
+    ? "Обов’язково вкажи, що допомога/дія здійснена нашими партнерами. Формулюй коректно й без перебільшень."
+    : "Не згадуй партнерів, якщо їх явно не вказано у вхідному тексті.";
 
-  const system = [
-    "Ти редактор сайту АВКУ.",
-    isPartners ? basePromptPartners : basePromptDefault,
-    "Без хештегів. Без списків. Один абзац (суцільним текстом).",
-    "Поверни СУВОРО JSON без markdown.",
-    `Схема: {"title":"...","summary":"...","media":[{"alt":"...","caption":"..."}]}`,
-    `Масив media має бути довжини ${nPhotos}.`,
+  const prompt = [
+    "Ти редактор фотозвітів АВКУ (українською мовою).",
+    "Завдання: сформувати короткий заголовок, короткий суцільний опис, alt/caption для фото.",
+    partnersLine,
+    "Не вигадуй точних фактів (кількість, назви підрозділів, місце, модель техніки), якщо цього немає у вхідних даних.",
+    "Стиль: коротко, чітко, грамотно, теплий офіційний тон.",
+    "Без хештегів, без списків.",
+    `Якщо дату не можна визначити з тексту/фото, постав dateISO=${defaultDateISO}.`,
   ].join("\n");
 
-  const r = await fetchRetry("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      authorization: `Bearer ${key}`,
-      "content-type": "application/json",
+  const content = [
+    { type: "input_text", text: `Контекст від користувача:\n${text || ""}` },
+  ];
+
+  for (const img of images) {
+    const mime = mimeByExt(img.ext);
+    const b64 = img.buffer.toString("base64");
+    content.push({
+      type: "input_image",
+      image_url: `data:${mime};base64,${b64}`,
+    });
+  }
+
+  const schema = {
+    name: "avku_report_entry",
+    strict: true,
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      required: ["dateISO", "category", "title", "summary", "media"],
+      properties: {
+        dateISO: {
+          type: "string",
+          pattern: "^\\d{4}-\\d{2}-\\d{2}$",
+        },
+        category: {
+          type: "string",
+          enum: ["zsu", "civilians", "med", "evac", "humanitarian", "events", "other"],
+        },
+        title: { type: "string", minLength: 3, maxLength: 140 },
+        summary: { type: "string", minLength: 10, maxLength: 900 },
+        media: {
+          type: "array",
+          minItems: nPhotos,
+          maxItems: nPhotos,
+          items: {
+            type: "object",
+            additionalProperties: false,
+            required: ["alt", "caption"],
+            properties: {
+              alt: { type: "string", minLength: 2, maxLength: 160 },
+              caption: { type: "string", minLength: 0, maxLength: 200 },
+            },
+          },
+        },
+      },
     },
-    body: JSON.stringify({
-      model: OPENAI_MODEL,
-      response_format: { type: "json_object" },
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: `Контекст:\n${text || ""}` },
-      ],
-    }),
-  });
+  };
+
+  const r = await fetchRetry(
+    "https://api.openai.com/v1/responses",
+    {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${key}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        model: OPENAI_MODEL,
+        input: [
+          {
+            role: "system",
+            content: [{ type: "input_text", text: prompt }],
+          },
+          {
+            role: "user",
+            content,
+          },
+        ],
+        text: {
+          format: {
+            type: "json_schema",
+            ...schema,
+          },
+        },
+      }),
+    },
+    { timeoutMs: 45000, retries: 3 }
+  );
 
   const data = await r.json().catch(() => null);
-  if (!r.ok) throw new Error(`OpenAI error: ${data?.error?.message || r.status}`);
+  if (!r.ok) {
+    throw new Error(`OpenAI error: ${data?.error?.message || r.status}`);
+  }
 
-  let obj = {};
-  try {
-    obj = JSON.parse(data?.choices?.[0]?.message?.content || "{}");
-  } catch {}
+  const rawText = extractResponsesOutputText(data);
+  const parsed = safeJsonParse(rawText, null);
+  if (!parsed) {
+    throw new Error("OpenAI returned invalid JSON");
+  }
 
-  const title = String(obj.title || "").trim() || "Фото звіт";
-  const summary = String(obj.summary || "").trim() || "Короткий опис події.";
-  const media = Array.isArray(obj.media) ? obj.media : [];
-  while (media.length < nPhotos) media.push({ alt: "Фото звіт", caption: "" });
-
-  return { title, summary, media: media.slice(0, nPhotos) };
-}
-
-function fallbackTransform({ text, nPhotos, isPartners }) {
-  const clean = String(text || "").trim();
-  const base = clean.replace(/\s+/g, " ").trim();
-
-  const title =
-    base.split(".")[0]?.slice(0, 80).trim() ||
-    (isPartners ? "Пост від партнерів" : "Фото звіт");
-
-  // “суцільним текстом”
-  const summary =
-    base ||
-    (isPartners ? "Наші партнери передали допомогу." : "Короткий опис події.");
-
-  const media = Array.from({ length: nPhotos }, () => ({
-    alt: "Фото",
-    caption: "",
-  }));
-  return { title, summary, media };
+  return sanitizeAiResult(parsed, { nPhotos, defaultDateISO, isPartners });
 }
 
 async function openaiTransformSafe(args) {
@@ -392,10 +570,16 @@ async function openaiTransformSafe(args) {
     return await openaiTransform(args);
   } catch (e) {
     console.error("[openai] failed, fallback", e?.message || e);
-    return fallbackTransform(args);
+    return fallbackTransform({
+      text: args.text,
+      nPhotos: args.images.length,
+      isPartners: args.isPartners,
+      defaultDateISO: args.defaultDateISO,
+    });
   }
 }
 
+// ---------- GitHub ----------
 async function ghRequest(method, urlPath, body) {
   const owner = process.env.GITHUB_OWNER;
   const repo = process.env.GITHUB_REPO;
@@ -421,7 +605,10 @@ async function ghRequest(method, urlPath, body) {
   } catch {}
 
   if (!r.ok) {
-    throw new Error(`GitHub API error: ${json?.message || text || r.status}`);
+    const err = new Error(`GitHub API error: ${json?.message || text || r.status}`);
+    err.status = r.status;
+    err.body = json || text;
+    throw err;
   }
 
   return json;
@@ -433,6 +620,15 @@ async function ghGetFile(path, ref) {
   const data = await ghRequest("GET", `/contents/${p}${q}`);
   const buf = Buffer.from(data.content || "", "base64");
   return { sha: data.sha, text: buf.toString("utf8") };
+}
+
+async function ghGetFileOptional(path, ref) {
+  try {
+    return await ghGetFile(path, ref);
+  } catch (e) {
+    if (e?.status === 404) return null;
+    throw e;
+  }
 }
 
 async function ghCommitMany({ branch, message, files }) {
@@ -481,6 +677,22 @@ async function ghCommitMany({ branch, message, files }) {
   return commit.sha;
 }
 
+async function ghCommitManyRetry(args, retries = 3) {
+  let lastErr;
+  for (let i = 0; i <= retries; i++) {
+    try {
+      return await ghCommitMany(args);
+    } catch (e) {
+      lastErr = e;
+      const msg = String(e?.message || "");
+      const transient = e?.status === 409 || /Reference update failed|fast forward/i.test(msg);
+      if (!transient || i === retries) break;
+      await sleep(400 * (i + 1) + Math.floor(Math.random() * 200));
+    }
+  }
+  throw lastErr;
+}
+
 function nextIndex(reports, folderName) {
   const prefix = `images/gallery/${folderName}/`;
   let max = 0;
@@ -498,28 +710,97 @@ function nextIndex(reports, folderName) {
   return max + 1;
 }
 
-async function loadDraft(chatId) {
-  return (await redis.get(`draft:reports:${chatId}`)) || null;
+function parseReportsFile(text) {
+  const parsed = safeJsonParse(text, null);
+
+  if (Array.isArray(parsed)) {
+    // поддержка формата plain array (на случай если путь укажут на массив)
+    return {
+      kind: "array",
+      root: parsed,
+      reports: parsed,
+    };
+  }
+
+  if (parsed && typeof parsed === "object") {
+    const reports = Array.isArray(parsed.reports) ? parsed.reports : [];
+    return {
+      kind: "object",
+      root: parsed,
+      reports,
+    };
+  }
+
+  return {
+    kind: "object",
+    root: { reports: [] },
+    reports: [],
+  };
 }
 
-async function saveDraft(chatId, draft) {
-  await redis.set(`draft:reports:${chatId}`, draft, { ex: 60 * 60 * 24 });
+function stringifyReportsFile(container, nextReports) {
+  if (container.kind === "array") {
+    return JSON.stringify(nextReports, null, 2) + "\n";
+  }
+  const nextRoot = { ...(container.root || {}), reports: nextReports };
+  return JSON.stringify(nextRoot, null, 2) + "\n";
 }
 
-async function clearDraft(chatId) {
-  await redis.del(`draft:reports:${chatId}`);
+// ---------- Redis state ----------
+async function setNx(key, value, exSec) {
+  const r = await redis.set(key, value, { nx: true, ex: exSec });
+  return !!r;
 }
 
+async function savePending(chatId, originMessageId, data) {
+  await redis.set(pendingKey(chatId, originMessageId), data, { ex: 60 * 60 * 24 });
+  await redis.set(lastPendingKey(chatId), String(originMessageId), { ex: 60 * 60 * 24 });
+}
+
+async function loadPending(chatId, originMessageId) {
+  return (await redis.get(pendingKey(chatId, originMessageId))) || null;
+}
+
+async function loadLastPending(chatId) {
+  const originMessageId = await redis.get(lastPendingKey(chatId));
+  if (!originMessageId) return null;
+  const p = await loadPending(chatId, Number(originMessageId));
+  return p ? { originMessageId: Number(originMessageId), pending: p } : null;
+}
+
+async function clearPending(chatId, originMessageId) {
+  await redis.del(pendingKey(chatId, originMessageId));
+
+  const last = await redis.get(lastPendingKey(chatId));
+  if (String(last || "") === String(originMessageId)) {
+    await redis.del(lastPendingKey(chatId));
+  }
+}
+
+async function markUpdateSeen(updateId) {
+  if (updateId == null) return true;
+  return await setNx(dedupeUpdateKey(updateId), "1", 60 * 60 * 24);
+}
+
+async function acquirePublishLock(chatId, originMessageId) {
+  return await setNx(lockKey(chatId, originMessageId), "1", 60 * 10);
+}
+
+async function releasePublishLock(chatId, originMessageId) {
+  await redis.del(lockKey(chatId, originMessageId));
+}
+
+// ---------- message/photo helpers ----------
 function extractPhotoFileIds(msg) {
   const ids = [];
 
-  // обычные фото
+  // msg.photo = размеры одной и той же фотографии -> берём самый крупный
   if (Array.isArray(msg.photo) && msg.photo.length) {
     const largest = msg.photo[msg.photo.length - 1];
     if (largest?.file_id) ids.push(largest.file_id);
   }
 
-  // если отправят "файлом" (document), но это картинка
+  // image as document
   const doc = msg.document;
   if (doc?.file_id && typeof doc.mime_type === "string") {
     if (doc.mime_type.startsWith("image/")) ids.push(doc.file_id);
@@ -528,45 +809,207 @@ function extractPhotoFileIds(msg) {
   return ids;
 }
 
-// Вся обработка "после 200 OK" — здесь
+function makeQuestionKeyboard(originMessageId) {
+  return {
+    inline_keyboard: [
+      [{ text: "Так, партнери", callback_data: `kind:partners:${originMessageId}` }],
+      [{ text: "Ні", callback_data: `kind:reports:${originMessageId}` }],
+    ],
+  };
+}
+
+// ---------- publish pipeline ----------
+async function publishPending({ chatId, originMessageId, pending, isPartners }) {
+  const cleanText = stripMeta(pending.text || "");
+  const defaultDateISO = kyivDateISO(pending.timestamp || Date.now());
+  const year = defaultDateISO.slice(0, 4);
+  const folderName = `${GALLERY_FOLDER_PREFIX} ${year}`;
+
+  // 1) download photos (сейчас поддержка 1 фото, но код готов к нескольким id)
+  const downloaded = [];
+  for (const fileId of pending.photos || []) {
+    downloaded.push(await tgDownloadFile(fileId));
+  }
+  if (!downloaded.length) throw new Error("No photos in pending");
+
+  // 2) AI transform (text + images)
+  const ai = await openaiTransformSafe({
+    text: cleanText,
+    images: downloaded.map((x) => ({ buffer: x.buffer, ext: x.ext })),
+    isPartners,
+    defaultDateISO,
+  });
+
+  const dateISO = ai.dateISO || defaultDateISO;
+  const recordYear = dateISO.slice(0, 4);
+
+  // 3) load reports json (or create if missing)
+  const existingFile = await ghGetFileOptional(REPORTS_JSON_PATH, GITHUB_BRANCH);
+  const container = existingFile
+    ? parseReportsFile(existingFile.text)
+    : { kind: "object", root: { reports: [] }, reports: [] };
+
+  const reports = Array.isArray(container.reports) ? container.reports : [];
+
+  let idx = nextIndex(reports, folderName);
+  const filesToCommit = [];
+  const mediaEntries = [];
+
+  for (let i = 0; i < downloaded.length; i++) {
+    const img = downloaded[i];
+    const fileName = `${idx}.${img.ext}`;
+    idx++;
+
+    const repoPath = `apps/web/public/images/gallery/${folderName}/${fileName}`;
+    filesToCommit.push({
+      path: repoPath,
+      contentBase64: img.buffer.toString("base64"),
+    });
+
+    const meta = ai.media[i] || {};
+    mediaEntries.push({
+      src: `images/gallery/${folderName}/${fileName}`,
+      alt: String(meta.alt || "Фото звіт").trim() || "Фото звіт",
+      caption: String(meta.caption || "").trim(),
+    });
+  }
+
+  const slug =
+    slugifyUA(ai.title) ||
+    crypto
+      .createHash("sha1")
+      .update(String(ai.title || "") + dateISO)
+      .digest("hex")
+      .slice(0, 10);
+
+  let id = `report-${recordYear}-${slug}`;
+  const exists = new Set(reports.map((r) => r?.id).filter(Boolean));
+  if (exists.has(id)) id = `${id}-${Date.now().toString().slice(-4)}`;
+
+  const titleKey = `report_${recordYear}_${slug}_title`;
+  const summaryKey = `report_${recordYear}_${slug}_sum`;
+
+  const record = {
+    id,
+    dateISO,
+    category: ai.category || "other",
+    titleKey,
+    titleFallback: ai.title,
+    summaryKey,
+    summaryFallback: ai.summary,
+    media: mediaEntries,
+  };
+
+  const nextReports =
+    container.kind === "array"
+      ? [record, ...reports]
+      : [record, ...reports];
+
+  const nextText = stringifyReportsFile(container, nextReports);
+
+  filesToCommit.push({
+    path: REPORTS_JSON_PATH,
+    contentBase64: Buffer.from(nextText, "utf8").toString("base64"),
+  });
+
+  const commitSha = await ghCommitManyRetry({
+    branch: GITHUB_BRANCH,
+    message: `chore(reports): add ${id}`,
+    files: filesToCommit,
+  });
+
+  return { id, commitSha, record };
+}
+
+// ---------- Main processing ----------
 async function processUpdate(update) {
   try {
-    // callback_query — обработка в самом начале
+    // idempotency for duplicated webhook deliveries
+    const isFirst = await markUpdateSeen(update?.update_id);
+    if (!isFirst) {
+      console.log("[tg] duplicate update skipped", update?.update_id);
+      return;
+    }
+
+    // 1) callback query first
     if (update?.callback_query) {
       const cq = update.callback_query;
       const chatId = cq.message?.chat?.id;
       const fromId = cq.from?.id;
       const data = String(cq.data || "");
 
+      // answer immediately to stop spinner
+      if (cq?.id) {
+        await tgAnswerCallback(cq.id).catch((e) =>
+          console.error("[tg] answer callback error", e?.message || e)
+        );
+      }
+
       console.log("[tg] callback", { chatId, fromId, data });
 
-      if (chatId && fromId && allowedUser(fromId) && data.startsWith("kind:")) {
-        const kind = data.slice(5); // "partners" | "reports"
+      if (!chatId || !fromId) return;
+      if (!allowedUser(fromId)) {
+        await tgSendSafe(chatId, "Вибач, у тебе немає доступу до публікації.");
+        return;
+      }
 
-        const draft = (await loadDraft(chatId)) || {
-          text: "",
-          photos: [],
-          timestamp: Date.now(),
-        };
+      const m = data.match(/^kind:(partners|reports):(\d+)$/);
+      if (!m) return;
 
-        draft.kind = kind;
-        await saveDraft(chatId, draft);
+      const kind = m[1];
+      const originMessageId = Number(m[2]);
+      const isPartners = kind === "partners";
 
-        await tgAnswerCallback(cq.id);
+      const pending = await loadPending(chatId, originMessageId);
+      if (!pending) {
         await tgSendSafe(
           chatId,
-          kind === "partners"
-            ? "Добре, це пост про партнерів. Тепер надішли /publish."
-            : "Добре, це звичайний пост. Тепер надішли /publish."
+          "Чернетку не знайдено або вона вже оброблена. Надішли фото з текстом ще раз, будь ласка."
         );
-      } else {
-        // щоб у Телеграмі не крутився “loading…”
-        if (cq?.id) await tgAnswerCallback(cq.id);
+        return;
+      }
+
+      const locked = await acquirePublishLock(chatId, originMessageId);
+      if (!locked) {
+        await tgSendSafe(chatId, "Цей звіт уже обробляється. Будь ласка, зачекай.");
+        return;
+      }
+
+      try {
+        await tgSendSafe(
+          chatId,
+          isPartners
+            ? "Добре. Публікую як звіт від партнерів…"
+            : "Добре. Публікую як звичайний звіт…"
+        );
+
+        const result = await publishPending({
+          chatId,
+          originMessageId,
+          pending,
+          isPartners,
+        });
+
+        await clearPending(chatId, originMessageId);
+
+        await tgSendSafe(
+          chatId,
+          `Готово ✅\nДодано: ${result.id}\nCommit: ${result.commitSha}`
+        );
+      } catch (e) {
+        console.error("[publish] error", e?.stack || e);
+        await tgSendSafe(
+          chatId,
+          `Сталася помилка під час публікації: ${String(e?.message || e)}`
+        );
+      } finally {
+        await releasePublishLock(chatId, originMessageId);
       }
 
       return;
     }
 
+    // 2) regular message
     const msg = getMsg(update);
     if (!msg) {
       console.log("[tg] skip: no msg keys", Object.keys(update || {}));
@@ -574,10 +1017,7 @@ async function processUpdate(update) {
     }
 
     const chatId = msg.chat?.id;
-
-    // ВАЖНО: для callback_query правильный fromId — update.callback_query.from.id
     const fromId =
-      update?.callback_query?.from?.id ||
       update?.inline_query?.from?.id ||
       msg.from?.id ||
       null;
@@ -593,201 +1033,104 @@ async function processUpdate(update) {
       commands: Array.from(commands),
     });
 
-    if (!chatId) return;
-    if (!fromId) return;
+    if (!chatId || !fromId) return;
 
     if (!allowedUser(fromId)) {
       await tgSendSafe(chatId, "Вибач, у тебе немає доступу до публікації.");
       return;
     }
 
-    // команды
+    // help/start
     if (commands.has("/start") || commands.has("/help")) {
       await tgSendSafe(
         chatId,
         [
           "Як користуватись:",
-          "1) Надішли текст.",
-          "2) Надішли фото (можна альбомом або кількома повідомленнями).",
-          "3) Надішли /publish — я спитаю, чи це пост від партнерів, і додам на сайт.",
-          "Команди: /publish, /cancel",
+          "1) Надішли фото з текстом (в одному повідомленні).",
+          "2) Я спитаю: «Партнёры или нет?»",
+          "3) Після відповіді я автоматично підготую запис і додам на сайт.",
+          "",
+          "Додатково: /cancel — скасувати останню чернетку",
+          "/publish — повторно показати питання для останньої чернетки",
         ].join("\n")
       );
       return;
     }
 
     if (commands.has("/cancel")) {
-      await clearDraft(chatId);
-      await tgSendSafe(chatId, "Добре. Чернетку скасовано.");
+      const last = await loadLastPending(chatId);
+      if (!last) {
+        await tgSendSafe(chatId, "Немає активної чернетки.");
+        return;
+      }
+      await clearPending(chatId, last.originMessageId);
+      await tgSendSafe(chatId, "Добре. Останню чернетку скасовано.");
       return;
     }
 
+    // compatibility: /publish repeats question for last pending
     if (commands.has("/publish")) {
-      const draft = await loadDraft(chatId);
-      if (!draft || !draft.photos?.length) {
+      const last = await loadLastPending(chatId);
+      if (!last) {
         await tgSendSafe(
           chatId,
-          "Я не бачу чернетки з фото. Надішли текст і фото, будь ласка."
+          "Я не бачу чернетки. Надішли фото з текстом одним повідомленням, будь ласка."
         );
         return;
       }
 
-      if (!draft.kind) {
-        await tgSendKb(chatId, "Це пост від партнерів?", {
-          inline_keyboard: [
-            [{ text: "Так, партнери", callback_data: "kind:partners" }],
-            [{ text: "Ні", callback_data: "kind:reports" }],
-          ],
-        });
-        return;
-      }
-
-      try {
-        const dateISO = kyivDateISO(draft.timestamp || Date.now());
-        const year = dateISO.slice(0, 4);
-        const cleanText = stripMeta(draft.text || "");
-
-        const category = draft.kind === "partners" ? "partners" : "reports";
-        const isPartners = category === "partners";
-
-        const ai = await openaiTransformSafe({
-          text: cleanText,
-          nPhotos: draft.photos.length,
-          isPartners,
-        });
-
-        const { text: jsonText } = await ghGetFile(
-          REPORTS_JSON_PATH,
-          GITHUB_BRANCH
-        );
-
-        let root = {};
-        try {
-          root = JSON.parse(jsonText);
-        } catch {}
-
-        const reports = Array.isArray(root.reports) ? root.reports : [];
-        let idx = nextIndex(reports, GALLERY_FOLDER);
-
-        const filesToCommit = [];
-        const mediaEntries = [];
-
-        for (let i = 0; i < draft.photos.length; i++) {
-          const fileId = draft.photos[i];
-          const { url, ext } = await tgGetFileUrl(fileId);
-
-          const imgRes = await fetchRetry(url, {}, { timeoutMs: 20000, retries: 6 });
-          if (!imgRes.ok) throw new Error(`Photo download failed: ${imgRes.status}`);
-
-          const buf = Buffer.from(await imgRes.arrayBuffer());
-          const fileName = `${idx}.${ext}`;
-          idx++;
-
-          const repoPath = `apps/web/public/images/gallery/${GALLERY_FOLDER}/${fileName}`;
-          filesToCommit.push({
-            path: repoPath,
-            contentBase64: buf.toString("base64"),
-          });
-
-          const meta = ai.media[i] || {};
-          mediaEntries.push({
-            src: `images/gallery/${GALLERY_FOLDER}/${fileName}`,
-            alt: String(meta.alt || "Фото звіт").trim(),
-            caption: String(meta.caption || "").trim(),
-          });
-        }
-
-        const slug =
-          slugifyUA(ai.title) ||
-          crypto
-            .createHash("sha1")
-            .update(ai.title + dateISO)
-            .digest("hex")
-            .slice(0, 10);
-
-        // логика по годам: report-2026-...
-        let id = `report-${year}-${slug}`;
-        const exists = new Set(reports.map((r) => r.id));
-        if (exists.has(id)) id = `${id}-${Date.now().toString().slice(-4)}`;
-
-        const titleKey = `report_${year}_${slug}_title`;
-        const summaryKey = `report_${year}_${slug}_sum`;
-
-        const record = {
-          id,
-          dateISO,
-          category,
-          titleKey,
-          titleFallback: ai.title,
-          summaryKey,
-          summaryFallback: ai.summary,
-          media: mediaEntries,
-        };
-
-        const nextRoot = { ...root, reports: [record, ...reports] };
-        const nextText = JSON.stringify(nextRoot, null, 2) + "\n";
-
-        filesToCommit.push({
-          path: REPORTS_JSON_PATH,
-          contentBase64: Buffer.from(nextText, "utf8").toString("base64"),
-        });
-
-        const commitSha = await ghCommitMany({
-          branch: GITHUB_BRANCH,
-          message: `chore(reports): add ${id}`,
-          files: filesToCommit,
-        });
-
-        await clearDraft(chatId);
-        await tgSendSafe(chatId, `Готово. Додано: ${id}\nCommit: ${commitSha}`);
-      } catch (e) {
-        console.error("[publish] error", e?.stack || e);
-        await tgSendSafe(chatId, `Сталася помилка: ${String(e?.message || e)}`);
-      }
+      await tgSendKb(chatId, "Партнёры или нет?", makeQuestionKeyboard(last.originMessageId));
       return;
     }
 
-    // обычное сообщение: сохраняем/обновляем черновик
+    // main required flow: photo + text => ask question immediately
     const fileIds = extractPhotoFileIds(msg);
-    const draft = (await loadDraft(chatId)) || {
-      text: "",
-      photos: [],
-      timestamp: msg.date ? msg.date * 1000 : Date.now(),
-      // kind: "partners" | "reports" (если уже выбран — сохранится)
-    };
+    if (fileIds.length > 0) {
+      if (!text) {
+        await tgSendSafe(
+          chatId,
+          "Будь ласка, надішли фото разом із текстом (підписом) одним повідомленням."
+        );
+        return;
+      }
 
-    if (text) draft.text = text;
+      const originMessageId = msg.message_id;
+      const pending = {
+        chatId,
+        fromId,
+        originMessageId,
+        text,
+        photos: fileIds, // один file_id (найбільший розмір)
+        timestamp: msg.date ? msg.date * 1000 : Date.now(),
+        createdAt: Date.now(),
+      };
 
-    // (не обязательно, но удобно) если в тексте явно указали #category partners — сразу сохраним kind
-    if (text) {
-      const cat = pickCategory(text);
-      if (cat === "partners") draft.kind = "partners";
-      else if (cat === "reports") draft.kind = "reports";
+      await savePending(chatId, originMessageId, pending);
+
+      await tgSendKb(chatId, "Партнёры или нет?", makeQuestionKeyboard(originMessageId));
+      return;
     }
 
-    if (fileIds.length) draft.photos.push(...fileIds);
-    draft.timestamp = msg.date ? msg.date * 1000 : Date.now();
-
-    await saveDraft(chatId, draft);
-
-    const hint = draft.photos.length
-      ? `Чернетку збережено: фото=${draft.photos.length}. Надішли /publish.`
-      : "Текст збережено. Тепер додай фото і надішли /publish.";
-
-    await tgSendSafe(chatId, hint);
+    // plain text without photo
+    if (text) {
+      await tgSendSafe(
+        chatId,
+        "Текст отримала. Тепер, будь ласка, надішли фото разом із цим текстом в одному повідомленні."
+      );
+      return;
+    }
   } catch (e) {
-    console.error("[tg] processUpdate failed", e?.message || e);
+    console.error("[tg] processUpdate failed", e?.stack || e?.message || e);
   }
 }
 
 module.exports = async (req, res) => {
-  // Для проверки в браузере разрешаем GET/HEAD без секрета
+  // GET/HEAD for quick browser check
   if (req.method !== "POST") {
     res.status(200).send("OK");
     return;
   }
 
-  // Telegram secret header (secret_token при setWebhook)
   const secretHeader = req.headers["x-telegram-bot-api-secret-token"];
   if (
     process.env.TG_WEBHOOK_SECRET &&
@@ -807,6 +1150,7 @@ module.exports = async (req, res) => {
     return;
   }
 
+  // return 200 fast, process in background
   res.status(200).send("OK");
   waitUntil(processUpdate(update));
 };
