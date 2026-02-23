@@ -254,6 +254,18 @@ function dedupeUpdateKey(updateId) {
   return `dedupe:tg:update:${updateId}`;
 }
 
+function globalPublishLockKey() {
+  return "lock:reports:publish:global";
+}
+
+async function acquireGlobalPublishLock() {
+  return await setNx(globalPublishLockKey(), "1", 60); // 60 сек хватает с запасом
+}
+
+async function releaseGlobalPublishLock() {
+  await redis.del(globalPublishLockKey());
+}
+
 // ---------- Telegram ----------
 async function tgSend(chatId, text) {
   const token = process.env.TG_REPORTS_BOT_TOKEN;
@@ -431,10 +443,28 @@ function sanitizeAiResult(obj, { nPhotos, defaultDateISO, isPartners }) {
       ? String(obj.dateISO)
       : defaultDateISO;
 
-  const allowedCats = new Set(["zsu", "civilians", "med", "evac", "humanitarian", "events", "other"]);
-  const category = allowedCats.has(String(obj?.category || ""))
-    ? String(obj.category)
-    : "other";
+  const rawCat = String(obj?.category || "").trim().toLowerCase();
+
+  // мягкая нормализация "похожих" значений от ИИ
+  const aliases = {
+    med: "medical",
+    medicine: "medical",
+    medical: "medical",
+    evac: "other",
+    evacuation: "other",
+    civilians: "other",
+    civil: "other",
+    events: "other",
+    repair: "repair",
+    partners: "partners",
+    humanitarian: "humanitarian",
+    zsu: "zsu",
+    other: "other",
+  };
+
+  const normalizedCat = aliases[rawCat] || "other";
+  const allowedCats = new Set(["zsu", "repair", "humanitarian", "medical", "partners", "other"]);
+  const category = allowedCats.has(normalizedCat) ? normalizedCat : "other";
 
   const media = Array.isArray(obj?.media) ? obj.media.slice(0, nPhotos) : [];
   while (media.length < nPhotos) media.push({ alt: "Фото звіт", caption: "" });
@@ -468,6 +498,7 @@ async function openaiTransform({ text, images, isPartners, defaultDateISO }) {
     "Не вигадуй точних фактів (кількість, назви підрозділів, місце, модель техніки), якщо цього немає у вхідних даних.",
     "Стиль: коротко, чітко, грамотно, теплий офіційний тон.",
     "Без хештегів, без списків.",
+    "Категорія має бути однією з: zsu, repair, humanitarian, medical, partners, other.",
     `Якщо дату не можна визначити з тексту/фото, постав dateISO=${defaultDateISO}.`,
   ].join("\n");
 
@@ -498,7 +529,7 @@ async function openaiTransform({ text, images, isPartners, defaultDateISO }) {
         },
         category: {
           type: "string",
-          enum: ["zsu", "civilians", "med", "evac", "humanitarian", "events", "other"],
+          enum: ["zsu", "repair", "humanitarian", "medical", "partners", "other"],
         },
         title: { type: "string", minLength: 3, maxLength: 140 },
         summary: { type: "string", minLength: 10, maxLength: 900 },
@@ -983,19 +1014,32 @@ async function processUpdate(update) {
             : "Добре. Публікую як звичайний звіт…"
         );
 
-        const result = await publishPending({
-          chatId,
-          originMessageId,
-          pending,
-          isPartners,
-        });
+        const globalLocked = await acquireGlobalPublishLock();
+        if (!globalLocked) {
+          await tgSendSafe(
+            chatId,
+            "Зараз обробляється інша публікація. Будь ласка, спробуй ще раз через кілька секунд."
+          );
+          return;
+        }
 
-        await clearPending(chatId, originMessageId);
+        try {
+          const result = await publishPending({
+            chatId,
+            originMessageId,
+            pending,
+            isPartners,
+          });
 
-        await tgSendSafe(
-          chatId,
-          `Готово ✅\nДодано: ${result.id}\nCommit: ${result.commitSha}`
-        );
+          await clearPending(chatId, originMessageId);
+
+          await tgSendSafe(
+            chatId,
+            `Готово ✅\nДодано: ${result.id}\nCommit: ${result.commitSha}`
+          );
+        } finally {
+          await releaseGlobalPublishLock();
+        }
       } catch (e) {
         console.error("[publish] error", e?.stack || e);
         await tgSendSafe(
