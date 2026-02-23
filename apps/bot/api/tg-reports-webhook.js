@@ -481,11 +481,9 @@ function sanitizeAiResult(obj, { nPhotos, defaultDateISO, isPartners }) {
   };
 }
 
-async function openaiTransform({ text, images, isPartners, defaultDateISO }) {
+async function openaiTransform({ text, nPhotos, isPartners, defaultDateISO }) {
   const key = process.env.OPENAI_API_KEY;
   if (!key) throw new Error("Missing OPENAI_API_KEY");
-
-  const nPhotos = images.length;
 
   const partnersLine = isPartners
     ? "Обов’язково вкажи, що допомога/дія здійснена нашими партнерами. Формулюй коректно й без перебільшень."
@@ -493,27 +491,18 @@ async function openaiTransform({ text, images, isPartners, defaultDateISO }) {
 
   const prompt = [
     "Ти редактор фотозвітів АВКУ (українською мовою).",
-    "Завдання: сформувати короткий заголовок, короткий суцільний опис, alt/caption для фото.",
+    "Завдання: сформувати короткий заголовок, короткий суцільний опис, alt/caption для фото (на основі тексту користувача).",
     partnersLine,
     "Не вигадуй точних фактів (кількість, назви підрозділів, місце, модель техніки), якщо цього немає у вхідних даних.",
     "Стиль: коротко, чітко, грамотно, теплий офіційний тон.",
     "Без хештегів, без списків.",
     "Категорія має бути однією з: zsu, repair, humanitarian, medical, partners, other.",
-    `Якщо дату не можна визначити з тексту/фото, постав dateISO=${defaultDateISO}.`,
+    `Якщо дату не можна визначити з тексту, постав dateISO=${defaultDateISO}.`,
   ].join("\n");
 
   const content = [
     { type: "input_text", text: `Контекст від користувача:\n${text || ""}` },
   ];
-
-  for (const img of images) {
-    const mime = mimeByExt(img.ext);
-    const b64 = img.buffer.toString("base64");
-    content.push({
-      type: "input_image",
-      image_url: `data:${mime};base64,${b64}`,
-    });
-  }
 
   const schema = {
     name: "avku_report_entry",
@@ -603,7 +592,7 @@ async function openaiTransformSafe(args) {
     console.error("[openai] failed, fallback", e?.message || e);
     return fallbackTransform({
       text: args.text,
-      nPhotos: args.images.length,
+      nPhotos: args.nPhotos,
       isPartners: args.isPartners,
       defaultDateISO: args.defaultDateISO,
     });
@@ -863,10 +852,10 @@ async function publishPending({ chatId, originMessageId, pending, isPartners }) 
   }
   if (!downloaded.length) throw new Error("No photos in pending");
 
-  // 2) AI transform (text + images)
+  // 2) AI transform (text + number of photos)
   const ai = await openaiTransformSafe({
     text: cleanText,
-    images: downloaded.map((x) => ({ buffer: x.buffer, ext: x.ext })),
+    nPhotos: downloaded.length,
     isPartners,
     defaultDateISO,
   });
