@@ -1311,7 +1311,7 @@ html {
 .report-media__item img {
   max-width: 100%;
 }
-
+  
 @media (max-width: 520px) {
   .media-lightbox__content {
     gap: var(--space-2);
