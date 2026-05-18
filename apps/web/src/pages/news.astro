@@ -2,7 +2,7 @@
 import Base from "../layouts/Base.astro";
 import "../styles/pages/news.css";
 
-import newsData from "../data/news.json";
+import { getCollection } from "astro:content";
 
 const lang = "uk";
 
@@ -37,10 +37,39 @@ const categories = [
 
 const categoryMap = Object.fromEntries(categories.map((c) => [c.key, c.label]));
 
-// Новини з JSON (сортуємо за датою, щоб “featured” був реально найновіший)
-const rawNews = Array.isArray(newsData) ? newsData : (newsData?.news ?? []);
-const news = rawNews
-  .slice()
+const formatDateUk = (iso) => {
+  const value = String(iso ?? "");
+  const date = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return new Intl.DateTimeFormat("uk-UA", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(date);
+};
+
+const newsEntries = await getCollection("news", ({ data }) => data.draft !== true);
+
+const news = newsEntries
+  .map((entry) => {
+    const id = entry.id.replace(/\/index$/, "");
+    const data = entry.data;
+
+    return {
+      id,
+      title: data.title,
+      dateISO: data.dateISO,
+      dateLabel: data.dateLabel || formatDateUk(data.dateISO),
+      categoryKey: data.categoryKey || "zsu",
+      categoryLabel: categoryMap[data.categoryKey] || "Новини",
+      excerpt: data.excerpt,
+      href: data.href || `/news#${id}`,
+      img: data.img || "",
+      imgAlt: data.imgAlt || data.title,
+      sourceLabel: data.sourceLabel || "Сайт АВКУ",
+    };
+  })
   .sort((a, b) => Date.parse(b?.dateISO || "") - Date.parse(a?.dateISO || ""));
 
 const featured = news[0] ?? null;

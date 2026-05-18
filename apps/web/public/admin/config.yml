@@ -1,0 +1,80 @@
+local_backend: true
+
+backend:
+  name: git-gateway
+
+media_folder: "apps/web/public/images/uploads"
+public_folder: "/images/uploads"
+
+locale: "uk"
+
+collections:
+  - name: "news"
+    label: "Новини"
+    folder: "apps/web/src/content/news"
+    create: true
+    extension: "md"
+    format: "frontmatter"
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    fields:
+      - { label: "Чернетка", name: "draft", widget: "boolean", default: false, required: false }
+      - { label: "Заголовок", name: "title", widget: "string" }
+      - { label: "Дата", name: "dateISO", widget: "datetime", format: "YYYY-MM-DD", date_format: "YYYY-MM-DD", time_format: false }
+      - { label: "Дата текстом", name: "dateLabel", widget: "string", required: false }
+      - label: "Категорія"
+        name: "categoryKey"
+        widget: "select"
+        default: "zsu"
+        options:
+          - { label: "Підтримка ЗСУ", value: "zsu" }
+          - { label: "Гуманітарна допомога", value: "humanitarian" }
+          - { label: "Партнерства", value: "partnerships" }
+          - { label: "Освіта / громада", value: "community" }
+          - { label: "Відзнаки", value: "awards" }
+          - { label: "Події", value: "events" }
+      - { label: "Короткий опис", name: "excerpt", widget: "text" }
+      - { label: "Посилання", name: "href", widget: "string", required: false, default: "/gallery" }
+      - { label: "Головне зображення", name: "img", widget: "image", required: false }
+      - { label: "Опис зображення", name: "imgAlt", widget: "string", required: false }
+      - { label: "Джерело", name: "sourceLabel", widget: "string", required: false, default: "Сайт АВКУ" }
+      - { label: "Повний текст", name: "body", widget: "markdown", required: false }
+
+  - name: "reports"
+    label: "Звіти"
+    folder: "apps/web/src/content/reports"
+    create: true
+    extension: "md"
+    format: "frontmatter"
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    fields:
+      - { label: "Чернетка", name: "draft", widget: "boolean", default: false, required: false }
+      - { label: "Заголовок звіту", name: "titleFallback", widget: "string" }
+      - { label: "Короткий опис", name: "summaryFallback", widget: "text" }
+      - { label: "Дата", name: "dateISO", widget: "datetime", format: "YYYY-MM-DD", date_format: "YYYY-MM-DD", time_format: false }
+      - label: "Категорія"
+        name: "category"
+        widget: "select"
+        default: "zsu"
+        options:
+          - { label: "ЗСУ", value: "zsu" }
+          - { label: "Ремонт/техніка", value: "repair" }
+          - { label: "Гуманітарка", value: "humanitarian" }
+          - { label: "Медицина/реабілітація", value: "medical" }
+          - { label: "Партнери", value: "partners" }
+          - { label: "Інше", value: "other" }
+      - label: "Фото"
+        name: "media"
+        widget: "list"
+        required: false
+        fields:
+          - { label: "Фото", name: "src", widget: "image" }
+          - { label: "Alt-текст", name: "alt", widget: "string", required: false }
+          - { label: "Підпис", name: "caption", widget: "string", required: false }
+      - label: "Документи"
+        name: "docs"
+        widget: "list"
+        required: false
+        fields:
+          - { label: "Назва", name: "labelFallback", widget: "string" }
+          - { label: "Посилання", name: "href", widget: "string" }
+      - { label: "Детальний текст", name: "body", widget: "markdown", required: false }

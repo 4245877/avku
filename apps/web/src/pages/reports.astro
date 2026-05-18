@@ -3,7 +3,7 @@
 import Base from "../layouts/Base.astro";
 import "../styles/pages/reports.css";
 
-import reportsData from "../data/reports.json";
+import { getCollection } from "astro:content";
 
 // Базовий шлях (наприклад, /avku/)
 const base = import.meta.env.BASE_URL ?? "/";
@@ -35,11 +35,26 @@ const categories = [
   { id: "other", labelKey: "reports_filter_other", labelFallback: "Інше" },
 ];
 
-// Нормалізація: підтримка масиву, { reports: [...] } або одиночного об'єкта
-const reports =
-  Array.isArray(reportsData) ? reportsData :
-  Array.isArray(reportsData?.reports) ? reportsData.reports :
-  (reportsData && typeof reportsData === "object") ? [reportsData] : [];
+const reportEntries = await getCollection("reports", ({ data }) => data.draft !== true);
+
+const reports = reportEntries.map((entry) => {
+  const id = entry.id.replace(/\/index$/, "");
+  const data = entry.data;
+
+  return {
+    id,
+    titleFallback: data.titleFallback,
+    titleKey: data.titleKey,
+    summaryFallback: data.summaryFallback,
+    summaryKey: data.summaryKey,
+    dateISO: data.dateISO,
+    category: data.category || "other",
+    media: data.media || [],
+    docs: data.docs || [],
+    donation: data.donation,
+    social: data.social,
+  };
+});
 
 // Сортуємо: новіші зверху
 const reportsSorted = [...reports].sort((a, b) => (String(a.dateISO) < String(b.dateISO) ? 1 : -1));
