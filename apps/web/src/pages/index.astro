@@ -37,16 +37,22 @@ const asset = (p) => join(encodeURI(p));
 // 1–3 актуальні потреби. Оновлюйте рідко, але завжди тримайте хоч 1 ціль.
 const urgentNeeds = [
   {
+    titleKey: "urgent_need_1_title",
     title: "Актуальний збір на підсилення підрозділів",
+    descKey: "urgent_need_1_desc",
     desc:
       "Підтримуємо закриття термінових запитів: спорядження, засоби зв’язку, живлення, дрони та інше за потребою.",
+    ctaKey: "urgent_need_1_cta",
     cta: "Підтримати зараз",
     href: "/donate",
   },
   {
+    titleKey: "urgent_need_2_title",
     title: "Гуманітарні набори та підтримка пунктів незламності",
+    descKey: "urgent_need_2_desc",
     desc:
       "Чай, кава, вода, засоби гігієни та найнеобхідніше для людей у складних умовах.",
+    ctaKey: "urgent_need_2_cta",
     cta: "Підтримати гуманітарний напрям",
     href: "/donate",
   },
@@ -108,13 +114,26 @@ const formatDateUk = (iso) => {
   }).format(d);
 };
 
+const formatDateEn = (iso) => {
+  if (!iso) return "";
+  const d = new Date(String(iso));
+  if (Number.isNaN(d.getTime())) return String(iso);
+  return new Intl.DateTimeFormat("en", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(d);
+};
+
 // 3 останні з файлу (за порядком у масиві), показуємо зверху найновіший з цих трьох
 const lastThree = reports.slice(-3).reverse();
 
 const photoReports = lastThree.map((r) => {
   const title = r?.titleFallback || r?.titleKey || "Фотозвіт";
   const dateLabel = formatDateUk(r?.dateISO);
+  const dateLabelEn = formatDateEn(r?.dateISO);
   const text = dateLabel ? `${dateLabel} — ${title}` : title;
+  const textEn = dateLabelEn ? `${dateLabelEn} — Photo report` : "Photo report";
 
   const cover = Array.isArray(r?.media) && r.media.length ? r.media[0] : null;
   const img = cover?.src
@@ -127,7 +146,7 @@ const photoReports = lastThree.map((r) => {
     ? `/reports#${encodeURIComponent(String(r.id))}`
     : "/reports";
 
-  return { img, alt, text, href };
+  return { img, alt, text, textEn, href };
 });
 
 // Відгуки (2–3 вистачає)
@@ -135,12 +154,18 @@ const testimonials = [
   {
     quote:
       "Дякуємо за FPV-дрони — вони вже в підрозділах і допомагають виконувати бойові задачі щодня.",
+    quoteEn:
+      "Thank you for the FPV drones. They are already with the units and help them carry out combat tasks every day.",
     cite: "– Військові підрозділи (подяка)",
+    citeEn: "- Military units (gratitude message)",
   },
   {
     quote:
       "Отримана допомога (сітки, одяг, гігієна) підсилює наші позиції та покращує умови служби. Дякуємо!",
+    quoteEn:
+      "The received aid - nets, clothing, and hygiene supplies - strengthens our positions and improves service conditions. Thank you!",
     cite: "– Захисники на напрямку",
+    citeEn: "- Defenders on the front line",
   },
 ];
 
@@ -201,90 +226,110 @@ const initials = (name) => {
 const partners = [
   {
     name: "Святошинський РВК у м. Києві",
+    nameEn: "Sviatoshyn District Territorial Recruitment and Social Support Center in Kyiv",
     logoHint: "partner1-logo.png",
     url: "https://www.facebook.com/SviatoshynskyTCK/",
   },
   {
     name: 'Державна установа "Центр пробації"',
+    nameEn: 'State Institution "Probation Center"',
     logoHint: "partner6-logo.png",
     url: "",
   },
   {
     name: 'Благодійна організація "Сила єдності"',
+    nameEn: 'Charitable Organization "Power of Unity"',
     logoHint: "partner4-logo.png",
     url: "https://www.facebook.com/Syla.Ednosti/",
   },
   {
     name: 'Благодійний фонд "Наш промінь світла"',
+    nameEn: 'Charitable Foundation "Our Ray of Light"',
     logoHint: "partner5-logo.png",
     url: "",
   },
   {
     name: 'Благодійний фонд "Слава Україні"',
+    nameEn: 'Charitable Foundation "Glory to Ukraine"',
     logoHint: "partner9-logo.png",
     url: "https://glory2ukraine.rada.gov.ua/ua/",
   },
   {
     name: "Київська православна богословська академія",
+    nameEn: "Kyiv Orthodox Theological Academy",
     logoHint: "partner17-logo.png",
     url: "https://kpba.edu.ua/",
   },
   {
     name: "Українська Асоціація Гуманітарного Розмінування",
+    nameEn: "Ukrainian Association for Humanitarian Demining",
     logoHint: "partner7-logo.png",
     url: "https://deminingua.com/",
   },
   {
     name: "Військова частина А7297 Святошинська районна в м. Києві адміністрація",
+    nameEn: "Military Unit A7297 and Sviatoshyn District Administration in Kyiv",
     logoHint: "",
     url: "",
   },
   {
     name: "Добровольче формування Територіальної громади м. Києва №10",
+    nameEn: "Volunteer Formation of the Territorial Community of Kyiv No. 10",
     logoHint: "",
     url: "",
   },
   {
     name:
       'Окремий підрозділ Добровольчого Формування Територіально громади м. Києва № 42 "Легіон Оболонь"',
+    nameEn:
+      'Separate Unit of the Volunteer Formation of the Territorial Community of Kyiv No. 42 "Obolon Legion"',
     logoHint: "",
     url:
       "https://www.facebook.com/people/%D0%94%D0%BE%D0%B1%D1%80%D0%BE%D0%B2%D0%BE%D0%BB%D1%8C%D1%87%D0%B5-%D0%A4%D0%BE%D1%80%D0%BC%D1%83%D0%B2%D0%B0%D0%BD%D0%BD%D1%8F-%D0%9B%D0%B5%D0%B3%D1%96%D0%BE%D0%BD-%D0%9E%D0%B1%D0%BE%D0%BB%D0%BE%D0%BD%D1%8C/pfbid02M33rr5fJuYokVfiY41GpZLNr9z2TeRTGvZzqj7DNfoNDrLyu1YkqHztD9JP9KNfwl/",
   },
   {
     name: 'Громадська спілка "Святошинські маскувальні сіточки"',
+    nameEn: 'Public Union "Sviatoshyn Camouflage Nets"',
     logoHint: "",
     url: "https://www.facebook.com/groups/1206167250190364/",
   },
   {
     name: 'Волонтерський гурт "Борщагівські Кікімори"',
+    nameEn: 'Volunteer Group "Borshchahivka Kikimory"',
     logoHint: "",
     url: "",
   },
   {
     name: "Соціальний центр Перспектива Галаган і Нивок та захист прав учасників АТО",
+    nameEn: 'Social Center "Perspektyva Halahan and Nyvky" and Protection of ATO Participants’ Rights',
     logoHint: "",
     url: "",
   },
   {
     name: 'Київська міська дитяча клінічна туберкульозна лікарня',
+    nameEn: "Kyiv City Children's Clinical Tuberculosis Hospital",
     logoHint: "",
     url: "https://med.kyivcity.gov.ua/medportal/medview/174.html",
   },
   {
     name: `КНП КОР "Київський обласний центр ментального здоров'я"`,
+    nameEn: 'Municipal Non-Profit Enterprise of Kyiv Regional Council "Kyiv Regional Mental Health Center"',
     logoHint: "",
     url: "https://kopnl.com.ua/",
   },
   {
     name:
       'Комунальорганізація виконавчого органу київської міської ради (Київської міської державної адміністрації) "Муніцпальна охорона"',
+    nameEn:
+      'Municipal Organization of the Executive Body of Kyiv City Council (Kyiv City State Administration) "Municipal Guard"',
     logoHint: "",
     url: "https://kyivcity.gov.ua/bezpeka_ta_pravoporiadok/munitsipalna_okhorona/",
   },
   {
     name:
       'ГО "Святошинська районна в м. Києві організація інвалідів війни, збройних сил та учасників бойових дій"',
+    nameEn:
+      'NGO "Sviatoshyn District Organization in Kyiv of Disabled War Veterans, Armed Forces Members and Combatants"',
     logoHint: "",
     url: "",
   },
@@ -299,22 +344,34 @@ const latestNews = [
   {
     title:
       "АВКУ долучилася до благодійного ярмарку на підтримку батальйону «Свобода»",
+    titleEn:
+      "AVKU joined a charity fair supporting the Svoboda battalion",
     dateISO: "2026-06-14",
     dateLabel: "14 червня 2026",
+    dateLabelEn: "June 14, 2026",
     text:
       "У парку «Відрадний» збирали кошти на FPV-дрони для батальйону «Свобода» бригади НГУ «Рубіж».",
+    textEn:
+      "In Vidradnyi Park, funds were raised for FPV drones for the Svoboda battalion of the Rubizh National Guard brigade.",
     href: "/news#2026-06-14-solomianskyi-charity-fair",
     linkText: "Детальніше",
+    linkTextEn: "Details",
   },
   {
     title:
       "Передали EcoFlow для 34-ї окремої бригади морської піхоти",
+    titleEn:
+      "EcoFlow delivered for the 34th Separate Marine Brigade",
     dateISO: "2026-05-15",
     dateLabel: "15 травня 2026",
+    dateLabelEn: "May 15, 2026",
     text:
       "Потужна підзарядна станція забезпечить безперебійну роботу та зв’язок мінометного батальйону.",
+    textEn:
+      "The high-capacity charging station will help keep the mortar battalion’s work and communications running without interruption.",
     href: "/news#2026-05-15-34-marine-brigade-ecoflow",
     linkText: "Детальніше",
+    linkTextEn: "Details",
   },
 ];
 
@@ -412,18 +469,39 @@ const orgJsonLd = {
       </p>
 
       <div class="hero-actions" style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
-        <a href={join("/donate")} class="btn" aria-label="Перейти на сторінку підтримки донатом">
+        <a
+          href={join("/donate")}
+          class="btn"
+          aria-label="Перейти на сторінку підтримки донатом"
+          data-translate-en="Support"
+          data-translate-en-aria-label="Go to the donation page"
+        >
           Підтримати
         </a>
-        <a href={join("/join")} class="btn" aria-label="Перейти на сторінку для волонтерів">
+        <a
+          href={join("/join")}
+          class="btn"
+          aria-label="Перейти на сторінку для волонтерів"
+          data-translate-en="Become a volunteer"
+          data-translate-en-aria-label="Go to the volunteer page"
+        >
           Стати волонтером
         </a>
-        <a href={join("/reports")} class="btn" aria-label="Перейти до звітів та прозорості">
+        <a
+          href={join("/reports")}
+          class="btn"
+          aria-label="Перейти до звітів та прозорості"
+          data-translate-en="Reports / Transparency"
+          data-translate-en-aria-label="Go to reports and transparency"
+        >
           Звіти / Прозорість
         </a>
       </div>
 
-      <p style="margin-top:16px; font-size:0.95rem; opacity:0.9;">
+      <p
+        style="margin-top:16px; font-size:0.95rem; opacity:0.9;"
+        data-translate-en="Official donation details are available only on our website."
+      >
         Офіційні реквізити для донату — лише на нашому сайті.
       </p>
     </div>
@@ -432,22 +510,35 @@ const orgJsonLd = {
   <!-- URGENT NEEDS -->
   <section class="activities">
     <div class="container">
-      <h2 class="section-title">Що потрібно зараз</h2>
+      <h2 class="section-title" data-translate="urgent_needs_title">Що потрібно зараз</h2>
 
       <div class="activities-grid">
         {urgentNeeds.map((n) => (
           <div class="activity-card">
-            <h3>{n.title}</h3>
-            <p>{n.desc}</p>
+            <h3 data-translate={n.titleKey}>{n.title}</h3>
+            <p data-translate={n.descKey}>{n.desc}</p>
             <div style="margin-top:16px;">
-              <a class="btn" href={join(n.href)} aria-label={`Підтримати: ${n.title}`}>{n.cta}</a>
+              <a
+                class="btn"
+                href={join(n.href)}
+                aria-label={`Підтримати: ${n.title}`}
+                data-translate={n.ctaKey}
+              >
+                {n.cta}
+              </a>
             </div>
           </div>
         ))}
       </div>
 
       <div class="view-more-container" style="margin-top:24px;">
-        <a href={join("/donate")} class="btn" aria-label="Підтримати діяльність АВКУ донатом">
+        <a
+          href={join("/donate")}
+          class="btn"
+          aria-label="Підтримати діяльність АВКУ донатом"
+          data-translate="urgent_needs_more_cta"
+          data-translate-en-aria-label="Support AVKU with a donation"
+        >
           Перейти до донату
         </a>
       </div>
@@ -491,7 +582,13 @@ const orgJsonLd = {
       </div>
 
       <div class="view-more-container" style="margin-top:0;">
-        <a href={join("/reports")} class="btn" aria-label="Перейти до звітів">
+        <a
+          href={join("/reports")}
+          class="btn"
+          aria-label="Перейти до звітів"
+          data-translate-en="View reports"
+          data-translate-en-aria-label="Go to reports"
+        >
           Дивитися звіти
         </a>
       </div>
@@ -500,17 +597,28 @@ const orgJsonLd = {
 
       <div class="photo-gallery">
         {photoReports.map((r) => (
-          <a href={join(r.href)} class="gallery-card" aria-label={`Відкрити: ${r.text}`}>
+          <a
+            href={join(r.href)}
+            class="gallery-card"
+            aria-label={`Відкрити: ${r.text}`}
+            data-translate-en-aria-label={`Open: ${r.textEn}`}
+          >
             <img src={asset(r.img)} alt={r.alt} loading="lazy" decoding="async" />
             <div class="card-overlay">
-              <p>{r.text}</p>
+              <p data-translate-en={r.textEn}>{r.text}</p>
             </div>
           </a>
         ))}
       </div>
 
       <div class="view-more-container">
-        <a href={join("/reports")} class="btn" aria-label="Перейти до звітів та фотозвітів">
+        <a
+          href={join("/reports")}
+          class="btn"
+          aria-label="Перейти до звітів та фотозвітів"
+          data-translate-en="More photos"
+          data-translate-en-aria-label="Go to reports and photo reports"
+        >
           Більше фото
         </a>
       </div>
@@ -520,8 +628,8 @@ const orgJsonLd = {
       <div class="testimonials-container">
         {testimonials.map((t) => (
           <div class="testimonial">
-            <blockquote>"{t.quote}"</blockquote>
-            <cite>{t.cite}</cite>
+            <blockquote data-translate-en={`"${t.quoteEn}"`}>"{t.quote}"</blockquote>
+            <cite data-translate-en={t.citeEn}>{t.cite}</cite>
           </div>
         ))}
       </div>
@@ -560,26 +668,33 @@ const orgJsonLd = {
                   letter-spacing:0.04em;
                 "
                 title="Логотип відсутній"
+                data-translate-en-title="Logo missing"
               >
-                {initials(p.name)}
+                <span data-translate-en={initials(p.nameEn)}>{initials(p.name)}</span>
               </div>
             )}
 
-            <h3>{p.name}</h3>
+            <h3 data-translate-en={p.nameEn}>{p.name}</h3>
 
             {p.url ? (
-              <a href={p.url} target="_blank" rel="noopener noreferrer">
+              <a href={p.url} target="_blank" rel="noopener noreferrer" data-translate="visit_site">
                 Відвідати сайт
               </a>
             ) : (
-              <span style="opacity:0.65;">Сайт: —</span>
+              <span style="opacity:0.65;" data-translate="site_missing">Сайт: —</span>
             )}
           </div>
         ))}
       </div>
 
       <div class="view-more-container">
-        <a href={join("/about")} class="btn" aria-label="Дізнатися більше про АВКУ та партнерів">
+        <a
+          href={join("/about")}
+          class="btn"
+          aria-label="Дізнатися більше про АВКУ та партнерів"
+          data-translate="about_btn"
+          data-translate-en-aria-label="Learn more about AVKU and partners"
+        >
           Про нас
         </a>
       </div>
@@ -594,21 +709,41 @@ const orgJsonLd = {
       <div class="news-items">
         {latestNews.map((n) => (
           <article class="news-item">
-            <h3>{n.title}</h3>
+            <h3 data-translate-en={n.titleEn}>{n.title}</h3>
 
             <p class="news-meta">
-              <time datetime={n.dateISO} aria-label={n.dateLabel}>{n.dateLabel}</time>
+              <time
+                datetime={n.dateISO}
+                aria-label={n.dateLabel}
+                data-translate-en={n.dateLabelEn}
+                data-translate-en-aria-label={n.dateLabelEn}
+              >
+                {n.dateLabel}
+              </time>
             </p>
 
-            <p>{n.text}</p>
+            <p data-translate-en={n.textEn}>{n.text}</p>
 
-            <a href={join(n.href)} aria-label={n.title}>{n.linkText}</a>
+            <a
+              href={join(n.href)}
+              aria-label={n.title}
+              data-translate-en={n.linkTextEn}
+              data-translate-en-aria-label={n.titleEn}
+            >
+              {n.linkText}
+            </a>
           </article>
         ))}
       </div>
 
       <div class="view-more-container">
-        <a href={join("/news")} class="btn" aria-label="Перейти до всіх новин">
+        <a
+          href={join("/news")}
+          class="btn"
+          aria-label="Перейти до всіх новин"
+          data-translate-en="All news"
+          data-translate-en-aria-label="Go to all news"
+        >
           Всі новини
         </a>
       </div>
@@ -618,30 +753,54 @@ const orgJsonLd = {
   <!-- FINAL CTA -->
   <section class="activities">
     <div class="container">
-      <h2 class="section-title">Долучайся до спільноти</h2>
+      <h2 class="section-title" data-translate-en="Join the community">Долучайся до спільноти</h2>
 
       <div class="activities-grid">
         <div class="activity-card">
-          <h3>Підтримай донатом</h3>
-          <p>Кожен внесок перетворюється на конкретну допомогу за запитами.</p>
+          <h3 data-translate-en="Support with a donation">Підтримай донатом</h3>
+          <p data-translate-en="Every contribution turns into specific aid based on real requests.">Кожен внесок перетворюється на конкретну допомогу за запитами.</p>
           <div style="margin-top:16px;">
-            <a class="btn" href={join("/donate")} aria-label="Підтримати донатом">Підтримати</a>
+            <a
+              class="btn"
+              href={join("/donate")}
+              aria-label="Підтримати донатом"
+              data-translate-en="Support"
+              data-translate-en-aria-label="Support with a donation"
+            >
+              Підтримати
+            </a>
           </div>
         </div>
 
         <div class="activity-card">
-          <h3>Стань волонтером</h3>
-          <p>Заповни коротку анкету — ми підкажемо, як найкраще долучитися.</p>
+          <h3 data-translate-en="Become a volunteer">Стань волонтером</h3>
+          <p data-translate-en="Fill out a short form and we will help you find the best way to join.">Заповни коротку анкету — ми підкажемо, як найкраще долучитися.</p>
           <div style="margin-top:16px;">
-            <a class="btn" href={join("/join")} aria-label="Стати волонтером">Заповнити анкету</a>
+            <a
+              class="btn"
+              href={join("/join")}
+              aria-label="Стати волонтером"
+              data-translate-en="Fill out the form"
+              data-translate-en-aria-label="Become a volunteer"
+            >
+              Заповнити анкету
+            </a>
           </div>
         </div>
 
         <div class="activity-card">
-          <h3>Партнерство</h3>
-          <p>Бізнес і організації можуть підтримати конкретні цілі та отримати прозору звітність.</p>
+          <h3 data-translate-en="Partnership">Партнерство</h3>
+          <p data-translate-en="Businesses and organizations can support specific goals and receive transparent reporting.">Бізнес і організації можуть підтримати конкретні цілі та отримати прозору звітність.</p>
           <div style="margin-top:16px;">
-            <a class="btn" href={join("/contacts")} aria-label="Зв’язатися для партнерства">Зв’язатися</a>
+            <a
+              class="btn"
+              href={join("/contacts")}
+              aria-label="Зв’язатися для партнерства"
+              data-translate-en="Contact us"
+              data-translate-en-aria-label="Contact us about partnership"
+            >
+              Зв’язатися
+            </a>
           </div>
         </div>
       </div>

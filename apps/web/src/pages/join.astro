@@ -27,34 +27,48 @@ const contacts = {
 const ways = [
   {
     title: "Логістика та пакування",
+    titleEn: "Logistics and packing",
     desc: "Сортування, комплектація та підготовка вантажів до відправки, допомога з доставками.",
+    descEn: "Sorting, assembling, and preparing shipments, plus help with deliveries.",
   },
   {
     title: "Волонтерські майстерні",
+    titleEn: "Volunteer workshops",
     desc: "Маскувальні сітки, окопні свічки та інші необхідні речі — разом із командою та партнерами.",
+    descEn: "Camouflage nets, trench candles, and other essentials made together with the team and partners.",
   },
   {
     title: "Комунікації та медіа",
+    titleEn: "Communications and media",
     desc: "Допомога з дописами, фото та відео, оформленням звітів і веденням соцмереж.",
+    descEn: "Help with posts, photos, videos, report design, and social media.",
   },
   {
     title: "Події та збори",
+    titleEn: "Events and fundraisers",
     desc: "Організація благодійних ярмарків, заходів у громадах і навчальних закладах.",
+    descEn: "Organizing charity fairs and events in communities and educational institutions.",
   },
 ];
 
 const steps = [
   {
     title: "1) Залиш заявку",
+    titleEn: "1. Leave a request",
     desc: "Заповни коротку анкету нижче — це займе менше хвилини.",
+    descEn: "Fill out the short form below. It takes less than a minute.",
   },
   {
     title: "2) Ми зв’яжемося",
+    titleEn: "2. We will contact you",
     desc: "Підкажемо напрям під твої можливості, час і місто.",
+    descEn: "We will suggest a role based on your skills, time, and city.",
   },
   {
     title: "3) Долучайся до справи",
+    titleEn: "3. Join the work",
     desc: "Знайдемо роль, у якій твоя допомога буде максимально корисною.",
+    descEn: "We will find a role where your help will be most useful.",
   },
 ];
 ---
@@ -74,16 +88,16 @@ const steps = [
   <!-- HERO -->
   <section class="hero">
     <div class="container hero-content">
-      <h1 class="hero-header">Стати волонтером</h1>
-      <p class="hero-slogan">Волонтери за покликом душі — або воюєш, або допомагаєш!</p>
-      <p>
+      <h1 class="hero-header" data-translate-en="Become a volunteer">Стати волонтером</h1>
+      <p class="hero-slogan" data-translate-en="Volunteers by the call of the heart — either you fight or you help!">Волонтери за покликом душі — або воюєш, або допомагаєш!</p>
+      <p data-translate-en="Join the AVKU community. Every form of participation matters, from a few hours a month to regular help. Tell us about yourself and we will find the right role.">
         Долучайся до спільноти АВКУ. Будь-який формат участі важливий — від кількох годин на місяць
         до постійної допомоги. Розкажи про себе, і ми підберемо роль.
       </p>
 
       <div class="hero-actions" style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
-        <a href="#join-form" class="btn" aria-label="Перейти до анкети волонтера">Заповнити анкету</a>
-        <a href={join("/donate")} class="btn" aria-label="Перейти на сторінку підтримки">Підтримати донатом</a>
+        <a href="#join-form" class="btn" aria-label="Перейти до анкети волонтера" data-translate-en="Fill out the form" data-translate-en-aria-label="Go to the volunteer form">Заповнити анкету</a>
+        <a href={join("/donate")} class="btn" aria-label="Перейти на сторінку підтримки" data-translate-en="Support with a donation" data-translate-en-aria-label="Go to the support page">Підтримати донатом</a>
       </div>
     </div>
   </section>
@@ -91,12 +105,12 @@ const steps = [
   <!-- WAYS TO HELP -->
   <section class="activities">
     <div class="container">
-      <h2 class="section-title">Чим можна допомогти</h2>
+      <h2 class="section-title" data-translate-en="How you can help">Чим можна допомогти</h2>
       <div class="activities-grid">
         {ways.map((w) => (
           <div class="activity-card">
-            <h3>{w.title}</h3>
-            <p>{w.desc}</p>
+            <h3 data-translate-en={w.titleEn}>{w.title}</h3>
+            <p data-translate-en={w.descEn}>{w.desc}</p>
           </div>
         ))}
       </div>
@@ -106,12 +120,12 @@ const steps = [
   <!-- HOW IT WORKS -->
   <section class="trust-block">
     <div class="container">
-      <h2 class="section-title">Як це працює</h2>
+      <h2 class="section-title" data-translate-en="How it works">Як це працює</h2>
       <div class="activities-grid">
         {steps.map((s) => (
           <div class="activity-card">
-            <h3>{s.title}</h3>
-            <p>{s.desc}</p>
+            <h3 data-translate-en={s.titleEn}>{s.title}</h3>
+            <p data-translate-en={s.descEn}>{s.desc}</p>
           </div>
         ))}
       </div>
@@ -121,7 +135,7 @@ const steps = [
   <!-- FORM -->
   <section class="activities" id="join-form">
     <div class="container">
-      <h2 class="section-title">Анкета волонтера</h2>
+      <h2 class="section-title" data-translate-en="Volunteer form">Анкета волонтера</h2>
 
       <div class="join-form-wrapper">
         <form
@@ -131,49 +145,53 @@ const steps = [
           enctype="text/plain"
         >
           <div class="form-group">
-            <label for="v-name">Ім’я</label>
-            <input id="v-name" name="name" type="text" required autocomplete="name" placeholder="Як до тебе звертатися?" />
+            <label for="v-name" data-translate-en="Name">Ім’я</label>
+            <input id="v-name" name="name" type="text" required autocomplete="name" placeholder="Як до тебе звертатися?" data-translate-en-placeholder="How should we address you?" />
           </div>
 
           <div class="form-group">
-            <label for="v-contact">Контакт (телефон / email / Telegram)</label>
-            <input id="v-contact" name="contact" type="text" required placeholder="Як з тобою зв’язатися?" />
+            <label for="v-contact" data-translate-en="Contact (phone / email / Telegram)">Контакт (телефон / email / Telegram)</label>
+            <input id="v-contact" name="contact" type="text" required placeholder="Як з тобою зв’язатися?" data-translate-en-placeholder="How can we contact you?" />
           </div>
 
           <div class="form-group">
-            <label for="v-city">Місто</label>
-            <input id="v-city" name="city" type="text" placeholder="Наприклад: Київ" />
+            <label for="v-city" data-translate-en="City">Місто</label>
+            <input id="v-city" name="city" type="text" placeholder="Наприклад: Київ" data-translate-en-placeholder="For example: Kyiv" />
           </div>
 
           <div class="form-group">
-            <label for="v-direction">Напрям, що цікавить</label>
+            <label for="v-direction" data-translate-en="Area of interest">Напрям, що цікавить</label>
             <select id="v-direction" name="direction">
-              <option value="Логістика та пакування">Логістика та пакування</option>
-              <option value="Волонтерські майстерні">Волонтерські майстерні</option>
-              <option value="Комунікації та медіа">Комунікації та медіа</option>
-              <option value="Події та збори">Події та збори</option>
-              <option value="Ще не визначився / порадьте">Ще не визначився / порадьте</option>
+              <option value="Логістика та пакування" data-translate-en="Logistics and packing">Логістика та пакування</option>
+              <option value="Волонтерські майстерні" data-translate-en="Volunteer workshops">Волонтерські майстерні</option>
+              <option value="Комунікації та медіа" data-translate-en="Communications and media">Комунікації та медіа</option>
+              <option value="Події та збори" data-translate-en="Events and fundraisers">Події та збори</option>
+              <option value="Ще не визначився / порадьте" data-translate-en="Not sure yet / please advise">Ще не визначився / порадьте</option>
             </select>
           </div>
 
           <div class="form-group">
-            <label for="v-message">Кілька слів про себе (необов’язково)</label>
-            <textarea id="v-message" name="message" rows="4" placeholder="Скільки часу можеш приділяти, що вмієш, чим хочеш допомогти"></textarea>
+            <label for="v-message" data-translate-en="A few words about yourself (optional)">Кілька слів про себе (необов’язково)</label>
+            <textarea id="v-message" name="message" rows="4" placeholder="Скільки часу можеш приділяти, що вмієш, чим хочеш допомогти" data-translate-en-placeholder="How much time can you give, what can you do, and how would you like to help?"></textarea>
           </div>
 
-          <button type="submit" class="btn btn-gradient w-full">Надіслати заявку</button>
+          <button type="submit" class="btn btn-gradient w-full" data-translate-en="Send request">Надіслати заявку</button>
 
           <p class="join-form__note">
-            Кнопка відкриє твій поштовий застосунок із готовим листом на адресу
+            <span data-translate-en="The button will open your email app with a prepared message to ">
+              Кнопка відкриє твій поштовий застосунок із готовим листом на адресу
+            </span>
             {" "}<a href={`mailto:${contacts.email}`}>{contacts.email}</a>.
-            Якщо так не зручно — просто напиши нам напряму.
+            <span data-translate-en=" If that is inconvenient, just write to us directly.">
+              Якщо так не зручно — просто напиши нам напряму.
+            </span>
           </p>
         </form>
 
         <aside class="join-contacts">
-          <h3>Зв’язатися напряму</h3>
+          <h3 data-translate-en="Contact us directly">Зв’язатися напряму</h3>
           <p>
-            Телефони:<br />
+            <span data-translate-en="Phones:">Телефони:</span><br />
             <a href={`tel:${contacts.phone1.replace(/[^+0-9]/g, "")}`}>{contacts.phone1}</a><br />
             <a href={`tel:${contacts.phone2.replace(/[^+0-9]/g, "")}`}>{contacts.phone2}</a>
           </p>
@@ -182,10 +200,10 @@ const steps = [
             <a href={`mailto:${contacts.email}`}>{contacts.email}</a>
           </p>
           <p>
-            Локація:<br />
-            {contacts.city}, {contacts.address}
+            <span data-translate-en="Location:">Локація:</span><br />
+            <span data-translate-en="Kyiv"> {contacts.city}</span>, <span data-translate-en="Zodchykh St, 58-A, 03170">{contacts.address}</span>
           </p>
-          <a href={join("/contacts")} class="btn view-more-btn">Усі контакти</a>
+          <a href={join("/contacts")} class="btn view-more-btn" data-translate-en="All contacts">Усі контакти</a>
         </aside>
       </div>
     </div>

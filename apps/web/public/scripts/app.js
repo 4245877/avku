@@ -46,18 +46,73 @@
     }
   }
 
-  function applyDict(dict) {
-    if (!dict) return;
+  function getOriginal(el, slot, read) {
+    const key = `translateOriginal${slot}`;
+    if (!(key in el.dataset)) {
+      el.dataset[key] = read();
+    }
+    return el.dataset[key];
+  }
 
-    document.querySelectorAll("[data-translate]").forEach((el) => {
-      const key = el.getAttribute("data-translate");
-      if (!key) return;
+  function valueFrom(dict, key) {
+    if (!dict || !key) return "";
+    const value = dict[key];
+    return typeof value === "string" ? value : "";
+  }
 
-      const value = dict[key];
-      if (typeof value === "string" && value.length) {
-        el.textContent = value;
-      }
+  function applyText(el, dict, lang) {
+    const original = getOriginal(el, "Text", () => el.textContent || "");
+    const direct = el.getAttribute(`data-translate-${lang}`) || "";
+    const keyed = valueFrom(dict, el.getAttribute("data-translate"));
+
+    el.textContent = keyed || direct || original;
+  }
+
+  const translatableAttrs = [
+    { attr: "placeholder", suffix: "placeholder" },
+    { attr: "aria-label", suffix: "aria-label" },
+    { attr: "alt", suffix: "alt" },
+    { attr: "title", suffix: "title" },
+    { attr: "value", suffix: "value" },
+    { attr: "data-title", suffix: "data-title" },
+    { attr: "data-alt", suffix: "data-alt" },
+    { attr: "data-caption", suffix: "data-caption" },
+  ];
+
+  function applyAttr(el, dict, lang, config) {
+    const { attr, suffix } = config;
+    const original = getOriginal(el, `Attr${suffix.replace(/[^a-z0-9]/gi, "")}`, () =>
+      el.getAttribute(attr) || ""
+    );
+    const direct = el.getAttribute(`data-translate-${lang}-${suffix}`) || "";
+    const keyed = valueFrom(dict, el.getAttribute(`data-translate-${suffix}`));
+    const next = keyed || direct || original;
+
+    if (next) el.setAttribute(attr, next);
+  }
+
+  function applyDict(dict, lang) {
+    const textSelector = [
+      "[data-translate]",
+      "[data-translate-en]",
+      "[data-translate-uk]",
+    ].join(",");
+
+    document.querySelectorAll(textSelector).forEach((el) => {
+      applyText(el, dict, lang);
     });
+
+    for (const config of translatableAttrs) {
+      const selector = [
+        `[data-translate-${config.suffix}]`,
+        `[data-translate-en-${config.suffix}]`,
+        `[data-translate-uk-${config.suffix}]`,
+      ].join(",");
+
+      document.querySelectorAll(selector).forEach((el) => {
+        applyAttr(el, dict, lang, config);
+      });
+    }
   }
 
   async function setLanguage(lang) {
@@ -67,7 +122,7 @@
     document.documentElement.lang = safeLang;
 
     const dict = await loadDict(safeLang);
-    applyDict(dict);
+    applyDict(dict, safeLang);
 
     // Подсветка кнопок языка (класс .active управляет градиентом в CSS)
     document.querySelectorAll("[data-lang]").forEach((b) => {
@@ -75,6 +130,12 @@
       b.setAttribute("aria-pressed", String(isCurrent));
       b.classList.toggle("active", isCurrent);
     });
+
+    document.dispatchEvent(
+      new CustomEvent("avku:language-change", {
+        detail: { lang: safeLang },
+      })
+    );
   }
 
   function setLangHandlers() {

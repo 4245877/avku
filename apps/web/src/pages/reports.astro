@@ -77,6 +77,82 @@ const categoryLabel = (id) => {
   };
   return map[id] || "Усі";
 };
+
+const categoryLabelEn = (id) => {
+  const map = {
+    zsu: "Armed Forces",
+    repair: "Repairs/equipment",
+    humanitarian: "Humanitarian aid",
+    medical: "Medical/rehabilitation",
+    partners: "Partners",
+    other: "Other",
+  };
+  return map[id] || "All";
+};
+
+function formatDateEn(iso) {
+  const value = String(iso ?? "");
+  const date = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return new Intl.DateTimeFormat("en", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(date);
+}
+
+const reportTopicEn = (category) => {
+  const map = {
+    zsu: "support for the Armed Forces",
+    repair: "repairs and equipment",
+    humanitarian: "humanitarian aid",
+    medical: "medical and rehabilitation support",
+    partners: "partner cooperation",
+    other: "AVKU activity",
+  };
+  return map[String(category ?? "other")] || map.other;
+};
+
+const reportManualEn = {
+  "report-2026-solomianskyi-charity-fair": {
+    title: "Charity fair for FPV drones for the Svoboda battalion",
+    summary:
+      "AVKU joined a charity fair in Vidradnyi Park. The funds raised will support FPV drones for the Svoboda battalion of the Rubizh National Guard brigade.",
+  },
+  "report-2026-medevac-car-25-brigade": {
+    title: "Fundraiser for a combat medic vehicle for the 25th Sicheslav Brigade completed",
+    summary:
+      "AVKU reports that the fundraiser for a vehicle for a combat medic of the 25th Sicheslav Brigade has been completed.",
+  },
+  "2026-05-15-example-report": {
+    title: "Aid delivered to a Ukrainian Armed Forces unit",
+    summary:
+      "AVKU delivered the requested support to a Ukrainian Armed Forces unit and published the available confirmation materials.",
+  },
+};
+
+const reportTitleEn = (report) => {
+  const manual = reportManualEn[String(report.id ?? "")]?.title;
+  if (manual) return manual;
+
+  const date = formatDateEn(report.dateISO);
+  const category = categoryLabelEn(String(report.category ?? "other"));
+  return date ? `${category} report - ${date}` : `${category} report`;
+};
+
+const reportSummaryEn = (report) => {
+  const manual = reportManualEn[String(report.id ?? "")]?.summary;
+  if (manual) return manual;
+
+  return `AVKU report on ${reportTopicEn(report.category)}. Photos, documents, and source links are included when available.`;
+};
+
+const reportMediaAltEn = (report, index) => `${reportTitleEn(report)} photo ${index + 1}`;
+const reportMediaCaptionEn = (report, index) => `${reportTitleEn(report)} - photo ${index + 1}`;
+const reportDocLabelEn = (_doc, index) => `Document / confirmation${index > 0 ? ` ${index + 1}` : ""}`;
+const reportDonationLabelEn = () => "Support this case";
+const reportSocialLabelEn = () => "Source post";
 ---
 
 <Base lang={lang} title={title} description={description}>
@@ -109,12 +185,12 @@ const categoryLabel = (id) => {
       </div>
     </section>
 
-    <section class="reports-layout" aria-label="Фільтри, пошук та список звітів">
+    <section class="reports-layout" aria-label="Фільтри, пошук та список звітів" data-translate-en-aria-label="Filters, search, and report list">
       {/* ЛІВОРУЧ: категорії */}
-      <aside class="reports-sidebar" aria-label="Категорії">
-        <p class="reports-sidebar__title muted">Категорії</p>
+      <aside class="reports-sidebar" aria-label="Категорії" data-translate-en-aria-label="Categories">
+        <p class="reports-sidebar__title muted" data-translate-en="Categories">Категорії</p>
 
-        <div class="reports-filters reports-filters--sidebar" role="tablist" aria-label="Фільтр категорій">
+        <div class="reports-filters reports-filters--sidebar" role="tablist" aria-label="Фільтр категорій" data-translate-en-aria-label="Category filter">
           {categories.map((c) => (
             <button
               type="button"
@@ -147,13 +223,16 @@ const categoryLabel = (id) => {
           <p class="muted" id="reportsCount" aria-live="polite"></p>
         </div>
 
-        <section aria-label="Список звітів">
+        <section aria-label="Список звітів" data-translate-en-aria-label="Report list">
           <ul class="reports-list" id="reportsList">
             {reportsSorted.map((r) => {
               const titleFallback = String(r.titleFallback ?? "");
               const summaryFallback = String(r.summaryFallback ?? "");
+              const titleEn = reportTitleEn(r);
+              const summaryEn = reportSummaryEn(r);
               const catText = categoryLabel(String(r.category ?? "other"));
-              const searchText = `${titleFallback} ${summaryFallback} ${catText}`.toLowerCase();
+              const catTextEn = categoryLabelEn(String(r.category ?? "other"));
+              const searchText = `${titleFallback} ${summaryFallback} ${titleEn} ${summaryEn} ${catText} ${catTextEn}`.toLowerCase();
 
               const reportId = String(r.id ?? "");
               const media = Array.isArray(r.media) ? r.media : [];
@@ -169,40 +248,49 @@ const categoryLabel = (id) => {
                     <header class="report-card__header">
                       <div class="report-card__meta">
                         <time datetime={String(r.dateISO ?? "")} class="muted">{formatDate(r.dateISO)}</time>
-                        <span class="badge" aria-label="Категорія">{catText}</span>
+                        <span class="badge" aria-label="Категорія" data-translate-en={catTextEn} data-translate-en-aria-label="Category">{catText}</span>
                       </div>
 
-                      <h2 class="report-card__title" data-translate={r.titleKey}>{titleFallback}</h2>
-                      <p class="report-card__summary" data-translate={r.summaryKey}>{summaryFallback}</p>
+                      <h2 class="report-card__title" data-translate={r.titleKey} data-translate-en={titleEn}>{titleFallback}</h2>
+                      <p class="report-card__summary" data-translate={r.summaryKey} data-translate-en={summaryEn}>{summaryFallback}</p>
                     </header>
 
                     {media.length ? (
-                      <section class="report-media report-media--inline" aria-label="Фото">
+                      <section class="report-media report-media--inline" aria-label="Фото" data-translate-en-aria-label="Photos">
                         <ul class="report-media__grid">
-                          {media.map((m, idx) => (
-                            <li class="report-media__item">
-                              <a
-                                class="report-media__link"
-                                href={url(m.src)}
-                                data-media-thumb="1"
-                                data-report={reportId}
-                                data-index={String(idx)}
-                                data-src={url(m.src)}
-                                data-alt={String(m.alt ?? "")}
-                                data-caption={String(m.caption ?? "")}
-                                data-title={titleFallback}
-                              >
-                                <figure>
-                                  <img
-                                    src={url(m.src)}
-                                    alt={m.alt || ""}
-                                    loading="lazy"
-                                  />
-                                  {m.caption ? <figcaption class="muted">{m.caption}</figcaption> : null}
-                                </figure>
-                              </a>
-                            </li>
-                          ))}
+                          {media.map((m, idx) => {
+                            const mediaAltEn = reportMediaAltEn(r, idx);
+                            const mediaCaptionEn = reportMediaCaptionEn(r, idx);
+
+                            return (
+                              <li class="report-media__item">
+                                <a
+                                  class="report-media__link"
+                                  href={url(m.src)}
+                                  data-media-thumb="1"
+                                  data-report={reportId}
+                                  data-index={String(idx)}
+                                  data-src={url(m.src)}
+                                  data-alt={String(m.alt ?? "")}
+                                  data-caption={String(m.caption ?? "")}
+                                  data-title={titleFallback}
+                                  data-translate-en-data-alt={mediaAltEn}
+                                  data-translate-en-data-caption={mediaCaptionEn}
+                                  data-translate-en-data-title={titleEn}
+                                >
+                                  <figure>
+                                    <img
+                                      src={url(m.src)}
+                                      alt={m.alt || ""}
+                                      data-translate-en-alt={mediaAltEn}
+                                      loading="lazy"
+                                    />
+                                    {m.caption ? <figcaption class="muted" data-translate-en={mediaCaptionEn}>{m.caption}</figcaption> : null}
+                                  </figure>
+                                </a>
+                              </li>
+                            );
+                          })}
                         </ul>
                       </section>
                     ) : (
@@ -213,14 +301,14 @@ const categoryLabel = (id) => {
 
                     <div class="report-card__actions">
                       {r.donation?.href ? (
-                        <a class="btn btn-outline" href={url(r.donation.href)} data-translate={r.donation.labelKey}>
+                        <a class="btn btn-outline" href={url(r.donation.href)} data-translate={r.donation.labelKey} data-translate-en={reportDonationLabelEn(r)}>
                           {r.donation.labelFallback}
                         </a>
                       ) : null}
 
                       {r.social?.href ? (
                         <a class="btn btn-outline" href={url(r.social.href)} target="_blank" rel="noopener">
-                          <span data-translate={r.social.labelKey}>{r.social.labelFallback}</span>
+                          <span data-translate={r.social.labelKey} data-translate-en={reportSocialLabelEn(r)}>{r.social.labelFallback}</span>
                         </a>
                       ) : null}
 
@@ -235,12 +323,12 @@ const categoryLabel = (id) => {
                       </summary>
 
                       {r.docs?.length ? (
-                        <div class="report-docs" aria-label="Документи">
+                        <div class="report-docs" aria-label="Документи" data-translate-en-aria-label="Documents">
                           <strong data-translate="reports_docs_title">Документи/підтвердження</strong>
                           <ul>
-                            {r.docs.map((d) => (
+                            {r.docs.map((d, idx) => (
                               <li>
-                                <a href={url(d.href)} class="link" data-translate={d.labelKey}>
+                                <a href={url(d.href)} class="link" data-translate={d.labelKey} data-translate-en={reportDocLabelEn(d, idx)}>
                                   {d.labelFallback}
                                 </a>
                               </li>
@@ -253,7 +341,7 @@ const categoryLabel = (id) => {
                         </p>
                       )}
 
-                      <div class="report-next-steps" aria-label="Наступні кроки">
+                      <div class="report-next-steps" aria-label="Наступні кроки" data-translate-en-aria-label="Next steps">
                         <strong data-translate="reports_next_title">Хочеш бачити результат частіше?</strong>
                         <div class="report-next-steps__actions">
                           <a class="btn btn-primary" href={url("donate")} data-translate="reports_next_donate">
@@ -283,7 +371,7 @@ const categoryLabel = (id) => {
       </div>
     </section>
 
-    <section class="reports-official" aria-label="Офіційні звіти та документи">
+    <section class="reports-official" aria-label="Офіційні звіти та документи" data-translate-en-aria-label="Official reports and documents">
       <h2 data-translate="reports_official_title">Офіційні документи</h2>
       <p class="muted" data-translate="reports_official_desc">
         Якщо тобі потрібні підсумкові звіти та файли (PDF/документи) — вони зібрані в розділі «Публікації».
@@ -294,14 +382,14 @@ const categoryLabel = (id) => {
     </section>
 
     {/* LIGHTBOX (нативний <dialog>) */}
-    <dialog class="media-lightbox" id="mediaLightbox" aria-label="Перегляд фото">
+    <dialog class="media-lightbox" id="mediaLightbox" aria-label="Перегляд фото" data-translate-en-aria-label="Photo preview">
       <div class="media-lightbox__top">
         <div class="media-lightbox__title" id="lightboxTitle"></div>
-        <button type="button" class="media-lightbox__close" id="lightboxClose" aria-label="Закрити">✕</button>
+        <button type="button" class="media-lightbox__close" id="lightboxClose" aria-label="Закрити" data-translate-en-aria-label="Close">✕</button>
       </div>
 
       <div class="media-lightbox__content">
-        <button type="button" class="media-lightbox__nav media-lightbox__prev" id="lightboxPrev" aria-label="Попереднє фото">‹</button>
+        <button type="button" class="media-lightbox__nav media-lightbox__prev" id="lightboxPrev" aria-label="Попереднє фото" data-translate-en-aria-label="Previous photo">‹</button>
 
         <figure class="media-lightbox__figure">
           <img id="lightboxImg" alt="" />
@@ -309,7 +397,7 @@ const categoryLabel = (id) => {
           <div class="muted media-lightbox__counter" id="lightboxCounter"></div>
         </figure>
 
-        <button type="button" class="media-lightbox__nav media-lightbox__next" id="lightboxNext" aria-label="Наступне фото">›</button>
+        <button type="button" class="media-lightbox__nav media-lightbox__next" id="lightboxNext" aria-label="Наступне фото" data-translate-en-aria-label="Next photo">›</button>
       </div>
     </dialog>
   </div>
@@ -322,6 +410,10 @@ const categoryLabel = (id) => {
       const search = document.getElementById("reportsSearch");
       const countEl = document.getElementById("reportsCount");
       const filterButtons = Array.from(document.querySelectorAll("[data-filter]"));
+      const currentLang = () => {
+        try { return localStorage.getItem("avku_lang") || document.documentElement.lang || "uk"; }
+        catch { return document.documentElement.lang || "uk"; }
+      };
 
       const total = items.length;
       let activeFilter = "all";
@@ -351,9 +443,9 @@ const categoryLabel = (id) => {
         }
 
         if (countEl) {
-          countEl.textContent = visible
-            ? `Показано: ${visible} із ${total}`
-            : "Нічого не знайдено.";
+          countEl.textContent = currentLang() === "en"
+            ? (visible ? `Shown: ${visible} of ${total}` : "Nothing found.")
+            : (visible ? `Показано: ${visible} із ${total}` : "Нічого не знайдено.");
         }
       }
 
@@ -372,6 +464,7 @@ const categoryLabel = (id) => {
           t = setTimeout(apply, 160);
         });
       }
+      document.addEventListener("avku:language-change", apply);
 
       apply();
 
@@ -505,11 +598,17 @@ const categoryLabel = (id) => {
             const pct = Math.max(0, Math.min(100, Math.round((raised / goal) * 100)));
             if (barEl) barEl.style.width = pct + "%";
             if (progressEl) progressEl.setAttribute("aria-valuenow", String(pct));
-            safeText(amountsEl, `${raised.toLocaleString("uk-UA")} / ${goal.toLocaleString("uk-UA")} грн`);
+            const locale = currentLang() === "en" ? "en-US" : "uk-UA";
+            const currency = currentLang() === "en" ? "UAH" : "грн";
+            safeText(amountsEl, `${raised.toLocaleString(locale)} / ${goal.toLocaleString(locale)} ${currency}`);
           }
 
           const now = new Date();
-          if (updatedEl) safeText(updatedEl, `оновлено: ${now.toLocaleString("uk-UA")}`);
+          if (updatedEl) {
+            const locale = currentLang() === "en" ? "en-US" : "uk-UA";
+            const prefix = currentLang() === "en" ? "updated" : "оновлено";
+            safeText(updatedEl, `${prefix}: ${now.toLocaleString(locale)}`);
+          }
 
           widget.hidden = false;
         } catch {}

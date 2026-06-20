@@ -200,6 +200,137 @@ const filterTabs = [
   { key: "Спільнота / форум", label: "Форуми" },
 ];
 
+const formatEnglish = {
+  format_support: {
+    titleEn: "Support for the Armed Forces: closing unit requests",
+    descEn:
+      "Collecting and delivering essential gear, communications, power solutions, camouflage, technical, and everyday items based on current requests.",
+    tagsEn: ["Armed Forces", "fundraiser", "delivery"],
+    ctaEn: "Donate",
+  },
+  format_humanitarian: {
+    titleEn: "Humanitarian aid and shipments",
+    descEn:
+      "Regular shipments of food, medicine, and hygiene supplies for service members and civilians, including delivery coordination and packing.",
+    tagsEn: ["humanitarian", "logistics"],
+    ctaEn: "Become a volunteer",
+  },
+  format_workshops: {
+    titleEn: "Volunteer workshops",
+    descEn:
+      "Joint workshops for camouflage nets, trench candles, and other essentials together with volunteers and partners.",
+    tagsEn: ["workshop", "nets", "candles"],
+    ctaEn: "Join",
+  },
+  format_charity: {
+    titleEn: "Charity fairs and fundraisers",
+    descEn:
+      "Public charity events, fairs, community events, and education-based initiatives that strengthen fundraisers for defenders’ needs.",
+    tagsEn: ["fair", "fundraiser"],
+    ctaEn: "Support",
+  },
+  format_education: {
+    titleEn: "Educational and cultural events",
+    descEn:
+      "Meetings, lectures, patriotic events, and community or school activities that support unity and motivation to help.",
+    tagsEn: ["education", "culture"],
+    ctaEn: "Learn more",
+  },
+  format_partnerships: {
+    titleEn: "Partnerships and memorandums",
+    descEn:
+      "Cooperation with organizations and initiatives: memorandums, joint projects, forums, and aid coordination.",
+    tagsEn: ["partnership", "cooperation"],
+    ctaEn: "Contact us",
+  },
+};
+
+const formatsView = formats.map((item) => ({ ...item, ...(formatEnglish[item.key] || {}) }));
+
+const upcomingView = upcoming.map((item) => ({
+  ...item,
+  titleEn: "Upcoming event announcements are published in the AVKU Facebook group",
+  dateLabelEn: "Updated through posts and pinned updates",
+  locationEn: "Online",
+  descEn:
+    "We publish current announcements, gathering locations, and needs in our Facebook community. Click to see the latest updates.",
+  ctaEn: "Open Facebook group",
+}));
+
+const archiveEnglish = {
+  "e-2025-12-12": {
+    dateLabelEn: "December 12, 2025",
+    categoryEn: "Armed Forces / delivery",
+    titleEn: "Aid delivery for a Territorial Defense unit (camouflage nets and other supplies)",
+    descEn: "Together with the education community, we supported a unit by delivering camouflage nets and essential items.",
+  },
+  "e-2025-12-05": {
+    dateLabelEn: "December 5, 2025",
+    categoryEn: "Community / forum",
+    titleEn: "First volunteer forum for International Volunteer Day in Sviatoshyn district",
+    descEn: "A meeting with friends and partners: stories, support, and plans for the next joint efforts.",
+  },
+  "e-2025-12-04": {
+    dateLabelEn: "December 4, 2025",
+    categoryEn: "Education / meeting",
+    titleEn: "Meeting of students and service members at Lyceum No. 281",
+    descEn: "A warm meeting before Volunteer Day and St. Nicholas Day: communication, support, and gifts.",
+  },
+  "e-2025-06-15": {
+    dateLabelEn: "June 15, 2025",
+    categoryEn: "Humanitarian / delivery",
+    titleEn: "Humanitarian aid delivery to the Bratstvo unit of Defence Intelligence",
+    descEn: "Another boost for those carrying out missions in active areas.",
+  },
+  "e-2025-05-13": {
+    dateLabelEn: "May 13, 2025",
+    categoryEn: "Charity / fair",
+    titleEn: "Charity fair: funds raised for 13 FPV drones",
+    descEn: "A joint event with partners and the community that resulted in the purchase of FPV drones for units.",
+  },
+  "e-2025-05-31": {
+    dateLabelEn: "May 31, 2025",
+    categoryEn: "Partnership / memorandum",
+    titleEn: "Memorandum signed with Kyiv Orthodox Theological Academy",
+    descEn: "Cooperation was strengthened for joint initiatives and mutual support.",
+  },
+  "e-2025-02-05": {
+    dateLabelEn: "February 5, 2025",
+    categoryEn: "Partnership / forum",
+    titleEn: "Interactive forum “10 years of change: probation that brings justice closer”",
+    descEn: "An event hosted by the Probation Center branch, focused on coordinated action and mutual support.",
+  },
+  "e-2025-02-19": {
+    dateLabelEn: "February 19, 2025",
+    categoryEn: "Partnership / memorandum",
+    titleEn: "Memorandum with the Perspektyva social center",
+    descEn: "An agreement on joint work and coordination of assistance.",
+  },
+  "e-2025-02-04": {
+    dateLabelEn: "February 4, 2025",
+    categoryEn: "Partnership / memorandum",
+    titleEn: "Memorandum with the Sviatoshyn Camouflage Nets union",
+    descEn: "Uniting efforts in volunteer and charitable work.",
+  },
+};
+
+const archiveView = archive.map((item) => ({ ...item, ...(archiveEnglish[item.id] || {}) }));
+
+const filterEnglish = {
+  all: "All",
+  "ЗСУ / передача": "Armed Forces",
+  "Гуманітарка / передача": "Humanitarian aid",
+  "Благодійність / ярмарок": "Fairs",
+  "Освіта / зустріч": "Education",
+  "Партнерство / меморандум": "Partnerships",
+  "Спільнота / форум": "Forums",
+};
+
+const filterTabsView = filterTabs.map((item) => ({
+  ...item,
+  labelEn: filterEnglish[item.key] || item.label,
+}));
+
 // JSON-LD: WebPage + ItemList (події як приклади)
 const baseUrl = "https://avku.org";
 const pageUrl = `${baseUrl}/events`;
@@ -296,27 +427,29 @@ const eventsJsonLd = {
   <!-- HERO -->
   <section class="hero">
     <div class="container hero-content">
-      <h1 class="hero-header">Події та заходи АВКУ</h1>
+      <h1 class="hero-header" data-translate-en="AVKU events and activities">Події та заходи АВКУ</h1>
 
-      <p class="hero-slogan">
+      <p class="hero-slogan" data-translate-en="Event formats, how to join, and a selected archive.">
         Тут — формати подій, як долучитися, і вибраний архів.
       </p>
 
-      <p>
+      <p data-translate-en="We publish upcoming event announcements in the Facebook group. On the site you will find the structure, clear steps for volunteers, and examples of past events.">
         Анонси найближчих подій ми публікуємо у Facebook-групі. На сайті — структура,
         зрозумілі кроки для волонтера і приклади подій.
       </p>
 
       <div class="hero-actions" style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
-        <a href="/donate" class="btn" aria-label="Перейти до донату">Підтримати</a>
-        <a href="/join" class="btn" aria-label="Перейти до сторінки волонтера">Стати волонтером</a>
+        <a href="/donate" class="btn" aria-label="Перейти до донату" data-translate-en="Support" data-translate-en-aria-label="Go to donations">Підтримати</a>
+        <a href="/join" class="btn" aria-label="Перейти до сторінки волонтера" data-translate-en="Become a volunteer" data-translate-en-aria-label="Go to the volunteer page">Стати волонтером</a>
         <a href={links.facebookGroup} class="btn" target="_blank" rel="noopener noreferrer"
-           aria-label="Відкрити Facebook-групу АВКУ (нове вікно)">
+           aria-label="Відкрити Facebook-групу АВКУ (нове вікно)"
+           data-translate-en="Announcements on Facebook"
+           data-translate-en-aria-label="Open the AVKU Facebook group in a new window">
           Анонси у Facebook
         </a>
       </div>
 
-      <p style="margin-top:16px; font-size:0.95rem; opacity:0.9;">
+      <p style="margin-top:16px; font-size:0.95rem; opacity:0.9;" data-translate-en="For a quick start, write to us or come to an announced event. We will explain what to do.">
         Якщо не трудно, для швидкого включення напиши нам або прийди на подію з анонсу — підкажемо, що робити.
       </p>
     </div>
@@ -325,24 +458,26 @@ const eventsJsonLd = {
   <!-- UPCOMING (коректно: без вигаданих дат) -->
   <section class="activities" id="calendar">
     <div class="container">
-      <h2 class="section-title">Найближчі події</h2>
+      <h2 class="section-title" data-translate-en="Upcoming events">Найближчі події</h2>
 
       <div class="activities-grid">
-        {upcoming.map((e) => (
+        {upcomingView.map((e) => (
           <div class="activity-card">
-            <h3>{e.title}</h3>
+            <h3 data-translate-en={e.titleEn}>{e.title}</h3>
             <p style="opacity:0.9; margin-top:6px;">
-              <strong>{e.dateLabel}</strong> · {e.location}
+              <strong data-translate-en={e.dateLabelEn}>{e.dateLabel}</strong> · <span data-translate-en={e.locationEn}>{e.location}</span>
             </p>
-            <p>{e.desc}</p>
+            <p data-translate-en={e.descEn}>{e.desc}</p>
             <div style="margin-top:16px;">
               {e.external ? (
                 <a class="btn" href={e.href} target="_blank" rel="noopener noreferrer"
-                   aria-label={`Відкрити: ${e.title} (нове вікно)`}>
+                   aria-label={`Відкрити: ${e.title} (нове вікно)`}
+                   data-translate-en={e.ctaEn}
+                   data-translate-en-aria-label={`Open: ${e.titleEn} (new window)`}>
                   {e.cta}
                 </a>
               ) : (
-                <a class="btn" href={e.href} aria-label={`Відкрити: ${e.title}`}>{e.cta}</a>
+                <a class="btn" href={e.href} aria-label={`Відкрити: ${e.title}`} data-translate-en={e.ctaEn} data-translate-en-aria-label={`Open: ${e.titleEn}`}>{e.cta}</a>
               )}
             </div>
           </div>
@@ -350,7 +485,7 @@ const eventsJsonLd = {
       </div>
 
       <div class="view-more-container" style="margin-top:24px;">
-        <a href="/contacts" class="btn" aria-label="Перейти до контактів">
+        <a href="/contacts" class="btn" aria-label="Перейти до контактів" data-translate-en="Need help with registration or questions" data-translate-en-aria-label="Go to contacts">
           Потрібна допомога з реєстрацією / питаннями
         </a>
       </div>
@@ -360,35 +495,35 @@ const eventsJsonLd = {
   <!-- HOW TO JOIN -->
   <section class="trust-block">
     <div class="container">
-      <h2 class="section-title">Як долучитися до події</h2>
+      <h2 class="section-title" data-translate-en="How to join an event">Як долучитися до події</h2>
 
       <div class="activities-grid">
         <div class="activity-card">
-          <h3>1) Обери формат</h3>
-          <p>
+          <h3 data-translate-en="1. Choose a format">1) Обери формат</h3>
+          <p data-translate-en="See “Event formats” below or open an announcement in the Facebook group.">
             Подивись “Формати подій” нижче або відкрий анонс у Facebook-групі.
           </p>
         </div>
 
         <div class="activity-card">
-          <h3>2) Звʼяжись із нами</h3>
+          <h3 data-translate-en="2. Contact us">2) Звʼяжись із нами</h3>
           <p>
-            Телефони: <a href={`tel:${contacts.phone1.replace(/[^+0-9]/g, "")}`}>{contacts.phone1}</a>,
+            <span data-translate-en="Phones:">Телефони:</span> <a href={`tel:${contacts.phone1.replace(/[^+0-9]/g, "")}`}>{contacts.phone1}</a>,
             {" "}<a href={`tel:${contacts.phone2.replace(/[^+0-9]/g, "")}`}>{contacts.phone2}</a><br />
             Email: <a href={`mailto:${contacts.email}`}>{contacts.email}</a>
           </p>
           <p style="opacity:0.9;">
-            Локація: {contacts.city}, {contacts.address}
+            <span data-translate-en="Location:">Локація:</span> <span data-translate-en="Kyiv">{contacts.city}</span>, <span data-translate-en="Zodchykh St, 58-A, 03170">{contacts.address}</span>
           </p>
         </div>
 
         <div class="activity-card">
-          <h3>3) Приходь і допоможи</h3>
-          <p>
+          <h3 data-translate-en="3. Come and help">3) Приходь і допоможи</h3>
+          <p data-translate-en="Packing, sorting, logistics, workshops, communications, or organization - we will find a role that matches your abilities.">
             Пакування, сортування, логістика, майстерні, комунікації або організація — знайдемо роль під твої можливості.
           </p>
           <div style="margin-top:16px;">
-            <a class="btn" href="/join" aria-label="Заповнити анкету волонтера">Заповнити анкету</a>
+            <a class="btn" href="/join" aria-label="Заповнити анкету волонтера" data-translate-en="Fill out the form" data-translate-en-aria-label="Fill out the volunteer form">Заповнити анкету</a>
           </div>
         </div>
       </div>
@@ -398,22 +533,22 @@ const eventsJsonLd = {
   <!-- FORMATS -->
   <section class="activities">
     <div class="container">
-      <h2 class="section-title">Формати подій</h2>
+      <h2 class="section-title" data-translate-en="Event formats">Формати подій</h2>
 
       <div class="activities-grid">
-        {formats.map((f) => (
+        {formatsView.map((f) => (
           <div class="activity-card">
-            <h3>{f.title}</h3>
-            <p>{f.desc}</p>
+            <h3 data-translate-en={f.titleEn}>{f.title}</h3>
+            <p data-translate-en={f.descEn}>{f.desc}</p>
 
             <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
-              {f.tags.map((t) => (
-                <span class="tag">{t}</span>
+              {f.tags.map((t, idx) => (
+                <span class="tag" data-translate-en={f.tagsEn?.[idx]}>{t}</span>
               ))}
             </div>
 
             <div style="margin-top:16px;">
-              <a class="btn" href={f.href} aria-label={f.cta}>{f.cta}</a>
+              <a class="btn" href={f.href} aria-label={f.cta} data-translate-en={f.ctaEn} data-translate-en-aria-label={f.ctaEn}>{f.cta}</a>
             </div>
           </div>
         ))}
@@ -424,52 +559,54 @@ const eventsJsonLd = {
   <!-- ARCHIVE + FILTER -->
   <section class="news" id="archive">
     <div class="container">
-      <h2>Архів вибраних подій</h2>
+      <h2 data-translate-en="Selected event archive">Архів вибраних подій</h2>
 
-      <p style="max-width:860px; margin: 0 auto 16px; opacity:0.9;">
+      <p style="max-width:860px; margin: 0 auto 16px; opacity:0.9;" data-translate-en="These are examples of events that have already taken place, based on Gallery materials. Add new events here and the page will become an even stronger proof of transparent activity.">
         Це приклади подій, які вже відбулися (за матеріалами “Галереї”). Якщо не трудно, додай сюди нові події —
         і сторінка стане ще сильнішим доказом прозорої діяльності.
       </p>
 
       <div class="filters">
-        {filterTabs.map((t, i) => (
+        {filterTabsView.map((t, i) => (
           <button
             type="button"
             class={`filter-btn${i === 0 ? " is-active" : ""}`}
             data-filter={t.key}
             aria-pressed={i === 0 ? "true" : "false"}>
+            <span data-translate-en={t.labelEn}>
             {t.label}
+            </span>
           </button>
         ))}
       </div>
 
       <div class="news-items" data-archive>
-        {archive.map((e) => (
+        {archiveView.map((e) => (
           <article
             id={e.id}
             class="news-item"
             data-category={e.category}
             style="scroll-margin-top: 90px;">
-            <h3>{e.title}</h3>
+            <h3 data-translate-en={e.titleEn}>{e.title}</h3>
 
             <p class="news-meta">
-              <time datetime={e.dateISO} aria-label={e.dateLabel}>{e.dateLabel}</time>
+              <time datetime={e.dateISO} aria-label={e.dateLabel} data-translate-en={e.dateLabelEn} data-translate-en-aria-label={e.dateLabelEn}>{e.dateLabel}</time>
               {" · "}
-              <span style="opacity:0.9;">{e.category}</span>
+              <span style="opacity:0.9;" data-translate-en={e.categoryEn}>{e.category}</span>
             </p>
 
-            <p>{e.desc}</p>
+            <p data-translate-en={e.descEn}>{e.desc}</p>
 
-            <a href={e.href} aria-label={`Відкрити матеріали: ${e.title}`}>Дивитися матеріали</a>
+            <a href={e.href} aria-label={`Відкрити матеріали: ${e.title}`} data-translate-en="View materials" data-translate-en-aria-label={`Open materials: ${e.titleEn}`}>Дивитися матеріали</a>
           </article>
         ))}
       </div>
 
       <div class="view-more-container">
-        <a href="/reports" class="btn" aria-label="Перейти до звітів">
+        <a href="/reports" class="btn" aria-label="Перейти до звітів" data-translate-en="Reports" data-translate-en-aria-label="Go to reports">
           Звіти
         </a>
-        <a href="/publications" class="btn" aria-label="Перейти до публікацій">
+        <a href="/publications" class="btn" aria-label="Перейти до публікацій" data-translate-en="Publications" data-translate-en-aria-label="Go to publications">
           Публікації
         </a>
       </div>
@@ -479,39 +616,41 @@ const eventsJsonLd = {
   <!-- FAQ -->
   <section class="trust-block">
     <div class="container">
-      <h2 class="section-title">Питання, які часто виникають</h2>
+      <h2 class="section-title" data-translate-en="Frequently asked questions">Питання, які часто виникають</h2>
 
       <div class="activities-grid">
         <div class="activity-card">
-          <h3>Де дивитися актуальний розклад?</h3>
-          <p>
+          <h3 data-translate-en="Where can I see the current schedule?">Де дивитися актуальний розклад?</h3>
+          <p data-translate-en="In the Facebook group: announcements, addresses, and needs appear there fastest.">
             У Facebook-групі: там найшвидше зʼявляються анонси, адреси та потреби.
           </p>
           <div style="margin-top:16px;">
             <a class="btn" href={links.facebookGroup} target="_blank" rel="noopener noreferrer"
-               aria-label="Відкрити Facebook-групу (нове вікно)">
+               aria-label="Відкрити Facebook-групу (нове вікно)"
+               data-translate-en="Open Facebook"
+               data-translate-en-aria-label="Open Facebook group in a new window">
               Відкрити Facebook
             </a>
           </div>
         </div>
 
         <div class="activity-card">
-          <h3>Чи потрібна реєстрація?</h3>
-          <p>
+          <h3 data-translate-en="Is registration required?">Чи потрібна реєстрація?</h3>
+          <p data-translate-en="It depends on the format. Write to us and we will explain what is needed for a specific event.">
             Залежить від формату. Напиши нам — підкажемо, що саме потрібно для конкретної події.
           </p>
           <div style="margin-top:16px;">
-            <a class="btn" href="/contacts" aria-label="Перейти до контактів">Контакти</a>
+            <a class="btn" href="/contacts" aria-label="Перейти до контактів" data-translate-en="Contacts" data-translate-en-aria-label="Go to contacts">Контакти</a>
           </div>
         </div>
 
         <div class="activity-card">
-          <h3>Хочу допомогти, але не знаю чим</h3>
-          <p>
+          <h3 data-translate-en="I want to help but do not know how">Хочу допомогти, але не знаю чим</h3>
+          <p data-translate-en="That is normal. Fill out a short form and we will find a role and explain the first steps.">
             Це нормально. Заповни коротку анкету — ми підберемо роль і пояснимо перші кроки.
           </p>
           <div style="margin-top:16px;">
-            <a class="btn" href="/join" aria-label="Заповнити анкету волонтера">Анкета волонтера</a>
+            <a class="btn" href="/join" aria-label="Заповнити анкету волонтера" data-translate-en="Volunteer form" data-translate-en-aria-label="Fill out the volunteer form">Анкета волонтера</a>
           </div>
         </div>
       </div>
@@ -521,30 +660,30 @@ const eventsJsonLd = {
   <!-- FINAL CTA -->
   <section class="activities">
     <div class="container">
-      <h2 class="section-title">Долучайся до наступної події</h2>
+      <h2 class="section-title" data-translate-en="Join the next event">Долучайся до наступної події</h2>
 
       <div class="activities-grid">
         <div class="activity-card">
-          <h3>Підтримай донатом</h3>
-          <p>Кожен внесок перетворюється на конкретну допомогу за запитами.</p>
+          <h3 data-translate-en="Support with a donation">Підтримай донатом</h3>
+          <p data-translate-en="Every contribution turns into specific aid based on real requests.">Кожен внесок перетворюється на конкретну допомогу за запитами.</p>
           <div style="margin-top:16px;">
-            <a class="btn" href="/donate" aria-label="Підтримати донатом">Підтримати</a>
+            <a class="btn" href="/donate" aria-label="Підтримати донатом" data-translate-en="Support" data-translate-en-aria-label="Support with a donation">Підтримати</a>
           </div>
         </div>
 
         <div class="activity-card">
-          <h3>Стань волонтером</h3>
-          <p>Якщо не трудно, заповни анкету — ми швидко зорієнтуємо.</p>
+          <h3 data-translate-en="Become a volunteer">Стань волонтером</h3>
+          <p data-translate-en="Please fill out the form and we will quickly guide you.">Якщо не трудно, заповни анкету — ми швидко зорієнтуємо.</p>
           <div style="margin-top:16px;">
-            <a class="btn" href="/join" aria-label="Стати волонтером">Заповнити анкету</a>
+            <a class="btn" href="/join" aria-label="Стати волонтером" data-translate-en="Fill out the form" data-translate-en-aria-label="Become a volunteer">Заповнити анкету</a>
           </div>
         </div>
 
         <div class="activity-card">
-          <h3>Запропонувати подію</h3>
-          <p>Маєш ідею, партнерів або локацію? Напиши — обговоримо формат і безпеку.</p>
+          <h3 data-translate-en="Suggest an event">Запропонувати подію</h3>
+          <p data-translate-en="Have an idea, partners, or a location? Write to us and we will discuss the format and safety.">Маєш ідею, партнерів або локацію? Напиши — обговоримо формат і безпеку.</p>
           <div style="margin-top:16px;">
-            <a class="btn" href="/contacts" aria-label="Зв’язатися">Зв’язатися</a>
+            <a class="btn" href="/contacts" aria-label="Зв’язатися" data-translate-en="Contact us" data-translate-en-aria-label="Contact us">Зв’язатися</a>
           </div>
         </div>
       </div>

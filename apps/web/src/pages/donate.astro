@@ -36,11 +36,17 @@ const quickAmounts = [200, 500, 1000, 2000, 5000];
 const activeFund = {
   id: "presidential_brigade_uav",
   title: "Збір для захисників: Президентська бригада",
+  titleEn: "Fundraiser for defenders: Presidential Brigade",
   unit: "Президентська бригада",
+  unitEn: "Presidential Brigade",
   battalion: "Батальйон перехоплювачів безпілотних систем",
+  battalionEn: "Unmanned Systems Interceptor Battalion",
   about:
     "Підрозділ щодня працює з перехопленням ворожих БПЛА. Для ефективної та безпечної роботи потрібне базове, але критично важливе обладнання.",
+  aboutEn:
+    "The unit works every day to intercept enemy UAVs. For effective and safe work, it needs basic but critical equipment.",
   needs: ["Дизельний обігрівач", "Інверторний генератор", "Ноутбук"],
+  needsEn: ["Diesel heater", "Inverter generator", "Laptop"],
   goal: 60000,
   jarUrl: "https://send.monobank.ua/jar/AYnqhv5wj7",
   cardNumber: "4874 1000 2444 4732",
@@ -51,39 +57,54 @@ const campaigns = [
     ...activeFund,
     short:
       "Батальйон перехоплювачів безпілотних систем. Потрібні: дизельний обігрівач, інверторний генератор, ноутбук. Ціль — 60 000 ₴.",
+    shortEn:
+      "Unmanned Systems Interceptor Battalion. Needed: diesel heater, inverter generator, laptop. Goal: UAH 60,000.",
     progressApiUrl: "", // API немає, показуємо вручну
     reportUrl: "/reports",
     tags: ["Терміново", "Ціль 60 000 ₴"],
+    tagsEn: ["Urgent", "Goal UAH 60,000"],
   },
   {
     id: "zsu",
     title: "Підтримка ЗСУ",
+    titleEn: "Support for the Armed Forces",
     short:
       "Закриваємо термінові запити підрозділів: спорядження, дрони, живлення, витратні матеріали.",
+    shortEn:
+      "We close urgent unit requests: gear, drones, power solutions, and consumables.",
     jarUrl: MONO_JAR_URL_DEFAULT,
     progressApiUrl: MONO_API_URL_DEFAULT,
     reportUrl: "/reports",
     tags: ["Терміново", "Запити підрозділів"],
+    tagsEn: ["Urgent", "Unit requests"],
   },
   {
     id: "humanitarian",
     title: "Гуманітарна допомога",
+    titleEn: "Humanitarian aid",
     short:
       "Продукти, ліки та гігієна для військових і цивільних. Адресна доставка за потребою.",
+    shortEn:
+      "Food, medicine, and hygiene supplies for service members and civilians, with targeted delivery when needed.",
     jarUrl: MONO_JAR_URL_DEFAULT,
     progressApiUrl: MONO_API_URL_DEFAULT,
     reportUrl: "/reports",
     tags: ["Пункти незламності", "Адресна підтримка"],
+    tagsEn: ["Resilience points", "Targeted support"],
   },
   {
     id: "workshops",
     title: "Майстерні та виробництво",
+    titleEn: "Workshops and production",
     short:
       "Матеріали для маскувальних сіток, окопних свічок та інших речей, які роблять волонтери.",
+    shortEn:
+      "Materials for camouflage nets, trench candles, and other essentials made by volunteers.",
     jarUrl: MONO_JAR_URL_DEFAULT,
     progressApiUrl: MONO_API_URL_DEFAULT,
     reportUrl: "/reports",
     tags: ["Матеріали", "Постійна потреба"],
+    tagsEn: ["Materials", "Ongoing need"],
   },
 ];
 
@@ -123,60 +144,60 @@ const orgJsonLd = {
   <div class="donate-page">
     <section class="hero">
       <div class="hero__left">
-        <h1>Підтримай АВКУ</h1>
+        <h1 data-translate-en="Support AVKU">Підтримай АВКУ</h1>
         <p class="lead">
-          Проста логіка довіри: <strong>обери напрям</strong> →{" "}
-          <strong>зроби дію</strong> → <strong>перевір звіт</strong> →{" "}
-          <strong>повернись підтримати знову</strong>.
+          <span data-translate-en="A simple trust flow: ">Проста логіка довіри: </span><strong data-translate-en="choose a direction">обери напрям</strong> →{" "}
+          <strong data-translate-en="take action">зроби дію</strong> → <strong data-translate-en="check the report">перевір звіт</strong> →{" "}
+          <strong data-translate-en="come back to support again">повернись підтримати знову</strong>.
         </p>
 
-        <ol class="steps" aria-label="Кроки">
+        <ol class="steps" aria-label="Кроки" data-translate-en-aria-label="Steps">
           <li>
             <span class="step__num">1</span>
-            <span>Обереш напрям допомоги</span>
+            <span data-translate-en="Choose an aid direction">Обереш напрям допомоги</span>
           </li>
           <li>
             <span class="step__num">2</span>
-            <span>Підтримаєш донатом або дією</span>
+            <span data-translate-en="Support with a donation or action">Підтримаєш донатом або дією</span>
           </li>
           <li>
             <span class="step__num">3</span>
-            <span>Побачиш звіт з доказами</span>
+            <span data-translate-en="See a report with proof">Побачиш звіт з доказами</span>
           </li>
           <li>
             <span class="step__num">4</span>
-            <span>Повернешся до наступного збору</span>
+            <span data-translate-en="Return for the next fundraiser">Повернешся до наступного збору</span>
           </li>
         </ol>
 
         <div class="hero__cta">
-          <a class="btn btn--primary" href="#donate-widget">Зробити донат</a>
-          <a class="btn btn--ghost" href="#trust">Як перевірити нас</a>
-          <a class="btn btn--ghost" href={url("reports")}>Переглянути звіти</a>
+          <a class="btn btn--primary" href="#donate-widget" data-translate-en="Donate">Зробити донат</a>
+          <a class="btn btn--ghost" href="#trust" data-translate-en="How to verify us">Як перевірити нас</a>
+          <a class="btn btn--ghost" href={url("reports")} data-translate-en="View reports">Переглянути звіти</a>
         </div>
 
         <p class="micro">
-          Потрібна допомога з оплатою? Напиши нам:{" "}
-          <a href={"mailto:" + contacts.email}>{contacts.email}</a> або в
+          <span data-translate-en="Need help with payment? Write to us: ">Потрібна допомога з оплатою? Напиши нам: </span>
+          <a href={"mailto:" + contacts.email}>{contacts.email}</a> <span data-translate-en="or in">або в</span>
           Telegram:{" "}
-          <a href={contacts.telegram} target="_blank" rel="noopener">чат</a>.
+          <a href={contacts.telegram} target="_blank" rel="noopener" data-translate-en="chat">чат</a>.
         </p>
       </div>
 
-      <aside class="hero__right" aria-label="Швидкі дії">
+      <aside class="hero__right" aria-label="Швидкі дії" data-translate-en-aria-label="Quick actions">
         <div class="card card--soft">
-          <h2 class="card__title">Хочу допомогти не грошима</h2>
-          <p class="card__text">
+          <h2 class="card__title" data-translate-en="I want to help without donating money">Хочу допомогти не грошима</h2>
+          <p class="card__text" data-translate-en="If hands-on participation or resources are closer to you, that is just as valuable.">
             Якщо тобі ближче участь руками або ресурсами — це так само цінно.
           </p>
           <div class="action-grid">
-            <a class="btn btn--secondary" href={url("contacts#message")}>Стати волонтером</a>
-            <a class="btn btn--secondary" href={url("contacts#message")}>Стати партнером</a>
-            <a class="btn btn--secondary" href={url("contacts")}>Контакти</a>
+            <a class="btn btn--secondary" href={url("contacts#message")} data-translate-en="Become a volunteer">Стати волонтером</a>
+            <a class="btn btn--secondary" href={url("contacts#message")} data-translate-en="Become a partner">Стати партнером</a>
+            <a class="btn btn--secondary" href={url("contacts")} data-translate-en="Contacts">Контакти</a>
           </div>
           <p class="micro">
-            Партнерства та запити:{" "}
-            <a href={"mailto:" + contacts.email + "?subject=Партнерство%20з%20АВКУ"}>лист</a>
+            <span data-translate-en="Partnerships and requests:">Партнерства та запити:</span>{" "}
+            <a href={"mailto:" + contacts.email + "?subject=Партнерство%20з%20АВКУ"} data-translate-en="email">лист</a>
           </p>
         </div>
       </aside>
@@ -185,47 +206,47 @@ const orgJsonLd = {
     <section class="grid">
       <div class="grid__left">
         {/* Актуальний збір */}
-        <section class="section" aria-label="Актуальний збір">
+        <section class="section" aria-label="Актуальний збір" data-translate-en-aria-label="Current fundraiser">
           <header class="section__header">
-            <h2>Актуальний збір</h2>
-            <p class="section__hint">
+            <h2 data-translate-en="Current fundraiser">Актуальний збір</h2>
+            <p class="section__hint" data-translate-en="Updated for the current unit request. Thank you for your support.">
               Оновлено під поточний запит підрозділу. Дякуємо за підтримку.
             </p>
           </header>
 
           <div class="card">
-            <h3 class="card__title">{activeFund.unit}</h3>
+            <h3 class="card__title" data-translate-en={activeFund.unitEn}>{activeFund.unit}</h3>
             <p class="card__text">
-              <strong>{activeFund.battalion}</strong>
+              <strong data-translate-en={activeFund.battalionEn}>{activeFund.battalion}</strong>
             </p>
-            <p class="card__text">{activeFund.about}</p>
+            <p class="card__text" data-translate-en={activeFund.aboutEn}>{activeFund.about}</p>
 
-            <p class="card__text"><strong>Необхідне устаткування:</strong></p>
+            <p class="card__text"><strong data-translate-en="Required equipment:">Необхідне устаткування:</strong></p>
             <ul class="list">
-              {activeFund.needs.map((x) => (
-                <li>{x}</li>
+              {activeFund.needs.map((x, idx) => (
+                <li data-translate-en={activeFund.needsEn[idx]}>{x}</li>
               ))}
             </ul>
 
             <p class="card__text">
-              <strong>Ціль:</strong> 60 000 ₴
+              <strong data-translate-en="Goal:">Ціль:</strong> 60 000 ₴
             </p>
             <p class="card__text">
-              <strong>Посилання на банку:</strong>{" "}
+              <strong data-translate-en="Jar link:">Посилання на банку:</strong>{" "}
               <a class="link" href={activeFund.jarUrl} target="_blank" rel="noopener">
                 {activeFund.jarUrl}
               </a>
             </p>
             <p class="card__text">
-              <strong>Номер картки банки:</strong> {activeFund.cardNumber}
+              <strong data-translate-en="Jar card number:">Номер картки банки:</strong> {activeFund.cardNumber}
             </p>
           </div>
         </section>
 
-        <section class="section" aria-label="Напрями допомоги">
+        <section class="section" aria-label="Напрями допомоги" data-translate-en-aria-label="Aid directions">
           <header class="section__header">
-            <h2>Обери напрям</h2>
-            <p class="section__hint">
+            <h2 data-translate-en="Choose a direction">Обери напрям</h2>
+            <p class="section__hint" data-translate-en="Click “Choose” and the donation widget on the right will immediately switch to that direction.">
               Натисни “Обрати” — і справа одразу з’явиться готовий віджет донату під цей напрям.
             </p>
           </header>
@@ -234,25 +255,25 @@ const orgJsonLd = {
             {campaigns.map((c) => (
               <article class="campaign" data-campaign-id={c.id}>
                 <div class="campaign__top">
-                  <h3 class="campaign__title">{c.title}</h3>
-                  <div class="campaign__tags" aria-label="Теги">
-                    {c.tags?.map((t) => <span class="tag">{t}</span>)}
+                  <h3 class="campaign__title" data-translate-en={c.titleEn}>{c.title}</h3>
+                  <div class="campaign__tags" aria-label="Теги" data-translate-en-aria-label="Tags">
+                    {c.tags?.map((t, idx) => <span class="tag" data-translate-en={c.tagsEn?.[idx]}>{t}</span>)}
                   </div>
                 </div>
 
-                <p class="campaign__desc">{c.short}</p>
+                <p class="campaign__desc" data-translate-en={c.shortEn}>{c.short}</p>
 
                 <div class="campaign__meta">
-                  <a class="link" href={url(c.reportUrl)}>Звіти по напряму</a>
+                  <a class="link" href={url(c.reportUrl)} data-translate-en="Reports for this direction">Звіти по напряму</a>
                   <span class="dot" aria-hidden="true">•</span>
-                  <a class="link" href={url("publications")}>Публікації</a>
+                  <a class="link" href={url("publications")} data-translate-en="Publications">Публікації</a>
                 </div>
 
                 <div class="campaign__actions">
-                  <button type="button" class="btn btn--primary" data-select-campaign={c.id}>
+                  <button type="button" class="btn btn--primary" data-select-campaign={c.id} data-translate-en="Choose">
                     Обрати
                   </button>
-                  <button type="button" class="btn btn--ghost" data-scroll-to="#donate-widget">
+                  <button type="button" class="btn btn--ghost" data-scroll-to="#donate-widget" data-translate-en="To donation">
                     До донату
                   </button>
                 </div>
@@ -261,34 +282,34 @@ const orgJsonLd = {
           </div>
         </section>
 
-        <section class="section" id="trust" aria-label="Блок довіри">
+        <section class="section" id="trust" aria-label="Блок довіри" data-translate-en-aria-label="Trust block">
           <header class="section__header">
-            <h2>Як перевірити АВКУ</h2>
-            <p class="section__hint">
+            <h2 data-translate-en="How to verify AVKU">Як перевірити АВКУ</h2>
+            <p class="section__hint" data-translate-en="We make it easy to check where funds went and what was done.">
               Ми робимо так, щоб тобі було легко впевнитися: куди пішли кошти і що зроблено.
             </p>
           </header>
 
           <div class="trust">
             <div class="card">
-              <h3 class="card__title">Докази і публічність</h3>
+              <h3 class="card__title" data-translate-en="Proof and transparency">Докази і публічність</h3>
               <ul class="list">
-                <li><a class="link" href={url("reports")}>Звіти з документами та фото</a></li>
-                <li><a class="link" href={url("publications")}>Публікації та підсумкові звіти</a></li>
-                <li><a class="link" href={url("news")}>Новини та оновлення</a></li>
+                <li><a class="link" href={url("reports")} data-translate-en="Reports with documents and photos">Звіти з документами та фото</a></li>
+                <li><a class="link" href={url("publications")} data-translate-en="Publications and summary reports">Публікації та підсумкові звіти</a></li>
+                <li><a class="link" href={url("news")} data-translate-en="News and updates">Новини та оновлення</a></li>
                 <li>
-                  Facebook-група (публічність і обговорення):{" "}
-                  <a class="link" href={contacts.fbGroup} target="_blank" rel="noopener">відкрити</a>
+                  <span data-translate-en="Facebook group (public discussion):">Facebook-група (публічність і обговорення):</span>{" "}
+                  <a class="link" href={contacts.fbGroup} target="_blank" rel="noopener" data-translate-en="open">відкрити</a>
                 </li>
               </ul>
             </div>
 
             <div class="card">
-              <h3 class="card__title">Офіційні контакти</h3>
+              <h3 class="card__title" data-translate-en="Official contacts">Офіційні контакти</h3>
               <ul class="list">
-                <li><strong>Адреса:</strong> {contacts.address}</li>
+                <li><strong data-translate-en="Address:">Адреса:</strong> <span data-translate-en="Kyiv, Zodchykh St, 58-A, 03170">{contacts.address}</span></li>
                 <li>
-                  <strong>Телефони:</strong>{" "}
+                  <strong data-translate-en="Phones:">Телефони:</strong>{" "}
                   {contacts.phones.map((p, idx) => (
                     <>
                       <a class="link" href={"tel:" + p.replace(/[^\d+]/g, "")}>{p}</a>
@@ -302,7 +323,7 @@ const orgJsonLd = {
                 </li>
                 <li>
                   <strong>Telegram:</strong>{" "}
-                  <a class="link" href={contacts.telegram} target="_blank" rel="noopener">написати</a>
+                  <a class="link" href={contacts.telegram} target="_blank" rel="noopener" data-translate-en="write">написати</a>
                 </li>
               </ul>
             </div>
@@ -311,108 +332,108 @@ const orgJsonLd = {
 
         <section class="section" aria-label="FAQ">
           <header class="section__header">
-            <h2>Питання та відповіді</h2>
+            <h2 data-translate-en="Questions and answers">Питання та відповіді</h2>
           </header>
 
           <div class="faq">
             <details class="faq__item">
-              <summary>Як швидко з’являється звіт?</summary>
+              <summary data-translate-en="How quickly does a report appear?">Як швидко з’являється звіт?</summary>
               <p>
-                Після закупівлі/передачі ми публікуємо звіт у розділі{" "}
-                <a class="link" href={url("reports")}>“Звіти”</a> і/або у{" "}
-                <a class="link" href={contacts.fbGroup} target="_blank" rel="noopener">Facebook-групі</a>.
+                <span data-translate-en="After purchase or delivery, we publish a report in the ">Після закупівлі/передачі ми публікуємо звіт у розділі </span>{" "}
+                <a class="link" href={url("reports")} data-translate-en="“Reports”">“Звіти”</a> <span data-translate-en="section and/or in the">і/або у</span>{" "}
+                <a class="link" href={contacts.fbGroup} target="_blank" rel="noopener" data-translate-en="Facebook group">Facebook-групі</a>.
               </p>
             </details>
 
             <details class="faq__item">
-              <summary>Можна донатити анонімно?</summary>
-              <p>
+              <summary data-translate-en="Can I donate anonymously?">Можна донатити анонімно?</summary>
+              <p data-translate-en="Yes. You do not have to leave contact details. If you want to receive a report link, leave your contact below.">
                 Так. Якщо хочеш — не залишай контакт. Якщо хочеш отримати лінк на звіт — залиш контакт нижче.
               </p>
             </details>
 
             <details class="faq__item">
-              <summary>Якщо оплата не пройшла?</summary>
+              <summary data-translate-en="What if the payment did not go through?">Якщо оплата не пройшла?</summary>
               <p>
-                Напиши нам на{" "}
+                <span data-translate-en="Write to us at">Напиши нам на</span>{" "}
                 <a class="link" href={"mailto:" + contacts.email}>{contacts.email}</a>{" "}
-                або у{" "}
+                <span data-translate-en="or on">або у</span>{" "}
                 <a class="link" href={contacts.telegram} target="_blank" rel="noopener">Telegram</a>{" "}
-                — підкажемо.
+                <span data-translate-en="- we will help.">— підкажемо.</span>
               </p>
             </details>
           </div>
         </section>
       </div>
 
-      <aside class="grid__right" aria-label="Віджет донату">
+      <aside class="grid__right" aria-label="Віджет донату" data-translate-en-aria-label="Donation widget">
         <section class="widget" id="donate-widget">
           <div class="widget__header">
-            <h2>Зробити донат</h2>
-            <p class="widget__sub">
+            <h2 data-translate-en="Make a donation">Зробити донат</h2>
+            <p class="widget__sub" data-translate-en="Choose a direction on the left or donate to general support.">
               Обери напрям зліва — або донать у “загальну підтримку”.
             </p>
           </div>
 
           <div class="widget__body">
             <div class="select">
-              <label for="campaignSelect">Напрям</label>
+              <label for="campaignSelect" data-translate-en="Direction">Напрям</label>
               <select id="campaignSelect">
                 {campaigns.map((c) => (
-                  <option value={c.id}>{c.title}</option>
+                  <option value={c.id} data-translate-en={c.titleEn}>{c.title}</option>
                 ))}
               </select>
             </div>
 
-            <div class="progress" aria-label="Прогрес збору">
+            <div class="progress" aria-label="Прогрес збору" data-translate-en-aria-label="Fundraiser progress">
               <div class="progress__top">
-                <span class="progress__label">Прогрес</span>
+                <span class="progress__label" data-translate-en="Progress">Прогрес</span>
                 <span class="progress__value" id="progressText">—</span>
               </div>
               <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
                 <div class="bar__fill" id="progressFill"></div>
               </div>
               <p class="micro" id="progressMeta">
-                Дані оновлюються автоматично (якщо налаштовано API).
+                <span data-translate-en="Data updates automatically if the API is configured.">Дані оновлюються автоматично (якщо налаштовано API).</span>
               </p>
             </div>
 
             <div class="amount">
-              <label>Сума (₴)</label>
-              <div class="chips" role="group" aria-label="Швидкі суми">
+              <label data-translate-en="Amount (UAH)">Сума (₴)</label>
+              <div class="chips" role="group" aria-label="Швидкі суми" data-translate-en-aria-label="Quick amounts">
                 {quickAmounts.map((a) => (
                   <button type="button" class="chip" data-amount={a}>{a}</button>
                 ))}
               </div>
-              <input id="amountInput" inputmode="numeric" pattern="[0-9]*" placeholder="Введи свою суму" aria-label="Власна сума" />
+              <input id="amountInput" inputmode="numeric" pattern="[0-9]*" placeholder="Введи свою суму" aria-label="Власна сума" data-translate-en-placeholder="Enter your amount" data-translate-en-aria-label="Custom amount" />
             </div>
 
             <div class="pay">
-              <button type="button" class="btn btn--primary btn--full" id="payBtn">
+              <button type="button" class="btn btn--primary btn--full" id="payBtn" data-translate-en="Proceed to payment">
                 Перейти до оплати
               </button>
-              <p class="micro" id="payHint">
+              <p class="micro" id="payHint" data-translate-en="If the link does not open, write to us using the contacts below.">
                 Якщо лінк не відкривається — напиши нам (контакти нижче).
               </p>
 
-              <div class="mini-trust" aria-label="Реквізити">
+              <div class="mini-trust" aria-label="Реквізити" data-translate-en-aria-label="Payment details">
                 <p class="micro" id="requisitesCard"></p>
                 <p class="micro" id="requisitesJar"></p>
                 <div class="inline-actions">
-                  <button type="button" class="btn btn--ghost btn--small" id="copyCardBtn">
+                  <button type="button" class="btn btn--ghost btn--small" id="copyCardBtn" data-translate-en="Copy card">
                     Скопіювати картку
                   </button>
-                  <button type="button" class="btn btn--ghost btn--small" id="copyJarBtn">
+                  <button type="button" class="btn btn--ghost btn--small" id="copyJarBtn" data-translate-en="Copy jar link">
                     Скопіювати лінк банки
                   </button>
                 </div>
               </div>
 
               <div class="inline-actions">
-                <button type="button" class="btn btn--ghost btn--small" id="copyMessageBtn">
+                <button type="button" class="btn btn--ghost btn--small" id="copyMessageBtn" data-translate-en="Copy message">
                   Скопіювати повідомлення
                 </button>
-                <a class="btn btn--ghost btn--small" id="openTelegramBtn" href={contacts.telegram} target="_blank" rel="noopener">
+                <a class="btn btn--ghost btn--small" id="openTelegramBtn" href={contacts.telegram} target="_blank" rel="noopener" data-translate-en="Write on Telegram">
                   Написати в Telegram
                 </a>
               </div>
@@ -421,31 +442,31 @@ const orgJsonLd = {
             <hr class="sep" />
 
             <div class="after">
-              <h3>Після донату — отримай лінк на звіт</h3>
-              <p class="micro">
+              <h3 data-translate-en="After donating, receive a report link">Після донату — отримай лінк на звіт</h3>
+              <p class="micro" data-translate-en="If you want, leave your contact and we will send a report link for this direction.">
                 Якщо хочеш — залиш контакт і ми надішлемо посилання на звіт по цьому напряму.
               </p>
 
               <form id="reportForm" class="form" action={"mailto:" + contacts.email} method="post" enctype="text/plain">
-                <label for="contactInput">Твій контакт (email / Telegram)</label>
-                <input id="contactInput" name="contact" placeholder="Напр. email або @username" />
+                <label for="contactInput" data-translate-en="Your contact (email / Telegram)">Твій контакт (email / Telegram)</label>
+                <input id="contactInput" name="contact" placeholder="Напр. email або @username" data-translate-en-placeholder="For example: email or @username" />
 
-                <label for="commentInput">Коментар (необов’язково)</label>
-                <textarea id="commentInput" name="comment" rows="3" placeholder="Наприклад: хочу звіт по цьому збору"></textarea>
+                <label for="commentInput" data-translate-en="Comment (optional)">Коментар (необов’язково)</label>
+                <textarea id="commentInput" name="comment" rows="3" placeholder="Наприклад: хочу звіт по цьому збору" data-translate-en-placeholder="For example: I want a report for this fundraiser"></textarea>
 
                 <input type="hidden" id="hiddenCampaign" name="campaign" value="" />
                 <input type="hidden" id="hiddenAmount" name="amount" value="" />
                 <input type="hidden" id="hiddenPage" name="page" value="https://avku.org/donate" />
 
-                <button type="submit" class="btn btn--secondary btn--full">
+                <button type="submit" class="btn btn--secondary btn--full" data-translate-en="Send via email client">
                   Відправити (через email-клієнт)
                 </button>
               </form>
 
-              <div class="template" aria-label="Шаблон повідомлення">
+              <div class="template" aria-label="Шаблон повідомлення" data-translate-en-aria-label="Message template">
                 <div class="template__head">
-                  <strong>Шаблон</strong>
-                  <button type="button" class="btn btn--ghost btn--small" id="copyTemplateBtn">
+                  <strong data-translate-en="Template">Шаблон</strong>
+                  <button type="button" class="btn btn--ghost btn--small" id="copyTemplateBtn" data-translate-en="Copy">
                     Скопіювати
                   </button>
                 </div>
@@ -496,8 +517,23 @@ const orgJsonLd = {
       return CAMPAIGNS.find((c) => c.id === id) || CAMPAIGNS[0];
     }
 
+    function currentLang() {
+      try { return localStorage.getItem("avku_lang") || document.documentElement.lang || "uk"; }
+      catch { return document.documentElement.lang || "uk"; }
+    }
+
+    function isEn() {
+      return currentLang() === "en";
+    }
+
     function formatUah(n) {
-      try { return new Intl.NumberFormat("uk-UA").format(n) + " ₴"; } catch { return String(n) + " ₴"; }
+      try {
+        const locale = isEn() ? "en-US" : "uk-UA";
+        const suffix = isEn() ? " UAH" : " ₴";
+        return new Intl.NumberFormat(locale).format(n) + suffix;
+      } catch {
+        return String(n) + (isEn() ? " UAH" : " ₴");
+      }
     }
 
     function toNumber(value) {
@@ -547,15 +583,41 @@ const orgJsonLd = {
     function setRequisites() {
       const c = byId(els.campaignSelect.value);
       if (els.requisitesCard) {
-        els.requisitesCard.textContent = c.cardNumber ? "Картка банки: " + c.cardNumber : "";
+        els.requisitesCard.textContent = c.cardNumber
+          ? (isEn() ? "Jar card: " : "Картка банки: ") + c.cardNumber
+          : "";
       }
       if (els.requisitesJar) {
-        els.requisitesJar.textContent = c.jarUrl ? "Посилання на банку: " + c.jarUrl : "";
+        els.requisitesJar.textContent = c.jarUrl
+          ? (isEn() ? "Jar link: " : "Посилання на банку: ") + c.jarUrl
+          : "";
       }
     }
 
     function buildTemplate(c, amount) {
       const lines = [];
+      if (isEn()) {
+        lines.push("Hello! I made a donation for AVKU.");
+        lines.push("");
+        lines.push("Direction: " + (c.titleEn || c.title));
+        if (c.unitEn || c.unit) lines.push("Unit: " + (c.unitEn || c.unit));
+        if (c.battalionEn || c.battalion) lines.push("Unit details: " + (c.battalionEn || c.battalion));
+        if (Array.isArray(c.needsEn) && c.needsEn.length) lines.push("Needs: " + c.needsEn.join(", "));
+        else if (Array.isArray(c.needs) && c.needs.length) lines.push("Needs: " + c.needs.join(", "));
+        if (amount > 0) lines.push("Amount: " + amount + " UAH");
+        if (c.jarUrl) lines.push("Jar link: " + c.jarUrl);
+        if (c.cardNumber) lines.push("Card: " + c.cardNumber);
+        lines.push("");
+        lines.push("Please send me a report link for this direction when it is published.");
+        lines.push("My contact: " + ((els.contactInput?.value || "").trim() || "(not specified)"));
+        const commentEn = (els.commentInput?.value || "").trim();
+        if (commentEn) {
+          lines.push("");
+          lines.push("Comment: " + commentEn);
+        }
+        return lines.join("\n");
+      }
+
       lines.push("Привіт! Я зробив(ла) донат для АВКУ.");
       lines.push("");
       lines.push("Напрям: " + c.title);
@@ -584,7 +646,7 @@ const orgJsonLd = {
       setChipActive(amount);
       const t = buildTemplate(c, amount);
       els.templateText.textContent = t;
-      if (els.hiddenCampaign) els.hiddenCampaign.value = c.title;
+      if (els.hiddenCampaign) els.hiddenCampaign.value = isEn() ? (c.titleEn || c.title) : c.title;
       if (els.hiddenAmount) els.hiddenAmount.value = amount ? String(amount) : "";
       setRequisites();
     }
@@ -595,16 +657,18 @@ const orgJsonLd = {
 
       if (!url || typeof url !== "string") {
         if (typeof c.goal === "number" && c.goal > 0) {
-          els.progressText.textContent = `Ціль: ${formatUah(c.goal)}`;
+          els.progressText.textContent = isEn() ? `Goal: ${formatUah(c.goal)}` : `Ціль: ${formatUah(c.goal)}`;
           els.progressFill.style.width = "0%";
           setProgressPct(0);
-          els.progressMeta.textContent = "Ціль задана вручну (без API прогресу).";
+          els.progressMeta.textContent = isEn()
+            ? "Goal is set manually (no progress API)."
+            : "Ціль задана вручну (без API прогресу).";
           return;
         }
         els.progressText.textContent = "—";
         els.progressFill.style.width = "0%";
         setProgressPct(0);
-        els.progressMeta.textContent = "API прогресу не налаштовано.";
+        els.progressMeta.textContent = isEn() ? "Progress API is not configured." : "API прогресу не налаштовано.";
         return;
       }
 
@@ -619,54 +683,64 @@ const orgJsonLd = {
 
         if (balance === null && !goalValid) {
           if (typeof c.goal === "number" && c.goal > 0) {
-            els.progressText.textContent = `Ціль: ${formatUah(c.goal)}`;
+            els.progressText.textContent = isEn() ? `Goal: ${formatUah(c.goal)}` : `Ціль: ${formatUah(c.goal)}`;
             els.progressFill.style.width = "0%";
             setProgressPct(0);
-            els.progressMeta.textContent = "Ціль задана вручну.";
+            els.progressMeta.textContent = isEn() ? "Goal is set manually." : "Ціль задана вручну.";
             return;
           }
-          els.progressText.textContent = "Дані недоступні";
+          els.progressText.textContent = isEn() ? "Data unavailable" : "Дані недоступні";
           els.progressFill.style.width = "0%";
           setProgressPct(0);
-          els.progressMeta.textContent = "Джерело не повернуло дані прогресу.";
+          els.progressMeta.textContent = isEn()
+            ? "The source did not return progress data."
+            : "Джерело не повернуло дані прогресу.";
           return;
         }
 
         if (balance !== null && goalValid) {
           const pct = Math.max(0, Math.min(100, Math.round((balance / goal) * 100)));
-          els.progressText.textContent = `${formatUah(balance)} з ${formatUah(goal)} (${pct}%)`;
+          els.progressText.textContent = isEn()
+            ? `${formatUah(balance)} of ${formatUah(goal)} (${pct}%)`
+            : `${formatUah(balance)} з ${formatUah(goal)} (${pct}%)`;
           els.progressFill.style.width = pct + "%";
           setProgressPct(pct);
-          els.progressMeta.textContent = "Оновлено з публічного джерела.";
+          els.progressMeta.textContent = isEn() ? "Updated from a public source." : "Оновлено з публічного джерела.";
           return;
         }
 
         if (balance !== null) {
-          els.progressText.textContent = `Зібрано: ${formatUah(balance)}`;
+          els.progressText.textContent = isEn() ? `Raised: ${formatUah(balance)}` : `Зібрано: ${formatUah(balance)}`;
           els.progressFill.style.width = "0%";
           setProgressPct(0);
-          els.progressMeta.textContent = "Ціль не передано джерелом (показуємо лише суму).";
+          els.progressMeta.textContent = isEn()
+            ? "The source did not provide a goal, so only the amount is shown."
+            : "Ціль не передано джерелом (показуємо лише суму).";
           return;
         }
 
         // goalValid === true тут
-        els.progressText.textContent = `Ціль: ${formatUah(goal)}`;
+        els.progressText.textContent = isEn() ? `Goal: ${formatUah(goal)}` : `Ціль: ${formatUah(goal)}`;
         els.progressFill.style.width = "0%";
         setProgressPct(0);
-        els.progressMeta.textContent = "Баланс не передано джерелом (показуємо лише ціль).";
+        els.progressMeta.textContent = isEn()
+          ? "The source did not provide a balance, so only the goal is shown."
+          : "Баланс не передано джерелом (показуємо лише ціль).";
         return;
       } catch (e) {
         if (typeof c.goal === "number" && c.goal > 0) {
-          els.progressText.textContent = `Ціль: ${formatUah(c.goal)}`;
+          els.progressText.textContent = isEn() ? `Goal: ${formatUah(c.goal)}` : `Ціль: ${formatUah(c.goal)}`;
           els.progressFill.style.width = "0%";
           setProgressPct(0);
-          els.progressMeta.textContent = "Не вдалося отримати прогрес (показуємо ціль).";
+          els.progressMeta.textContent = isEn()
+            ? "Could not load progress, showing the goal."
+            : "Не вдалося отримати прогрес (показуємо ціль).";
           return;
         }
         els.progressText.textContent = "—";
         els.progressFill.style.width = "0%";
         setProgressPct(0);
-        els.progressMeta.textContent = "Не вдалося отримати прогрес.";
+        els.progressMeta.textContent = isEn() ? "Could not load progress." : "Не вдалося отримати прогрес.";
       }
     }
 
@@ -675,8 +749,10 @@ const orgJsonLd = {
       const amount = getSelectedAmount();
       if (!c.jarUrl) {
         const msg = [
-          "Посилання на оплату ще не налаштовано.",
-          "Будь ласка, напиши нам — підкажемо актуальний спосіб донату:",
+          isEn() ? "The payment link is not configured yet." : "Посилання на оплату ще не налаштовано.",
+          isEn()
+            ? "Please write to us and we will suggest the current donation method:"
+            : "Будь ласка, напиши нам — підкажемо актуальний спосіб донату:",
           CONTACTS.email,
           CONTACTS.telegram,
         ].join("\n");
@@ -685,8 +761,12 @@ const orgJsonLd = {
       }
       window.open(c.jarUrl, "_blank", "noopener,noreferrer");
       els.payHint.textContent = amount > 0
-        ? "Відкрили оплату. Якщо зручно — введи суму " + amount + " ₴ на сторінці оплати."
-        : "Відкрили оплату. Вкажи суму на сторінці оплати.";
+        ? (isEn()
+          ? "Payment opened. If convenient, enter " + amount + " UAH on the payment page."
+          : "Відкрили оплату. Якщо зручно — введи суму " + amount + " ₴ на сторінці оплати.")
+        : (isEn()
+          ? "Payment opened. Enter the amount on the payment page."
+          : "Відкрили оплату. Вкажи суму на сторінці оплати.");
     }
 
     function selectCampaign(id) {
@@ -758,8 +838,10 @@ const orgJsonLd = {
 
     els.copyTemplateBtn.addEventListener("click", async () => {
       const ok = await copyToClipboard(els.templateText.textContent || "");
-      els.copyTemplateBtn.textContent = ok ? "Скопійовано" : "Не вдалось";
-      setTimeout(() => (els.copyTemplateBtn.textContent = "Скопіювати"), 900);
+      els.copyTemplateBtn.textContent = ok
+        ? (isEn() ? "Copied" : "Скопійовано")
+        : (isEn() ? "Failed" : "Не вдалось");
+      setTimeout(() => (els.copyTemplateBtn.textContent = isEn() ? "Copy" : "Скопіювати"), 900);
     });
 
     els.copyMessageBtn.addEventListener("click", async () => {
@@ -767,29 +849,39 @@ const orgJsonLd = {
       const amount = getSelectedAmount();
       const text = buildTemplate(c, amount);
       const ok = await copyToClipboard(text);
-      els.copyMessageBtn.textContent = ok ? "Скопійовано" : "Не вдалось";
-      setTimeout(() => (els.copyMessageBtn.textContent = "Скопіювати повідомлення"), 900);
+      els.copyMessageBtn.textContent = ok
+        ? (isEn() ? "Copied" : "Скопійовано")
+        : (isEn() ? "Failed" : "Не вдалось");
+      setTimeout(() => (els.copyMessageBtn.textContent = isEn() ? "Copy message" : "Скопіювати повідомлення"), 900);
     });
 
     els.copyCardBtn?.addEventListener("click", async () => {
       const c = byId(els.campaignSelect.value);
       const text = c.cardNumber ? normalizeCardNumber(c.cardNumber) : "";
       const ok = text ? await copyToClipboard(text) : false;
-      els.copyCardBtn.textContent = ok ? "Скопійовано" : "Не вдалось";
-      setTimeout(() => (els.copyCardBtn.textContent = "Скопіювати картку"), 900);
+      els.copyCardBtn.textContent = ok
+        ? (isEn() ? "Copied" : "Скопійовано")
+        : (isEn() ? "Failed" : "Не вдалось");
+      setTimeout(() => (els.copyCardBtn.textContent = isEn() ? "Copy card" : "Скопіювати картку"), 900);
     });
 
     els.copyJarBtn?.addEventListener("click", async () => {
       const c = byId(els.campaignSelect.value);
       const text = c.jarUrl || "";
       const ok = text ? await copyToClipboard(text) : false;
-      els.copyJarBtn.textContent = ok ? "Скопійовано" : "Не вдалось";
-      setTimeout(() => (els.copyJarBtn.textContent = "Скопіювати лінк банки"), 900);
+      els.copyJarBtn.textContent = ok
+        ? (isEn() ? "Copied" : "Скопійовано")
+        : (isEn() ? "Failed" : "Не вдалось");
+      setTimeout(() => (els.copyJarBtn.textContent = isEn() ? "Copy jar link" : "Скопіювати лінк банки"), 900);
     });
 
     ["input", "change"].forEach((evt) => {
       els.contactInput?.addEventListener(evt, setTemplateText);
       els.commentInput?.addEventListener(evt, setTemplateText);
+    });
+    document.addEventListener("avku:language-change", () => {
+      setTemplateText();
+      updateProgress();
     });
 
     setInterval(updateProgress, 90_000);
