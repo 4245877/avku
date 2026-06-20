@@ -17,7 +17,7 @@ const url = (path) => {
 };
 
 // SEO
-const siteUrl = "https://4245877.github.io/avku";
+const siteUrl = "https://avku.org";
 const canonicalUrl = `${siteUrl}/news`;
 
 const title = "Новини — АВКУ | допомога ЗСУ, гуманітарні ініціативи, партнерства";
@@ -261,7 +261,7 @@ const orgJsonLd = {
                 <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
                   <a href={url(n.href)} aria-label={`Відкрити: ${n.title}`}>Детальніше</a>
                   {n.img ? (
-                    <a href={url("/gallery")} aria-label="Перейти до галереї">Фото</a>
+                    <a href={url(n.href)} aria-label={`Переглянути фото: ${n.title}`}>Фото</a>
                   ) : null}
                   <a href={`#${n.id}`} aria-label={`Скопіювати посилання на новину: ${n.title}`}>Лінк</a>
                 </div>

@@ -69,12 +69,11 @@
     const dict = await loadDict(safeLang);
     applyDict(dict);
 
-    // Подсветка кнопок языка
+    // Подсветка кнопок языка (класс .active управляет градиентом в CSS)
     document.querySelectorAll("[data-lang]").forEach((b) => {
-      b.setAttribute(
-        "aria-pressed",
-        String(b.getAttribute("data-lang") === safeLang)
-      );
+      const isCurrent = b.getAttribute("data-lang") === safeLang;
+      b.setAttribute("aria-pressed", String(isCurrent));
+      b.classList.toggle("active", isCurrent);
     });
   }
 

@@ -4,12 +4,62 @@ import "../styles/global.css";
 
 const lang = "uk";
 const title = "АВКУ — 404";
+const base = import.meta.env.BASE_URL;
+const home = base.endsWith("/") ? base : base + "/";
 ---
 
 <Base lang={lang} title={title}>
-  <div class="container page center">
-    <h1>404</h1>
-    <p class="lead" data-translate="not_found_lead">Сторінку не знайдено.</p>
-    <a class="btn" href="/" data-translate="not_found_back">На головну</a>
-  </div>
+  <section class="notfound">
+    <div class="container notfound__inner">
+      <p class="notfound__code">404</p>
+      <h1 class="notfound__title" data-translate="not_found_lead">Сторінку не знайдено.</h1>
+      <p class="notfound__text">
+        Можливо, посилання застаріле або сторінку було переміщено.
+      </p>
+      <a class="btn btn-gradient" href={home} data-translate="not_found_back">На головну</a>
+    </div>
+  </section>
 </Base>
+
+<style>
+  .notfound {
+    min-height: 100vh;
+    min-height: 100svh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: calc(var(--navbar-height) + var(--space-12));
+    padding-bottom: var(--space-12);
+    background: linear-gradient(135deg, #f8fafc 0%, #e6eef8 50%, #e8f7fc 100%);
+  }
+
+  .notfound__inner {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .notfound__code {
+    font-size: clamp(4rem, 18vw, 9rem);
+    font-weight: var(--font-extrabold);
+    line-height: 1;
+    margin: 0;
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.04em;
+  }
+
+  .notfound__title {
+    margin: var(--space-2) 0 0;
+  }
+
+  .notfound__text {
+    color: var(--dark-600);
+    max-width: 420px;
+    margin: 0 0 var(--space-6);
+  }
+</style>

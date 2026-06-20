@@ -1,0 +1,249 @@
+---
+// src/pages/join.astro
+import Base from "../layouts/Base.astro";
+import "../styles/pages/home.css";
+
+const lang = "uk";
+const title = "Стати волонтером — АВКУ";
+const description =
+  "Долучайся до Асоціації волонтерських команд України: логістика, майстерні, комунікації, події. Заповни коротку анкету — ми підкажемо, як найкраще допомогти.";
+
+const base = import.meta.env.BASE_URL ?? "/";
+const join = (p) => {
+  if (/^https?:\/\//i.test(p)) return p;
+  const clean = String(p).replace(/^\//, "");
+  const baseFixed = base.endsWith("/") ? base : `${base}/`;
+  return `${baseFixed}${clean}`;
+};
+
+const contacts = {
+  city: "Київ",
+  address: "вул. Зодчих, 58-а, 03170",
+  phone1: "+38 (068) 847-34-01",
+  phone2: "+38 (063) 677-70-50",
+  email: "volunteer_ukraine@ukr.net",
+};
+
+const ways = [
+  {
+    title: "Логістика та пакування",
+    desc: "Сортування, комплектація та підготовка вантажів до відправки, допомога з доставками.",
+  },
+  {
+    title: "Волонтерські майстерні",
+    desc: "Маскувальні сітки, окопні свічки та інші необхідні речі — разом із командою та партнерами.",
+  },
+  {
+    title: "Комунікації та медіа",
+    desc: "Допомога з дописами, фото та відео, оформленням звітів і веденням соцмереж.",
+  },
+  {
+    title: "Події та збори",
+    desc: "Організація благодійних ярмарків, заходів у громадах і навчальних закладах.",
+  },
+];
+
+const steps = [
+  {
+    title: "1) Залиш заявку",
+    desc: "Заповни коротку анкету нижче — це займе менше хвилини.",
+  },
+  {
+    title: "2) Ми зв’яжемося",
+    desc: "Підкажемо напрям під твої можливості, час і місто.",
+  },
+  {
+    title: "3) Долучайся до справи",
+    desc: "Знайдемо роль, у якій твоя допомога буде максимально корисною.",
+  },
+];
+---
+
+<Base lang={lang} title={title} description={description}>
+  <Fragment slot="head">
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://avku.org/join" />
+    <meta property="og:locale" content="uk_UA" />
+    <meta property="og:title" content="Стати волонтером — АВКУ" />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content="https://avku.org/logo.png" />
+    <meta property="og:url" content="https://avku.org/join" />
+    <meta property="og:type" content="website" />
+  </Fragment>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container hero-content">
+      <h1 class="hero-header">Стати волонтером</h1>
+      <p class="hero-slogan">Волонтери за покликом душі — або воюєш, або допомагаєш!</p>
+      <p>
+        Долучайся до спільноти АВКУ. Будь-який формат участі важливий — від кількох годин на місяць
+        до постійної допомоги. Розкажи про себе, і ми підберемо роль.
+      </p>
+
+      <div class="hero-actions" style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+        <a href="#join-form" class="btn" aria-label="Перейти до анкети волонтера">Заповнити анкету</a>
+        <a href={join("/donate")} class="btn" aria-label="Перейти на сторінку підтримки">Підтримати донатом</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- WAYS TO HELP -->
+  <section class="activities">
+    <div class="container">
+      <h2 class="section-title">Чим можна допомогти</h2>
+      <div class="activities-grid">
+        {ways.map((w) => (
+          <div class="activity-card">
+            <h3>{w.title}</h3>
+            <p>{w.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="trust-block">
+    <div class="container">
+      <h2 class="section-title">Як це працює</h2>
+      <div class="activities-grid">
+        {steps.map((s) => (
+          <div class="activity-card">
+            <h3>{s.title}</h3>
+            <p>{s.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- FORM -->
+  <section class="activities" id="join-form">
+    <div class="container">
+      <h2 class="section-title">Анкета волонтера</h2>
+
+      <div class="join-form-wrapper">
+        <form
+          class="join-form"
+          action={`mailto:${contacts.email}`}
+          method="post"
+          enctype="text/plain"
+        >
+          <div class="form-group">
+            <label for="v-name">Ім’я</label>
+            <input id="v-name" name="name" type="text" required autocomplete="name" placeholder="Як до тебе звертатися?" />
+          </div>
+
+          <div class="form-group">
+            <label for="v-contact">Контакт (телефон / email / Telegram)</label>
+            <input id="v-contact" name="contact" type="text" required placeholder="Як з тобою зв’язатися?" />
+          </div>
+
+          <div class="form-group">
+            <label for="v-city">Місто</label>
+            <input id="v-city" name="city" type="text" placeholder="Наприклад: Київ" />
+          </div>
+
+          <div class="form-group">
+            <label for="v-direction">Напрям, що цікавить</label>
+            <select id="v-direction" name="direction">
+              <option value="Логістика та пакування">Логістика та пакування</option>
+              <option value="Волонтерські майстерні">Волонтерські майстерні</option>
+              <option value="Комунікації та медіа">Комунікації та медіа</option>
+              <option value="Події та збори">Події та збори</option>
+              <option value="Ще не визначився / порадьте">Ще не визначився / порадьте</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="v-message">Кілька слів про себе (необов’язково)</label>
+            <textarea id="v-message" name="message" rows="4" placeholder="Скільки часу можеш приділяти, що вмієш, чим хочеш допомогти"></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-gradient w-full">Надіслати заявку</button>
+
+          <p class="join-form__note">
+            Кнопка відкриє твій поштовий застосунок із готовим листом на адресу
+            {" "}<a href={`mailto:${contacts.email}`}>{contacts.email}</a>.
+            Якщо так не зручно — просто напиши нам напряму.
+          </p>
+        </form>
+
+        <aside class="join-contacts">
+          <h3>Зв’язатися напряму</h3>
+          <p>
+            Телефони:<br />
+            <a href={`tel:${contacts.phone1.replace(/[^+0-9]/g, "")}`}>{contacts.phone1}</a><br />
+            <a href={`tel:${contacts.phone2.replace(/[^+0-9]/g, "")}`}>{contacts.phone2}</a>
+          </p>
+          <p>
+            Email:<br />
+            <a href={`mailto:${contacts.email}`}>{contacts.email}</a>
+          </p>
+          <p>
+            Локація:<br />
+            {contacts.city}, {contacts.address}
+          </p>
+          <a href={join("/contacts")} class="btn view-more-btn">Усі контакти</a>
+        </aside>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .join-form-wrapper {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: var(--space-8);
+    align-items: start;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  .join-form,
+  .join-contacts {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color-light);
+    border-radius: var(--radius-xl);
+    padding: var(--space-8);
+    box-shadow: var(--shadow-base);
+  }
+
+  .join-form .btn {
+    margin-top: var(--space-2);
+  }
+
+  .join-form__note {
+    margin-top: var(--space-4);
+    font-size: var(--text-sm);
+    color: var(--dark-500);
+  }
+
+  .join-contacts h3 {
+    margin-bottom: var(--space-4);
+  }
+
+  .join-contacts p {
+    margin-bottom: var(--space-4);
+    line-height: var(--leading-relaxed);
+  }
+
+  .join-contacts .view-more-btn {
+    background: var(--secondary);
+    color: var(--white);
+    margin-top: var(--space-2);
+  }
+
+  .join-contacts .view-more-btn:hover {
+    background: var(--secondary-hover);
+  }
+
+  @media (max-width: 768px) {
+    .join-form-wrapper {
+      grid-template-columns: 1fr;
+      gap: var(--space-6);
+    }
+  }
+</style>

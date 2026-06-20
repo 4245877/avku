@@ -678,6 +678,13 @@ section {
   border-radius: var(--radius-full);
 }
 
+/* Активная кнопка выбора языка (класс .active добавляется через app.js) */
+.lang-btn.active {
+  background: var(--gradient);
+  color: var(--white);
+  font-weight: var(--font-semibold);
+}
+
 /* Мобильное меню */
 .navbar-toggle {
   display: none;
