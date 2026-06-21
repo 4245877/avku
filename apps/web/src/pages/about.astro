@@ -26,12 +26,9 @@ const withBase = (p: string) => join(base, p.replace(/^\//, ""));
 
     <!--
       ВАЖЛИВО:
-      app.js (судячи з поведінки) підставляє переклади через textContent.
-      Тому HTML у перекладах (наприклад <strong>...</strong>) буде показаний як текст.
-      Рішення:
-      - не класти HTML у строки перекладу;
-      - виділення робити тегами у верстці (як нижче);
-      - додатково: нижній скрипт прибирає випадково залишені HTML-теги з перекладів.
+      app.js підставляє переклади через текстові вузли (textContent), а не innerHTML.
+      Тому в рядках перекладу не можна тримати HTML — виділення робимо тегами у верстці
+      (наприклад <strong data-translate="...">), а у словнику зберігаємо лише чистий текст.
     -->
   </Fragment>
 
@@ -153,42 +150,5 @@ const withBase = (p: string) => join(base, p.replace(/^\//, ""));
         <li><strong data-translate="about_list_21">Київська православна богословська академія</strong></li>
       </ul>
     </section>
-
-    <!-- Санітизація: якщо у перекладах випадково залишилися теги типу "<strong>...</strong>",
-         вони не будуть показуватись як текст. -->
-    <script is:inline>
-      (() => {
-        const stripTags = (s) => s.replace(/<[^>]*>/g, "");
-
-        const sanitize = () => {
-          document.querySelectorAll("[data-translate]").forEach((el) => {
-            const t = el.textContent || "";
-            if (t.includes("<") && t.includes(">")) {
-              const cleaned = stripTags(t);
-              if (cleaned !== t) el.textContent = cleaned;
-            }
-          });
-        };
-
-        let scheduled = false;
-        const schedule = () => {
-          if (scheduled) return;
-          scheduled = true;
-          requestAnimationFrame(() => {
-            scheduled = false;
-            sanitize();
-          });
-        };
-
-        document.addEventListener("DOMContentLoaded", () => {
-          schedule();
-          new MutationObserver(schedule).observe(document.body, {
-            subtree: true,
-            childList: true,
-            characterData: true,
-          });
-        });
-      })();
-    </script>
   </div>
 </Base>

@@ -1,12 +1,10 @@
 {
   "Association": "AVKU",
-  "page_title": "Public Union “Association of Volunteer Teams of Ukraine” (AVKU)",
 
   "nav_home": "Home",
   "nav_about": "About Us",
   "nav_news": "News",
   "nav_events": "Our Activities",
-  "nav_gallery": "Gallery",
   "nav_contacts": "Contacts",
   "nav_publications": "Publications",
   "nav_reports": "Reports",
@@ -15,11 +13,7 @@
   "hero_header": "ASSOCIATION OF VOLUNTEER TEAMS OF UKRAINE",
   "hero_slogan": "VOLUNTEERS BY THE CALL OF THE HEART — EITHER YOU FIGHT OR YOU HELP!",
   "hero_text": "We unite volunteer initiatives and partners to respond quickly to requests, support the Armed Forces of Ukraine, and help people.",
-  "hero_btn": "Learn More",
   "map_header": "Our location",
-
-  "overview_header": "VOLUNTEER TEAMS AND OUR PARTNERS",
-  "overview_text": "A brief description of the mission, goals, and projects...",
 
   "urgent_needs_title": "What is needed now",
   "urgent_need_1_title": "Current fundraiser to strengthen units",
@@ -55,26 +49,7 @@
   "about_btn": "About us",
 
   "news_header": "Latest updates",
-  "read_more": "Read more",
-  "details": "Details",
-  "all_publications_btn": "All publications",
 
-  "news_item_1_title": "Delivery of Combat Drones to Our Defenders",
-  "news_item_1_text": "Today, together with partners and everyone who contributed to the fundraiser, we delivered combat drones to our defenders. Each drone means saved lives and brings us closer to victory.",
-  "news_item_1_link": "Read more",
-  "news_item_2_title": "Assistance for the “Bratstvo” Unit of the Defence Intelligence",
-  "news_item_2_text": "Today we delivered humanitarian aid to the Defence Intelligence’s “Bratstvo” unit. Thanks to your support, we purchased and delivered EcoFlow power stations, Starlink kits to improve communications, and a camouflage net for additional protection. Thank you to everyone who contributed.",
-  "news_item_2_link": "Read more",
-
-  "about_text_1": "The Public Union “Association of Volunteer Teams of Ukraine” is a community that brings together NGOs, volunteer teams, and individual volunteers.",
-  "about_text_2": "The main goal of AVKU is to unite efforts and cooperation to strengthen the volunteer movement, provide meaningful support to the Armed Forces of Ukraine, and help people affected by the war.",
-  "about_text_3": "Mutual support among volunteers of all generations is a daily step toward victory and the post-war recovery of Ukraine.",
-  "about_text_4": "AVKU was founded on many years of active volunteer work by individuals and civic organizations that have been helping Ukraine since the beginning of Russia’s aggression in 2014.",
-  "about_text_5": "The founding organizations of AVKU in 2022 were:",
-  "about_list_1": "NGO “Kyiv Public Circle”",
-  "about_list_2": "Charitable Foundation “Call of the Motherland”",
-  "about_list_3": "NGO “Intellect — Club of Civilizational Development of Ukraine”",
-  "about_list_4": "NGO “Institute for the Formation and Development of Civil Society ‘Digital Viche’”",
   "about_text_1_1": "The public union “",
   "about_text_1_2": "ASSOCIATION OF VOLUNTEER TEAMS OF UKRAINE",
   "about_text_1_3": "” is a community that includes legal entities engaged in active volunteering, volunteer teams regardless of the number of active members, and individual volunteers.",
@@ -95,6 +70,9 @@
   "about_text_5_1": "The unifying foundation and co-founders for creating the public union “",
   "about_text_5_2": "AVKU",
   "about_text_5_3": "” in the pivotal year of 2022 were:",
+
+  "about_list_1": "NGO “Kyiv Public Circle”",
+  "about_list_2": "Charitable Foundation “Call of the Motherland”",
   "about_list_5": "Sviatoshyn District Territorial Recruitment and Social Support Center in Kyiv",
   "about_list_6": "Volunteer Formation of the Territorial Community of Kyiv No. 10",
   "about_list_7": "Military Unit A7297; Sviatoshyn District State Administration in Kyiv",
@@ -113,18 +91,6 @@
   "about_list_20": "Kyiv City Children’s Clinical Tuberculosis Hospital",
   "about_list_21": "Kyiv Orthodox Theological Academy",
 
-  "gallery_header": "Our gallery",
-  "galleryfilter_general": "General",
-  "galleryfilter_VolunteerTeamsAVKU": "Volunteer teams of AVKU",
-  "galleryfilter_photoReports": "Photo reports",
-  "galleryfilter_activities": "Activities",
-
-  "events_header": "Category",
-  "events_filters1": "All",
-  "events_filters2": "Humanitarian aid",
-  "events_filters3": "Activities",
-  "events_filters4": "Rehabilitation",
-
   "not_found_lead": "Page not found.",
   "not_found_back": "Back to home",
 
@@ -134,8 +100,8 @@
   "search_placeholder": "Search publications...",
   "filter_all": "All",
   "filter_activities": "Activities",
-  "filter_research": "Humanitarian aid",
-  "filter_guidelines": "Rehabilitation",
+  "filter_humanitarian": "Humanitarian aid",
+  "filter_rehabilitation": "Rehabilitation",
   "filter_reports": "Reports",
   "pub1_title": "VOLUNTEER MOVEMENT",
   "pub1_date": "December 2024",
@@ -176,7 +142,7 @@
   "contact_title": "Contact Us",
   "phones_title": "Phones",
   "address_title": "Address",
-  "address_text": "Kyiv, Zodchykh St, 58-A, 03170",
+  "address_text": "Kyiv,\n58-A Zodchykh St,\n03170",
   "email_title": "Email",
   "facebook_title": "Facebook",
   "email_label": "Your Email",
@@ -184,5 +150,5 @@
   "message_label": "Message",
   "send_button": "Send",
 
-  "footer_text": "© 2026 AVKU. All rights reserved."
+  "footer_rights": "All rights reserved."
 }

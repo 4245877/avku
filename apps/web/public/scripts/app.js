@@ -18,23 +18,6 @@
     return baseFixed + clean;
   }
 
-  function setNavHandlers() {
-    const btn = document.querySelector("[data-nav-toggle]");
-    const nav = document.querySelector("[data-nav]");
-    if (!btn || !nav) return;
-
-    btn.addEventListener("click", () => {
-      const isOpen = nav.getAttribute("data-open") === "true";
-      nav.setAttribute("data-open", String(!isOpen));
-    });
-
-    // Закрывать меню при клике по ссылке (мобилки)
-    nav.addEventListener("click", (e) => {
-      const a = e.target && e.target.closest ? e.target.closest("a") : null;
-      if (a) nav.setAttribute("data-open", "false");
-    });
-  }
-
   async function loadDict(lang) {
     try {
       // Важно: без ведущего "/" внутри join
@@ -60,12 +43,61 @@
     return typeof value === "string" ? value : "";
   }
 
+  // Применяет переведённый текст, СОХРАНЯЯ дочерние элементы (иконки <i>, <svg>, <img>)
+  // и многострочность (<br>). Перевод никогда не вставляется как HTML — только как текст.
+  function setTranslatedText(el, text) {
+    const nodes = Array.from(el.childNodes);
+    const elementChildren = nodes.filter((n) => n.nodeType === Node.ELEMENT_NODE);
+    const hasBr = elementChildren.some((n) => n.tagName === "BR");
+    const hasOtherEl = elementChildren.some((n) => n.tagName !== "BR");
+
+    // Простой случай: только текст — заменяем целиком.
+    if (!hasBr && !hasOtherEl) {
+      el.textContent = text;
+      return;
+    }
+
+    // Многострочный блок (например адрес): \n в переводе → отдельные строки через <br>.
+    if (hasBr && !hasOtherEl) {
+      const lines = String(text).split("\n");
+      el.replaceChildren();
+      lines.forEach((line, i) => {
+        if (i > 0) el.appendChild(document.createElement("br"));
+        el.appendChild(document.createTextNode(line));
+      });
+      return;
+    }
+
+    // Есть дочерние элементы (иконки): меняем только текстовые узлы, иконки сохраняем.
+    const textNodes = nodes.filter((n) => n.nodeType === Node.TEXT_NODE);
+    const significant = textNodes.filter((n) => n.nodeValue.trim() !== "");
+
+    if (significant.length === 0) {
+      // Текстового узла нет — добавим, сохранив отступ от иконки.
+      const firstIsIcon =
+        nodes[0] && nodes[0].nodeType === Node.ELEMENT_NODE;
+      const node = document.createTextNode(firstIsIcon ? " " + text : text + " ");
+      if (firstIsIcon) el.appendChild(node);
+      else el.insertBefore(node, el.firstChild);
+      return;
+    }
+
+    // Сохраняем исходные пробелы вокруг текста (отступ до/после иконки).
+    const first = significant[0];
+    const leading = (first.nodeValue.match(/^\s*/) || [""])[0];
+    const trailing = (first.nodeValue.match(/\s*$/) || [""])[0];
+    first.nodeValue = leading + text + trailing;
+    significant.slice(1).forEach((n) => {
+      n.nodeValue = "";
+    });
+  }
+
   function applyText(el, dict, lang) {
     const original = getOriginal(el, "Text", () => el.textContent || "");
     const direct = el.getAttribute(`data-translate-${lang}`) || "";
     const keyed = valueFrom(dict, el.getAttribute("data-translate"));
 
-    el.textContent = keyed || direct || original;
+    setTranslatedText(el, keyed || direct || original);
   }
 
   const translatableAttrs = [
@@ -73,7 +105,6 @@
     { attr: "aria-label", suffix: "aria-label" },
     { attr: "alt", suffix: "alt" },
     { attr: "title", suffix: "title" },
-    { attr: "value", suffix: "value" },
     { attr: "data-title", suffix: "data-title" },
     { attr: "data-alt", suffix: "data-alt" },
     { attr: "data-caption", suffix: "data-caption" },
@@ -148,7 +179,6 @@
   }
 
   // Init
-  setNavHandlers();
   setLangHandlers();
 
   const saved = localStorage.getItem(storageKey);
