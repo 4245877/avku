@@ -3,7 +3,7 @@
 import Base from "../../layouts/Base.astro";
 import "../../styles/pages/home.css";
 import fs from "node:fs";
-import reportsData from "../../data/reports.json";
+import { getCollection } from "astro:content";
 import { SITE_URL, localePath, useTranslations, type Lang } from "../../i18n/ui";
 
 interface Props {
@@ -55,10 +55,6 @@ const counters = [
   { target: 3120, labelKey: "nets_made" },
 ];
 
-const reports = Array.isArray(reportsData)
-  ? reportsData
-  : (reportsData?.reports ?? []);
-
 const formatDate = (iso) => {
   if (!iso) return "";
   const d = new Date(String(iso));
@@ -70,9 +66,52 @@ const formatDate = (iso) => {
   }).format(d);
 };
 
-const lastThree = reports.slice(-3).reverse();
+const reportEntries = await getCollection("reports", ({ data }) =>
+  data.draft !== true && Array.isArray(data.media) && data.media.length > 0
+);
 
-const photoReports = lastThree.map((r) => {
+const reports = reportEntries.map((entry) => ({
+  id: entry.id.replace(/\/index$/, ""),
+  titleFallback: entry.data.titleFallback,
+  dateISO: entry.data.dateISO,
+  media: entry.data.media || [],
+}));
+
+const reportsSorted = [...reports].sort((a, b) =>
+  String(a.dateISO) < String(b.dateISO) ? 1 : -1
+);
+
+const featuredReportIds = [
+  "report-2026-solomianskyi-charity-fair",
+  "report-2026-east-support",
+  "report-2026-easter-basket-eco-198",
+];
+
+const featuredReportCovers = {
+  "report-2026-solomianskyi-charity-fair": {
+    src: "/images/reports/2026-06/14-charity-fair-2.jpg",
+    alt: "Учасники благодійного ярмарку демонструють FPV-дрон",
+  },
+  "report-2026-easter-basket-eco-198": {
+    src: "images/gallery/Фото звіт 2026/674898696_942526211994305_1699572521606974867_n.jpg",
+    alt: "Учасники благодійного ярмарку в ліцеї з великодніми виробами",
+  },
+} satisfies Record<string, { src: string; alt?: string }>;
+
+const reportById = new Map(reports.map((r) => [r.id, r]));
+const selectedReportIds = new Set(featuredReportIds);
+const selectedReports = featuredReportIds
+  .map((id) => reportById.get(id))
+  .filter(Boolean);
+
+for (const report of reportsSorted) {
+  if (selectedReports.length >= 3) break;
+  if (selectedReportIds.has(report.id)) continue;
+  selectedReports.push(report);
+  selectedReportIds.add(report.id);
+}
+
+const photoReports = selectedReports.map((r) => {
   const titleUk = r?.titleFallback || r?.titleKey || "Фотозвіт";
   const dateLabel = formatDate(r?.dateISO);
   const text = en
@@ -80,9 +119,10 @@ const photoReports = lastThree.map((r) => {
     : (dateLabel ? `${dateLabel} — ${titleUk}` : titleUk);
 
   const cover = Array.isArray(r?.media) && r.media.length ? r.media[0] : null;
-  const img = cover?.src ? `/${String(cover.src).replace(/^\//, "")}` : "/logo.png";
-  const alt = cover?.alt || titleUk;
-  const href = r?.id ? `${link("/reports")}#${encodeURIComponent(String(r.id))}` : link("/reports");
+  const coverOverride = featuredReportCovers[String(r?.id ?? "")];
+  const img = coverOverride?.src || (cover?.src ? `/${String(cover.src).replace(/^\//, "")}` : "/logo.png");
+  const alt = coverOverride?.alt || cover?.alt || titleUk;
+  const href = r?.id ? `${link("/reports")}#report-${encodeURIComponent(String(r.id))}` : link("/reports");
 
   return { img, alt, text, href };
 });
