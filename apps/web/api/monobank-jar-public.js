@@ -1,4 +1,4 @@
-// Public jar status endpoint. Requires server-side MONO_TOKEN and never exposes it.
+// Public jar status endpoint for the web deployment. Requires server-side MONO_TOKEN.
 const cache = new Map();
 
 const CACHE_TTL_MS = 60_000;
@@ -51,7 +51,7 @@ function responsePayload(jar) {
   };
 }
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   setCors(res);
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "GET") return json(res, 405, { error: "Method Not Allowed" });
@@ -89,4 +89,4 @@ module.exports = async (req, res) => {
   } catch (error) {
     return json(res, 502, { error: "Monobank request failed", details: String(error) });
   }
-};
+}

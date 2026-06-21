@@ -93,6 +93,13 @@ export type Alternate = { hreflang: string; href: string };
 
 /** hreflang-альтернативи для <head> (uk, en, x-default). */
 export function alternates(path: string): Alternate[] {
+  if (normalizePath(path) === "/404") {
+    return [
+      { hreflang: "uk", href: absoluteUrl(path, "uk") },
+      { hreflang: "x-default", href: absoluteUrl(path, "uk") },
+    ];
+  }
+
   return [
     { hreflang: "uk", href: absoluteUrl(path, "uk") },
     { hreflang: "en", href: absoluteUrl(path, "en") },

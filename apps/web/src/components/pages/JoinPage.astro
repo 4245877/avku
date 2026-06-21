@@ -128,9 +128,10 @@ const pick = (uk: string, en2: string) => (en ? en2 : uk);
       <div class="join-form-wrapper">
         <form
           class="join-form"
-          action={`mailto:${contacts.email}`}
+          action="/api/contact"
           method="post"
-          enctype="text/plain"
+          data-async-form
+          data-form-type="join"
         >
           <div class="form-group">
             <label for="v-name" data-translate="join_name_label">{t("join_name_label")}</label>
@@ -164,6 +165,8 @@ const pick = (uk: string, en2: string) => (en ? en2 : uk);
           </div>
 
           <button type="submit" class="btn btn-gradient w-full" data-translate="join_submit">{t("join_submit")}</button>
+
+          <p class="form-status" data-form-status role="status" aria-live="polite" hidden></p>
 
           <p class="join-form__note">
             <span data-translate="join_note_1">{t("join_note_1")}</span>

@@ -35,9 +35,10 @@ const isActive = (href: string) => {
   return current === target || current.startsWith(target + "/");
 };
 
-// Посилання перемикача мови: той самий шлях в іншій локалі
-const ukHref = localePath(path, "uk");
-const enHref = localePath(path, "en");
+// Посилання перемикача мови: той самий шлях в іншій локалі. Для 404 ведемо на головну локалі.
+const switchPath = current === "/404" ? "/" : path;
+const ukHref = localePath(switchPath, "uk");
+const enHref = localePath(switchPath, "en");
 ---
 
 <header class={`${styles.header} header`} id="main-header">
@@ -46,7 +47,7 @@ const enHref = localePath(path, "en");
       <a class={`${styles.logoLink} logo-link`} href={localePath("/", lang)}>АВКУ</a>
     </div>
 
-    <ul class={`${styles.navLinks} nav-links`} id="primary-nav" data-visible="false" aria-hidden="true">
+    <ul class={`${styles.navLinks} nav-links`} id="primary-nav" data-visible="false">
       {navItems.map((item) => (
         <li class={`${styles.navItem} nav-item`}>
           <a
@@ -110,6 +111,13 @@ const enHref = localePath(path, "en");
     if (!hamburger || !navLinks) return;
 
     const body = document.body;
+    const mql = window.matchMedia('(max-width: 1024px)');
+
+    const syncNavA11y = () => {
+      const isOpen = hamburger.getAttribute('aria-expanded') === 'true';
+      if (mql.matches && !isOpen) navLinks.setAttribute('aria-hidden', 'true');
+      else navLinks.removeAttribute('aria-hidden');
+    };
 
     const lockScroll = () => {
       if (!body.dataset.prevOverflow) body.dataset.prevOverflow = body.style.overflow || '';
@@ -124,17 +132,19 @@ const enHref = localePath(path, "en");
     const openMenu = () => {
       hamburger.setAttribute('aria-expanded', 'true');
       navLinks.setAttribute('data-visible', 'true');
-      navLinks.setAttribute('aria-hidden', 'false');
+      navLinks.removeAttribute('aria-hidden');
       lockScroll();
       header.classList.add('menu-open');
+      body.classList.add('menu-open');
     };
 
     const closeMenu = () => {
       hamburger.setAttribute('aria-expanded', 'false');
       navLinks.setAttribute('data-visible', 'false');
-      navLinks.setAttribute('aria-hidden', 'true');
       unlockScroll();
       header.classList.remove('menu-open');
+      body.classList.remove('menu-open');
+      syncNavA11y();
     };
 
     const isMenuOpen = () => hamburger.getAttribute('aria-expanded') === 'true';
@@ -161,9 +171,8 @@ const enHref = localePath(path, "en");
 
     const onLinkClick = () => closeMenu();
 
-    const mql = window.matchMedia('(max-width: 1024px)');
     const onMqlChange = () => {
-      if (!mql.matches) closeMenu();
+      closeMenu();
     };
 
     hamburger.addEventListener('click', onHamburgerClick);
@@ -175,6 +184,7 @@ const enHref = localePath(path, "en");
     else if (mql.addListener) mql.addListener(onMqlChange);
 
     header.__navCleanup = () => {
+      closeMenu();
       hamburger.removeEventListener('click', onHamburgerClick);
       document.removeEventListener('click', onDocClick);
       document.removeEventListener('keydown', onKeyDown);

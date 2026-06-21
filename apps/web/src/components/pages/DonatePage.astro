@@ -15,6 +15,20 @@ const link = (p: string) => localePath(p, lang);
 
 const MONO_JAR_URL_DEFAULT = import.meta.env.PUBLIC_MONO_JAR_URL ?? "";
 const MONO_API_URL_DEFAULT = import.meta.env.PUBLIC_MONO_API_URL ?? "/api/monobank-jar-public";
+const monoSendIdFromUrl = (value: string) => {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  try {
+    const parsed = new URL(raw);
+    const parts = parsed.pathname.split("/").filter(Boolean);
+    const jarIndex = parts.findIndex((part) => part === "jar");
+    return jarIndex >= 0 ? parts[jarIndex + 1] || "" : parts[parts.length - 1] || "";
+  } catch {
+    const parts = raw.split("/").filter(Boolean);
+    return parts[parts.length - 1] || "";
+  }
+};
+const MONO_SEND_ID_DEFAULT = import.meta.env.PUBLIC_MONO_SEND_ID ?? monoSendIdFromUrl(MONO_JAR_URL_DEFAULT);
 
 const contacts = {
   address: "м. Київ, вул. Зодчих, 58-а, 03170",
@@ -40,6 +54,8 @@ const activeFund = {
   needsEn: ["Diesel heater", "Inverter generator", "Laptop"],
   goal: 60000,
   jarUrl: "https://send.monobank.ua/jar/AYnqhv5wj7",
+  sendId: "AYnqhv5wj7",
+  progressApiUrl: MONO_API_URL_DEFAULT,
   cardNumber: "4874 1000 2444 4732",
 };
 
@@ -48,7 +64,7 @@ const campaigns = [
     ...activeFund,
     short: "Батальйон перехоплювачів безпілотних систем. Потрібні: дизельний обігрівач, інверторний генератор, ноутбук. Ціль — 60 000 ₴.",
     shortEn: "Unmanned Systems Interceptor Battalion. Needed: diesel heater, inverter generator, laptop. Goal: UAH 60,000.",
-    progressApiUrl: "",
+    progressApiUrl: MONO_API_URL_DEFAULT,
     reportUrl: "/reports",
     tags: ["Терміново", "Ціль 60 000 ₴"],
     tagsEn: ["Urgent", "Goal UAH 60,000"],
@@ -57,21 +73,21 @@ const campaigns = [
     id: "zsu", title: "Підтримка ЗСУ", titleEn: "Support for the Armed Forces",
     short: "Закриваємо термінові запити підрозділів: спорядження, дрони, живлення, витратні матеріали.",
     shortEn: "We close urgent unit requests: gear, drones, power solutions, and consumables.",
-    jarUrl: MONO_JAR_URL_DEFAULT, progressApiUrl: MONO_API_URL_DEFAULT, reportUrl: "/reports",
+    jarUrl: MONO_JAR_URL_DEFAULT, sendId: MONO_SEND_ID_DEFAULT, progressApiUrl: MONO_SEND_ID_DEFAULT ? MONO_API_URL_DEFAULT : "", reportUrl: "/reports",
     tags: ["Терміново", "Запити підрозділів"], tagsEn: ["Urgent", "Unit requests"],
   },
   {
     id: "humanitarian", title: "Гуманітарна допомога", titleEn: "Humanitarian aid",
     short: "Продукти, ліки та гігієна для військових і цивільних. Адресна доставка за потребою.",
     shortEn: "Food, medicine, and hygiene supplies for service members and civilians, with targeted delivery when needed.",
-    jarUrl: MONO_JAR_URL_DEFAULT, progressApiUrl: MONO_API_URL_DEFAULT, reportUrl: "/reports",
+    jarUrl: MONO_JAR_URL_DEFAULT, sendId: MONO_SEND_ID_DEFAULT, progressApiUrl: MONO_SEND_ID_DEFAULT ? MONO_API_URL_DEFAULT : "", reportUrl: "/reports",
     tags: ["Пункти незламності", "Адресна підтримка"], tagsEn: ["Resilience points", "Targeted support"],
   },
   {
     id: "workshops", title: "Майстерні та виробництво", titleEn: "Workshops and production",
     short: "Матеріали для маскувальних сіток, окопних свічок та інших речей, які роблять волонтери.",
     shortEn: "Materials for camouflage nets, trench candles, and other essentials made by volunteers.",
-    jarUrl: MONO_JAR_URL_DEFAULT, progressApiUrl: MONO_API_URL_DEFAULT, reportUrl: "/reports",
+    jarUrl: MONO_JAR_URL_DEFAULT, sendId: MONO_SEND_ID_DEFAULT, progressApiUrl: MONO_SEND_ID_DEFAULT ? MONO_API_URL_DEFAULT : "", reportUrl: "/reports",
     tags: ["Матеріали", "Постійна потреба"], tagsEn: ["Materials", "Ongoing need"],
   },
 ];
@@ -334,9 +350,9 @@ const orgJsonLd = {
               <h3 data-translate="donate_after_title">{t("donate_after_title")}</h3>
               <p class="micro" data-translate="donate_after_desc">{t("donate_after_desc")}</p>
 
-              <form id="reportForm" class="form" action={"mailto:" + contacts.email} method="post" enctype="text/plain">
+              <form id="reportForm" class="form" action="/api/contact" method="post" data-async-form data-form-type="donation-report">
                 <label for="contactInput" data-translate="donate_contact_label">{t("donate_contact_label")}</label>
-                <input id="contactInput" name="contact" placeholder={t("donate_contact_placeholder")} data-translate-placeholder="donate_contact_placeholder" />
+                <input id="contactInput" name="contact" required placeholder={t("donate_contact_placeholder")} data-translate-placeholder="donate_contact_placeholder" />
 
                 <label for="commentInput" data-translate="donate_comment_label">{t("donate_comment_label")}</label>
                 <textarea id="commentInput" name="comment" rows="3" placeholder={t("donate_comment_placeholder")} data-translate-placeholder="donate_comment_placeholder"></textarea>
@@ -346,6 +362,7 @@ const orgJsonLd = {
                 <input type="hidden" id="hiddenPage" name="page" value="https://avku.org/donate" />
 
                 <button type="submit" class="btn btn--secondary btn--full" data-translate="donate_send_email">{t("donate_send_email")}</button>
+                <p class="form-status" data-form-status role="status" aria-live="polite" hidden></p>
               </form>
 
               <div class="template" aria-label={t("donate_template_label")}>
@@ -380,6 +397,7 @@ const orgJsonLd = {
       templateText: document.getElementById("templateText"),
       hiddenCampaign: document.getElementById("hiddenCampaign"),
       hiddenAmount: document.getElementById("hiddenAmount"),
+      reportForm: document.getElementById("reportForm"),
       contactInput: document.getElementById("contactInput"),
       commentInput: document.getElementById("commentInput"),
       requisitesCard: document.getElementById("requisitesCard"),
@@ -419,6 +437,35 @@ const orgJsonLd = {
         if (ok) { const n = toNumber(cur); if (n !== null) return n; }
       }
       return null;
+    }
+
+    function sendIdFromJarUrl(value) {
+      const raw = String(value || "").trim();
+      if (!raw) return "";
+      try {
+        const parsed = new URL(raw);
+        const parts = parsed.pathname.split("/").filter(Boolean);
+        const jarIndex = parts.findIndex((part) => part === "jar");
+        return jarIndex >= 0 ? (parts[jarIndex + 1] || "") : (parts[parts.length - 1] || "");
+      } catch {
+        const parts = raw.split("/").filter(Boolean);
+        return parts[parts.length - 1] || "";
+      }
+    }
+
+    function progressUrlFor(c) {
+      const apiUrl = c?.progressApiUrl;
+      if (!apiUrl || typeof apiUrl !== "string") return "";
+      const sendId = c.sendId || sendIdFromJarUrl(c.jarUrl);
+      if (!sendId) return "";
+      try {
+        const parsed = new URL(apiUrl, window.location.origin);
+        parsed.searchParams.set("sendId", sendId);
+        return parsed.toString();
+      } catch {
+        const joiner = apiUrl.includes("?") ? "&" : "?";
+        return apiUrl + joiner + "sendId=" + encodeURIComponent(sendId);
+      }
     }
 
     function setChipActive(amount) {
@@ -489,7 +536,7 @@ const orgJsonLd = {
 
     async function updateProgress() {
       const c = byId(els.campaignSelect.value);
-      const apiUrl = c.progressApiUrl;
+      const apiUrl = progressUrlFor(c);
 
       if (!apiUrl || typeof apiUrl !== "string") {
         if (typeof c.goal === "number" && c.goal > 0) {
@@ -508,8 +555,8 @@ const orgJsonLd = {
         if (!res.ok) throw new Error("HTTP " + res.status);
         const data = await res.json();
 
-        const balance = pickNumber(data, ["balance", "data.balance", "jar.balance", "result.balance", "amount"]);
-        const goal = pickNumber(data, ["goal", "data.goal", "jar.goal", "result.goal", "target"]);
+        const balance = pickNumber(data, ["balanceUAH", "balance", "raised", "data.balance", "jar.balance", "result.balance", "amount", "currentAmount"]);
+        const goal = pickNumber(data, ["goalUAH", "goal", "data.goal", "jar.goal", "result.goal", "target", "targetAmount"]);
         const goalValid = goal !== null && goal > 0;
 
         if (balance === null && !goalValid) {
@@ -652,6 +699,7 @@ const orgJsonLd = {
       els.contactInput?.addEventListener(evt, setTemplateText);
       els.commentInput?.addEventListener(evt, setTemplateText);
     });
+    els.reportForm?.addEventListener("avku:form-success", setTemplateText);
 
     setInterval(updateProgress, 90_000);
   </script>

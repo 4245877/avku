@@ -16,12 +16,5 @@ media:
     src: "images/gallery/Фото звіт 2025/18-2.jpg"
     alt: "Щасливі діти"
     caption: "Подарунки та радість"
-  -
-
-    src: "images/gallery/Фото звіт 2025/18-3.jpg"
-    alt: "Благодійний захід"
-    caption: "Об’єднані добром"
 draft: false
 ---
-
-

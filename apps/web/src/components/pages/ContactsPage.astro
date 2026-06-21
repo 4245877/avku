@@ -51,7 +51,7 @@ const addressLines = t("address_text").split("\n");
             <h3 data-translate="phones_title">{t("phones_title")}</h3>
             <p>
               <a href="tel:+380688473401">+38 (068) 847-34-01</a><br />
-              <a href="tel:+3800636777050">+38 (063) 677-70-50</a>
+              <a href="tel:+380636777050">+38 (063) 677-70-50</a>
             </p>
           </div>
 
@@ -90,7 +90,7 @@ const addressLines = t("address_text").split("\n");
         <div class="form-wrapper">
           <h2 data-translate="write_title">{t("write_title")}</h2>
 
-          <form id="contactForm" action="mailto:volunteer_ukraine@ukr.net" method="post" enctype="text/plain">
+          <form id="contactForm" action="/api/contact" method="post" data-async-form data-form-type="contact">
             <div class="form-group">
               <input
                 type="text"
@@ -131,6 +131,8 @@ const addressLines = t("address_text").split("\n");
               {t("send_button")}
               <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
             </button>
+
+            <p class="form-status" data-form-status role="status" aria-live="polite" hidden></p>
           </form>
         </div>
       </div>

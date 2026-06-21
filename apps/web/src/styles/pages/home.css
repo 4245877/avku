@@ -868,13 +868,6 @@
 }
 
 /* Улучшение рендеринга изображений */
-.gallery-card img,
-.partner img {
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: crisp-edges;
-}
-
-
 /* ========== ACCESSIBILITY ENHANCEMENTS ========== */
 
 /* Улучшенная видимость фокуса */

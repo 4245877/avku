@@ -26,6 +26,8 @@ const url = (path) => {
 };
 
 const canonicalUrl = absoluteUrl("/news", lang);
+const detailsHref = (n) =>
+  n.href && /^https?:/.test(n.href) ? n.href : `${link("/news")}#${n.id}`;
 
 // Категорії (для фільтра)
 const categories = [
@@ -94,6 +96,7 @@ const news = newsEntries
       categoryLabelEn: categoryMapEn[data.categoryKey] || "News",
       excerpt: data.excerpt,
       excerptEn: tr.excerpt || data.excerpt,
+      href: data.href || "",
       img: data.img || "",
       imgAlt: data.imgAlt || data.title,
       imgAltEn: tr.imgAlt || tr.title || data.imgAlt || data.title,
@@ -128,14 +131,11 @@ const orgJsonLd = {
     itemListElement: news.slice(0, 20).map((n, i) => ({
       "@type": "ListItem",
       position: i + 1,
-      url: `${canonicalUrl}#${n.id}`,
+      url: detailsHref(n),
       name: pick(n.title, n.titleEn),
     })),
   },
 };
-
-const detailsHref = (n) =>
-  n.href && /^https?:/.test(n.href) ? n.href : `${link("/news")}#${n.id}`;
 ---
 
 <Base lang={lang} title={t("meta_news_title")} description={t("meta_news_desc")} path="/news">

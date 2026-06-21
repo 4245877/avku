@@ -13,6 +13,8 @@ const t = useTranslations(lang);
 const en = lang === "en";
 const pick = (uk: string, en2: string) => (en ? en2 : uk);
 const link = (p: string) => localePath(p, lang);
+const MONO_API_URL_DEFAULT = import.meta.env.PUBLIC_MONO_API_URL ?? "/api/monobank-jar-public";
+const MONO_SEND_ID_DEFAULT = import.meta.env.PUBLIC_MONO_SEND_ID ?? "AYnqhv5wj7";
 
 // Ассети (зображення) — лише BASE_URL, без локалі
 const base = import.meta.env.BASE_URL ?? "/";
@@ -290,7 +292,7 @@ const reportDocLabelEn = (_doc, index) => `Document / confirmation${index > 0 ? 
     </dialog>
   </div>
 
-  <script is:inline>
+  <script is:inline define:vars={{ donationApiUrl: MONO_API_URL_DEFAULT, donationSendId: MONO_SEND_ID_DEFAULT }}>
     (function () {
       const list = document.getElementById("reportsList");
       const items = list ? Array.from(list.querySelectorAll(".report-card")) : [];
@@ -432,20 +434,35 @@ const reportDocLabelEn = (_doc, index) => `Document / confirmation${index > 0 ? 
       const amountsEl = document.getElementById("donationAmounts");
       const barEl = document.getElementById("donationBar");
       const progressEl = widget ? widget.querySelector('[role="progressbar"]') : null;
-      const DONATION_STATUS_URL = "/api/monobank-jar-public";
+      const DONATION_STATUS_URL = donationApiUrl;
+      const DONATION_SEND_ID = donationSendId;
 
       function safeText(el, txt) { if (el) el.textContent = String(txt ?? ""); }
 
+      function donationStatusUrl() {
+        if (!DONATION_STATUS_URL || !DONATION_SEND_ID) return "";
+        try {
+          const parsed = new URL(DONATION_STATUS_URL, window.location.origin);
+          parsed.searchParams.set("sendId", DONATION_SEND_ID);
+          return parsed.toString();
+        } catch {
+          const joiner = String(DONATION_STATUS_URL).includes("?") ? "&" : "?";
+          return String(DONATION_STATUS_URL) + joiner + "sendId=" + encodeURIComponent(DONATION_SEND_ID);
+        }
+      }
+
       async function loadDonation() {
         if (!widget) return;
+        const statusUrl = donationStatusUrl();
+        if (!statusUrl) return;
         try {
-          const res = await fetch(DONATION_STATUS_URL, { headers: { accept: "application/json" } });
+          const res = await fetch(statusUrl, { headers: { accept: "application/json" } });
           if (!res.ok) return;
           const data = await res.json();
 
           const title = data?.title ?? data?.name ?? "";
-          const goal = Number(data?.goal ?? data?.targetAmount ?? data?.target ?? 0);
-          const raised = Number(data?.raised ?? data?.amount ?? data?.currentAmount ?? 0);
+          const goal = Number(data?.goalUAH ?? data?.goal ?? data?.targetAmount ?? data?.target ?? 0);
+          const raised = Number(data?.balanceUAH ?? data?.raised ?? data?.amount ?? data?.currentAmount ?? data?.balance ?? 0);
 
           if (title) safeText(donationTitleEl, title);
 
