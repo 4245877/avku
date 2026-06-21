@@ -1,0 +1,386 @@
+---
+// src/components/pages/NewsPage.astro
+import Base from "../../layouts/Base.astro";
+import "../../styles/pages/news.css";
+import { getCollection } from "astro:content";
+import { SITE_URL, absoluteUrl, localePath, useTranslations, type Lang } from "../../i18n/ui";
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props as Props;
+const t = useTranslations(lang);
+const en = lang === "en";
+const pick = (uk: string, en2: string) => (en ? en2 : uk);
+
+const link = (p: string) => localePath(p, lang);
+
+// Ассети / зображення (лише BASE_URL, без локалі)
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const encodePath = (p) => p.split("/").map((seg) => encodeURIComponent(seg)).join("/");
+const url = (path) => {
+  if (!path) return "#";
+  if (path.startsWith("http")) return path;
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return `${base}${encodePath(normalizedPath)}`;
+};
+
+const canonicalUrl = absoluteUrl("/news", lang);
+
+// Категорії (для фільтра)
+const categories = [
+  { key: "all", label: "Всі", labelEn: "All" },
+  { key: "zsu", label: "Підтримка ЗСУ", labelEn: "Support for the Armed Forces" },
+  { key: "humanitarian", label: "Гуманітарна допомога", labelEn: "Humanitarian aid" },
+  { key: "partnerships", label: "Партнерства", labelEn: "Partnerships" },
+  { key: "community", label: "Освіта / громада", labelEn: "Education / community" },
+  { key: "awards", label: "Відзнаки", labelEn: "Recognition" },
+  { key: "events", label: "Події", labelEn: "Events" },
+];
+
+const categoryMap = Object.fromEntries(categories.map((c) => [c.key, c.label]));
+const categoryMapEn = Object.fromEntries(categories.map((c) => [c.key, c.labelEn]));
+
+const formatDateUk = (iso) => {
+  const value = String(iso ?? "");
+  const date = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat("uk-UA", { day: "numeric", month: "long", year: "numeric" }).format(date);
+};
+const formatDateEn = (iso) => {
+  const value = String(iso ?? "");
+  const date = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat("en", { day: "numeric", month: "long", year: "numeric" }).format(date);
+};
+
+const newsTranslations = {
+  "2026-06-14-solomianskyi-charity-fair": {
+    title: "AVKU joined a charity fair supporting the Svoboda battalion",
+    excerpt: "A charity fair was held in Vidradnyi Park, with proceeds going toward FPV drones for the Svoboda battalion of the Rubizh National Guard brigade.",
+    imgAlt: "Participants of the charity fair in Vidradnyi Park with an FPV drone",
+    sourceLabel: "Bohdan Kolodiy on Facebook",
+  },
+  "2026-05-15-34-marine-brigade-ecoflow": {
+    title: "EcoFlow delivered for the 34th Separate Marine Brigade",
+    excerpt: "A high-capacity EcoFlow charging station was delivered to the mortar battalion of the 34th Separate Marine Brigade for uninterrupted work and communications.",
+    imgAlt: "EcoFlow charging station delivered for the 34th Separate Marine Brigade",
+    sourceLabel: "AVKU website",
+  },
+  "2026-02-12-kharkiv-16-corps-5201": {
+    title: "Support for defenders in Kharkiv region: aid for the 16th Army Corps, military unit 5201",
+    excerpt: "A generator, FPV drones, camouflage nets, and other essentials were delivered to the 16th Army Corps, military unit 5201.",
+    imgAlt: "Aid delivery to the 16th Army Corps, military unit 5201, Kharkiv region",
+    sourceLabel: "AVKU website",
+  },
+};
+
+const newsEntries = await getCollection("news", ({ data }) => data.draft !== true);
+
+const news = newsEntries
+  .map((entry) => {
+    const id = entry.id.replace(/\/index$/, "");
+    const data = entry.data;
+    const tr = newsTranslations[id] || {};
+    return {
+      id,
+      title: data.title,
+      titleEn: tr.title || data.title,
+      dateISO: data.dateISO,
+      dateLabel: data.dateLabel || formatDateUk(data.dateISO),
+      dateLabelEn: formatDateEn(data.dateISO),
+      categoryKey: data.categoryKey || "zsu",
+      categoryLabel: categoryMap[data.categoryKey] || "Новини",
+      categoryLabelEn: categoryMapEn[data.categoryKey] || "News",
+      excerpt: data.excerpt,
+      excerptEn: tr.excerpt || data.excerpt,
+      img: data.img || "",
+      imgAlt: data.imgAlt || data.title,
+      imgAltEn: tr.imgAlt || tr.title || data.imgAlt || data.title,
+      sourceLabel: data.sourceLabel || "Сайт АВКУ",
+      sourceLabelEn: tr.sourceLabel || "AVKU website",
+    };
+  })
+  .sort((a, b) => Date.parse(b?.dateISO || "") - Date.parse(a?.dateISO || ""));
+
+const featured = news[0] ?? null;
+
+const documents = [
+  {
+    title: "Потужний волонтерський рух у визвольній війні від військової агресії рф…",
+    titleEn: "A powerful volunteer movement in the liberation war against Russian military aggression...",
+    label: "PDF · грудень 2024 (архів)",
+    labelEn: "PDF · December 2024 (archive)",
+    href: "https://avku.org/publications/%D0%92%D0%9E%D0%9B%D0%9E%D0%9D%D0%A2%D0%95%D0%A0%D0%A1%D0%AC%D0%9A%D0%98%D0%99_%D0%A0%D0%A3%D0%A5_%D1%81%D1%82_%D0%9A%D0%BE%D0%BB%D0%BE%D0%B4%D1%96%D0%B9%2C%D0%93%D0%BE%D0%BB%D0%BE%D0%B2%D0%B0%D1%87.pdf",
+  },
+];
+
+const orgJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  name: t("meta_news_title"),
+  description: t("meta_news_desc"),
+  url: canonicalUrl,
+  inLanguage: en ? "en" : "uk",
+  isPartOf: { "@type": "WebSite", name: "АВКУ", url: SITE_URL },
+  mainEntity: {
+    "@type": "ItemList",
+    itemListElement: news.slice(0, 20).map((n, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      url: `${canonicalUrl}#${n.id}`,
+      name: pick(n.title, n.titleEn),
+    })),
+  },
+};
+
+const detailsHref = (n) =>
+  n.href && /^https?:/.test(n.href) ? n.href : `${link("/news")}#${n.id}`;
+---
+
+<Base lang={lang} title={t("meta_news_title")} description={t("meta_news_desc")} path="/news">
+  <Fragment slot="head">
+    <meta name="author" content="АВКУ" />
+    <script type="application/ld+json" set:html={JSON.stringify(orgJsonLd)} />
+  </Fragment>
+
+  <section class="hero">
+    <div class="container hero-content">
+      <h1 class="hero-header" data-translate="news_hero_title">{t("news_hero_title")}</h1>
+      <p class="hero-slogan" data-translate="news_hero_slogan">{t("news_hero_slogan")}</p>
+      <p class="muted" data-translate="news_hero_text">{t("news_hero_text")}</p>
+
+      <div class="hero-actions" style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+        <a href={link("/donate")} class="btn" aria-label={t("home_hero_donate_aria")} data-translate="cta_support">{t("cta_support")}</a>
+        <a href={link("/join")} class="btn" aria-label={t("home_hero_volunteer_aria")} data-translate="cta_become_volunteer">{t("cta_become_volunteer")}</a>
+        <a href={link("/reports")} class="btn" aria-label={t("home_hero_reports_aria")} data-translate="cta_reports_transparency">{t("cta_reports_transparency")}</a>
+      </div>
+    </div>
+  </section>
+
+  {featured ? (
+    <section class="container" style="margin-top:24px;">
+      <article class="featured" aria-label={pick("Головна новина", "Featured news")}>
+        {featured.img ? (
+          <img src={url(featured.img)} alt={pick(featured.imgAlt, featured.imgAltEn)} loading="lazy" decoding="async" />
+        ) : null}
+
+        <div class="body">
+          <div class="meta">
+            <span class="pill">{pick(featured.categoryLabel, featured.categoryLabelEn)}</span>
+            <time datetime={featured.dateISO}>{pick(featured.dateLabel, featured.dateLabelEn)}</time>
+            {featured.sourceLabel ? <span style="opacity:.8;">· {pick(featured.sourceLabel, featured.sourceLabelEn)}</span> : null}
+          </div>
+
+          <h2 style="margin:10px 0 8px;">{pick(featured.title, featured.titleEn)}</h2>
+          <p style="opacity:.95;">{pick(featured.excerpt, featured.excerptEn)}</p>
+
+          <a href={detailsHref(featured)} class="btn" style="margin-top:14px;" aria-label={pick(featured.title, featured.titleEn)} data-translate="cta_details">{t("cta_details")}</a>
+        </div>
+      </article>
+    </section>
+  ) : null}
+
+  <section class="container" style="margin-top:22px; margin-bottom:30px;">
+    <div class="news-layout">
+      <div>
+        <h2 class="section-title" data-translate="news_feed_title">{t("news_feed_title")}</h2>
+
+        <div class="news-controls" role="region" aria-label={t("news_feed_title")}>
+          <div>
+            <label for="newsSearch" data-translate="news_search_label">{t("news_search_label")}</label><br />
+            <input id="newsSearch" type="search" placeholder={t("news_search_placeholder")} data-translate-placeholder="news_search_placeholder" autocomplete="off" />
+          </div>
+
+          <div>
+            <label for="newsCategory" data-translate="news_category_label">{t("news_category_label")}</label><br />
+            <select id="newsCategory" aria-label={t("news_category_label")}>
+              {categories.map((c) => (
+                <option value={c.key}>{pick(c.label, c.labelEn)}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label for="newsSort" data-translate="news_sort_label">{t("news_sort_label")}</label><br />
+            <select id="newsSort" aria-label={t("news_sort_label")}>
+              <option value="new" data-translate="news_sort_new">{t("news_sort_new")}</option>
+              <option value="old" data-translate="news_sort_old">{t("news_sort_old")}</option>
+            </select>
+          </div>
+        </div>
+
+        <p class="news-count" id="newsCount" aria-live="polite"></p>
+
+        <div id="noResults" class="no-results" role="status" aria-live="polite" data-translate="news_no_results">
+          {t("news_no_results")}
+        </div>
+
+        <div class="news-items" id="newsList" style="display:grid; gap:14px;">
+          {news.map((n) => (
+            <article
+              id={n.id}
+              class="news-card"
+              data-news-card="1"
+              data-cat={n.categoryKey || ""}
+              data-date={n.dateISO || ""}
+              data-title={`${n.title || ""} ${n.titleEn || ""}`.toLowerCase()}
+              data-text={`${n.excerpt || ""} ${n.excerptEn || ""}`.toLowerCase()}
+            >
+              {n.img ? (
+                <a href={detailsHref(n)} aria-label={pick(n.title, n.titleEn)}>
+                  <img src={url(n.img)} alt={pick(n.imgAlt, n.imgAltEn)} loading="lazy" decoding="async" style="width:100%; height:auto; display:block;" />
+                </a>
+              ) : null}
+
+              <div class="body">
+                <div class="meta">
+                  <span class="pill">{pick(n.categoryLabel, n.categoryLabelEn)}</span>
+                  <time datetime={n.dateISO} aria-label={pick(n.dateLabel, n.dateLabelEn)}>{pick(n.dateLabel, n.dateLabelEn)}</time>
+                  {n.sourceLabel ? <span style="opacity:.8;">· {pick(n.sourceLabel, n.sourceLabelEn)}</span> : null}
+                </div>
+
+                <h3>{pick(n.title, n.titleEn)}</h3>
+                <p style="opacity:.95;">{pick(n.excerpt, n.excerptEn)}</p>
+
+                <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
+                  <a href={detailsHref(n)} aria-label={pick(n.title, n.titleEn)} data-translate="cta_details">{t("cta_details")}</a>
+                  {n.img ? (
+                    <a href={detailsHref(n)} aria-label={pick(n.title, n.titleEn)} data-translate="news_photo">{t("news_photo")}</a>
+                  ) : null}
+                  <a href={`#${n.id}`} aria-label={pick(n.title, n.titleEn)} data-translate="news_link">{t("news_link")}</a>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+
+        <div class="view-more-container" style="margin-top:16px;">
+          <button id="loadMoreBtn" type="button" class="btn" data-translate="news_load_more">{t("news_load_more")}</button>
+        </div>
+
+        <noscript>
+          <p class="muted small" style="margin-top:12px;" data-translate="news_noscript">{t("news_noscript")}</p>
+        </noscript>
+      </div>
+
+      <aside style="display:grid; gap:14px;">
+        <div class="aside-card">
+          <h3 data-translate="news_aside_channels">{t("news_aside_channels")}</h3>
+          <p class="muted small" style="margin:0 0 10px;" data-translate="news_aside_channels_desc">{t("news_aside_channels_desc")}</p>
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <a class="btn-secondary" href="https://www.facebook.com/groups/555103805361838/?locale=ru_RU" target="_blank" rel="noopener noreferrer" data-translate="news_fb_group">{t("news_fb_group")}</a>
+            <a class="btn-secondary" href="https://avku.org/" target="_blank" rel="noopener noreferrer" data-translate="news_old_site">{t("news_old_site")}</a>
+            <a class="btn-secondary" href={link("/reports")} data-translate="cta_reports_transparency">{t("cta_reports_transparency")}</a>
+          </div>
+        </div>
+
+        <div class="aside-card">
+          <h3 data-translate="news_aside_help">{t("news_aside_help")}</h3>
+          <p class="muted small" style="margin:0 0 10px;" data-translate="news_aside_help_desc">{t("news_aside_help_desc")}</p>
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <a class="btn" href={link("/donate")} data-translate="cta_support">{t("cta_support")}</a>
+            <a class="btn-secondary" href={link("/join")} data-translate="news_join">{t("news_join")}</a>
+          </div>
+        </div>
+
+        <div class="aside-card">
+          <h3 data-translate="news_aside_docs">{t("news_aside_docs")}</h3>
+          {documents?.length ? (
+            <ul>
+              {documents.map((d) => (
+                <li style="margin-bottom:10px;">
+                  <a href={d.href} target="_blank" rel="noopener noreferrer" aria-label={pick(d.title, d.titleEn)}>{pick(d.title, d.titleEn)}</a>
+                  <div class="muted small">{pick(d.label, d.labelEn)}</div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p class="muted small" style="margin:0;" data-translate="news_aside_no_docs">{t("news_aside_no_docs")}</p>
+          )}
+          <div class="divider"></div>
+          <p class="muted small" style="margin:0;" data-translate="news_aside_docs_note">{t("news_aside_docs_note")}</p>
+        </div>
+
+        <div class="aside-card">
+          <h3 data-translate="news_aside_tip">{t("news_aside_tip")}</h3>
+          <p class="muted small" style="margin:0;" data-translate="news_aside_tip_desc">{t("news_aside_tip_desc")}</p>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <script is:inline define:vars={{ countTpl: { en, shownUk: "Показано", shownEn: "Shown", ofUk: "із", ofEn: "of" } }}>
+    (function () {
+      const $ = (s) => document.querySelector(s);
+
+      const listEl = $("#newsList");
+      const countEl = $("#newsCount");
+      const noResultsEl = $("#noResults");
+      const searchEl = $("#newsSearch");
+      const categoryEl = $("#newsCategory");
+      const sortEl = $("#newsSort");
+      const loadMoreBtn = $("#loadMoreBtn");
+
+      if (!listEl || !countEl || !searchEl || !categoryEl || !sortEl || !loadMoreBtn) return;
+
+      const allCards = Array.from(listEl.querySelectorAll('[data-news-card="1"]'));
+
+      const INITIAL_VISIBLE = 8;
+      const STEP = 8;
+      let visibleLimit = INITIAL_VISIBLE;
+
+      const norm = (s) => (s || "").toString().trim().toLowerCase();
+      const isEn = () => (document.documentElement.lang || "uk").toLowerCase().startsWith("en");
+      const parseDate = (iso) => { const t = Date.parse(iso || ""); return Number.isFinite(t) ? t : 0; };
+
+      function matches(card, query, catKey) {
+        if (catKey && catKey !== "all") {
+          if ((card.getAttribute("data-cat") || "") !== catKey) return false;
+        }
+        if (!query) return true;
+        const title = card.getAttribute("data-title") || "";
+        const text = card.getAttribute("data-text") || "";
+        return title.includes(query) || text.includes(query);
+      }
+
+      function render() {
+        const query = norm(searchEl.value);
+        const cat = categoryEl.value;
+        const sortVal = sortEl.value;
+
+        const filtered = allCards.filter((c) => matches(c, query, cat));
+        filtered.sort((a, b) => {
+          const da = parseDate(a.getAttribute("data-date"));
+          const db = parseDate(b.getAttribute("data-date"));
+          return sortVal === "old" ? da - db : db - da;
+        });
+
+        allCards.forEach((c) => { c.style.display = "none"; });
+        const toShow = filtered.slice(0, visibleLimit);
+        toShow.forEach((c) => { listEl.appendChild(c); c.style.display = ""; });
+
+        const total = filtered.length;
+        if (total === 0) {
+          countEl.textContent = "";
+          noResultsEl.style.display = "block";
+          loadMoreBtn.style.display = "none";
+        } else {
+          noResultsEl.style.display = "none";
+          const visibleCount = toShow.length;
+          countEl.textContent = isEn()
+            ? `${countTpl.shownEn} ${visibleCount} ${countTpl.ofEn} ${total}`
+            : `${countTpl.shownUk} ${visibleCount} ${countTpl.ofUk} ${total}`;
+          loadMoreBtn.style.display = visibleCount < total ? "inline-flex" : "none";
+        }
+      }
+
+      searchEl.addEventListener("input", () => { visibleLimit = INITIAL_VISIBLE; render(); });
+      categoryEl.addEventListener("change", () => { visibleLimit = INITIAL_VISIBLE; render(); });
+      sortEl.addEventListener("change", () => { visibleLimit = INITIAL_VISIBLE; render(); });
+      loadMoreBtn.addEventListener("click", () => { visibleLimit += STEP; render(); });
+
+      render();
+    })();
+  </script>
+</Base>

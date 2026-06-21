@@ -1,6 +1,14 @@
 ---
 // src/components/Footer.astro
 import styles from "./Footer.module.css";
+import { useTranslations, type Lang } from "../i18n/ui";
+
+interface Props {
+  lang?: Lang;
+}
+
+const { lang = "uk" } = Astro.props as Props;
+const t = useTranslations(lang);
 
 const year = new Date().getFullYear();
 const base = import.meta.env.BASE_URL;
@@ -49,8 +57,8 @@ const social = [
     </div>
 
     <p class={`${styles.copy} footer-copy`}>
-      © {year} <span data-translate="Association">АВКУ</span>.
-      <span data-translate="footer_rights">Усі права захищені.</span>
+      © {year} <span data-translate="Association">{t("Association")}</span>.
+      <span data-translate="footer_rights">{t("footer_rights")}</span>
     </p>
   </div>
 </footer>

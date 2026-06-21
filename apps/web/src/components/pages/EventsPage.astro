@@ -1,0 +1,365 @@
+---
+// src/components/pages/EventsPage.astro
+import Base from "../../layouts/Base.astro";
+import "../../styles/pages/events.css";
+import { SITE_URL, absoluteUrl, localePath, useTranslations, type Lang } from "../../i18n/ui";
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props as Props;
+const t = useTranslations(lang);
+const en = lang === "en";
+const pick = (uk: string, en2: string) => (en ? en2 : uk);
+const link = (p: string) => localePath(p, lang);
+
+const links = {
+  facebookGroup: "https://www.facebook.com/groups/555103805361838/?locale=ru_RU",
+};
+
+const contacts = {
+  city: "Київ",
+  cityEn: "Kyiv",
+  phone1: "+38 (068) 847-34-01",
+  phone2: "+38 (063) 677-70-50",
+  email: "volunteer_ukraine@ukr.net",
+};
+
+const formats = [
+  { title: "Підтримка ЗСУ: закриття запитів підрозділів", titleEn: "Support for the Armed Forces: closing unit requests", desc: "Збір і передача необхідного спорядження, звʼязку, живлення, маскувальних засобів, технічних і побутових речей — за актуальними запитами.", descEn: "Collecting and delivering essential gear, communications, power solutions, camouflage, technical, and everyday items based on current requests.", tags: ["ЗСУ", "збір", "передача"], tagsEn: ["Armed Forces", "fundraiser", "delivery"], href: "/donate", cta: "Підтримати донатом", ctaEn: "Donate" },
+  { title: "Гуманітарна допомога та відправки", titleEn: "Humanitarian aid and shipments", desc: "Регулярні відправки продуктів, ліків і засобів гігієни для військових і цивільних, координація доставок та пакування.", descEn: "Regular shipments of food, medicine, and hygiene supplies for service members and civilians, including delivery coordination and packing.", tags: ["гуманітарка", "логістика"], tagsEn: ["humanitarian", "logistics"], href: "/join", cta: "Стати волонтером", ctaEn: "Become a volunteer" },
+  { title: "Волонтерські майстерні", titleEn: "Volunteer workshops", desc: "Спільні майстерні з виготовлення маскувальних сіток, окопних свічок та інших необхідних речей разом із волонтерами й партнерами.", descEn: "Joint workshops for camouflage nets, trench candles, and other essentials together with volunteers and partners.", tags: ["майстерня", "сітки", "свічки"], tagsEn: ["workshop", "nets", "candles"], href: "/join", cta: "Долучитися", ctaEn: "Join" },
+  { title: "Благодійні ярмарки та збори", titleEn: "Charity fairs and fundraisers", desc: "Публічні благодійні заходи, ярмарки, події в громадах і закладах освіти — для підсилення зборів на потреби захисників.", descEn: "Public charity events, fairs, community events, and education-based initiatives that strengthen fundraisers for defenders’ needs.", tags: ["ярмарок", "збір"], tagsEn: ["fair", "fundraiser"], href: "/donate", cta: "Підтримати", ctaEn: "Support" },
+  { title: "Освітні та культурні заходи", titleEn: "Educational and cultural events", desc: "Зустрічі, лекції, патріотичні події, активності в громадах і навчальних закладах — щоб підтримувати єдність і мотивацію допомоги.", descEn: "Meetings, lectures, patriotic events, and community or school activities that support unity and motivation to help.", tags: ["освіта", "культура"], tagsEn: ["education", "culture"], href: "/about", cta: "Дізнатися більше", ctaEn: "Learn more" },
+  { title: "Партнерства та меморандуми", titleEn: "Partnerships and memorandums", desc: "Співпраця з організаціями та ініціативами: меморандуми, спільні проєкти, форуми та координація допомоги.", descEn: "Cooperation with organizations and initiatives: memorandums, joint projects, forums, and aid coordination.", tags: ["партнерство", "співпраця"], tagsEn: ["partnership", "cooperation"], href: "/contacts", cta: "Зв'язатися", ctaEn: "Contact us" },
+];
+
+const upcoming = {
+  title: "Анонси найближчих подій — у Facebook-групі АВКУ",
+  titleEn: "Upcoming event announcements are published in the AVKU Facebook group",
+  dateLabel: "Оновлюється постами та закріпами",
+  dateLabelEn: "Updated through posts and pinned updates",
+  location: "Онлайн",
+  locationEn: "Online",
+  desc: "Ми публікуємо актуальні анонси, місця зборів і потреби в нашій Facebook-спільноті. Натисни, щоб переглянути найсвіжіше.",
+  descEn: "We publish current announcements, gathering locations, and needs in our Facebook community. Click to see the latest updates.",
+  href: links.facebookGroup,
+  cta: "Відкрити Facebook-групу",
+  ctaEn: "Open Facebook group",
+};
+
+const archive = [
+  { id: "e-2025-12-12", dateISO: "2025-12-12", dateLabel: "12 грудня 2025", dateLabelEn: "December 12, 2025", category: "ЗСУ / передача", categoryEn: "Armed Forces / delivery", title: "Передача допомоги для підрозділу ТрО (маскувальні сітки та інше)", titleEn: "Aid delivery for a Territorial Defense unit (camouflage nets and other supplies)", desc: "Спільно з освітньою спільнотою підтримали підрозділ — передали маскувальні сітки та необхідні речі.", descEn: "Together with the education community, we supported a unit by delivering camouflage nets and essential items." },
+  { id: "e-2025-12-05", dateISO: "2025-12-05", dateLabel: "5 грудня 2025", dateLabelEn: "December 5, 2025", category: "Спільнота / форум", categoryEn: "Community / forum", title: "Перший форум волонтерів до Міжнародного дня волонтера (Святошинський район)", titleEn: "First volunteer forum for International Volunteer Day in Sviatoshyn district", desc: "Зустріч із друзями й партнерами: історії, підтримка та план наступних спільних справ.", descEn: "A meeting with friends and partners: stories, support, and plans for the next joint efforts." },
+  { id: "e-2025-12-04", dateISO: "2025-12-04", dateLabel: "4 грудня 2025", dateLabelEn: "December 4, 2025", category: "Освіта / зустріч", categoryEn: "Education / meeting", title: "Зустріч учнів і військових у ліцеї №281 (формат «какао з військовим»)", titleEn: "Meeting of students and service members at Lyceum No. 281", desc: "Тепла зустріч напередодні Дня волонтера й Святого Миколая — спілкування, підтримка, подарунки.", descEn: "A warm meeting before Volunteer Day and St. Nicholas Day: communication, support, and gifts." },
+  { id: "e-2025-06-15", dateISO: "2025-06-15", dateLabel: "15 червня 2025", dateLabelEn: "June 15, 2025", category: "Гуманітарка / передача", categoryEn: "Humanitarian / delivery", title: "Передача гуманітарної допомоги підрозділу «Братство» (ГУР)", titleEn: "Humanitarian aid delivery to the Bratstvo unit of Defence Intelligence", desc: "Чергове підсилення для тих, хто виконує завдання на напрямках.", descEn: "Another boost for those carrying out missions in active areas." },
+  { id: "e-2025-05-13", dateISO: "2025-05-13", dateLabel: "13 травня 2025", dateLabelEn: "May 13, 2025", category: "Благодійність / ярмарок", categoryEn: "Charity / fair", title: "Благодійний ярмарок: зібрали кошти на 13 FPV-дронів", titleEn: "Charity fair: funds raised for 13 FPV drones", desc: "Спільний захід із партнерами та громадою — результатом стала закупівля FPV-дронів для підрозділів.", descEn: "A joint event with partners and the community that resulted in the purchase of FPV drones for units." },
+  { id: "e-2025-05-31", dateISO: "2025-05-31", dateLabel: "31 травня 2025", dateLabelEn: "May 31, 2025", category: "Партнерство / меморандум", categoryEn: "Partnership / memorandum", title: "Підписання меморандуму з Київською православною богословською академією", titleEn: "Memorandum signed with Kyiv Orthodox Theological Academy", desc: "Посилили співпрацю для спільних ініціатив і взаємної підтримки.", descEn: "Cooperation was strengthened for joint initiatives and mutual support." },
+  { id: "e-2025-02-05", dateISO: "2025-02-05", dateLabel: "5 лютого 2025", dateLabelEn: "February 5, 2025", category: "Партнерство / форум", categoryEn: "Partnership / forum", title: "Інтерактивний форум «10 років змін: пробація, що наближає до справедливості»", titleEn: "Interactive forum “10 years of change: probation that brings justice closer”", desc: "Подія на базі філії Центру пробації — обʼєднання дій і взаємна підтримка.", descEn: "An event hosted by the Probation Center branch, focused on coordinated action and mutual support." },
+  { id: "e-2025-02-19", dateISO: "2025-02-19", dateLabel: "19 лютого 2025", dateLabelEn: "February 19, 2025", category: "Партнерство / меморандум", categoryEn: "Partnership / memorandum", title: "Меморандум із соццентром «Перспектива Біличів і Новобіличів…»", titleEn: "Memorandum with the Perspektyva social center", desc: "Домовились про спільну роботу та координацію допомоги.", descEn: "An agreement on joint work and coordination of assistance." },
+  { id: "e-2025-02-04", dateISO: "2025-02-04", dateLabel: "4 лютого 2025", dateLabelEn: "February 4, 2025", category: "Партнерство / меморандум", categoryEn: "Partnership / memorandum", title: "Меморандум зі спілкою «Святошинські маскувальні сіточки»", titleEn: "Memorandum with the Sviatoshyn Camouflage Nets union", desc: "Обʼєднання зусиль у волонтерських та благодійних сферах.", descEn: "Uniting efforts in volunteer and charitable work." },
+];
+
+const filterTabs = [
+  { key: "all", label: "Усі", labelEn: "All" },
+  { key: "ЗСУ / передача", label: "ЗСУ", labelEn: "Armed Forces" },
+  { key: "Гуманітарка / передача", label: "Гуманітарка", labelEn: "Humanitarian aid" },
+  { key: "Благодійність / ярмарок", label: "Ярмарки", labelEn: "Fairs" },
+  { key: "Освіта / зустріч", label: "Освіта", labelEn: "Education" },
+  { key: "Партнерство / меморандум", label: "Партнерства", labelEn: "Partnerships" },
+  { key: "Спільнота / форум", label: "Форуми", labelEn: "Forums" },
+];
+
+const pageUrl = absoluteUrl("/events", lang);
+const eventsJsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": `${SITE_URL}/#organization`,
+      name: "АВКУ",
+      url: SITE_URL,
+      email: contacts.email,
+      sameAs: [links.facebookGroup, "https://www.youtube.com/@avkuorg"],
+    },
+    {
+      "@type": "CollectionPage",
+      "@id": `${pageUrl}#webpage`,
+      url: pageUrl,
+      name: t("events_hero_title"),
+      description: t("meta_events_desc"),
+      inLanguage: en ? "en" : "uk",
+      isPartOf: { "@id": `${SITE_URL}/#website` },
+      mainEntity: {
+        "@type": "ItemList",
+        itemListElement: archive.map((e, idx) => ({
+          "@type": "ListItem",
+          position: idx + 1,
+          item: {
+            "@type": "Event",
+            "@id": `${pageUrl}#${e.id}`,
+            name: pick(e.title, e.titleEn),
+            startDate: e.dateISO,
+            eventStatus: "https://schema.org/EventCompleted",
+            eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+            location: { "@type": "Place", name: pick(contacts.city, contacts.cityEn), address: { "@type": "PostalAddress", addressLocality: pick(contacts.city, contacts.cityEn), addressCountry: "UA" } },
+            organizer: { "@id": `${SITE_URL}/#organization` },
+          },
+        })),
+      },
+    },
+    { "@type": "WebSite", "@id": `${SITE_URL}/#website`, url: SITE_URL, name: "АВКУ" },
+  ],
+};
+---
+
+<Base lang={lang} title={t("meta_events_title")} description={t("meta_events_desc")} path="/events">
+  <Fragment slot="head">
+    <meta name="author" content="АВКУ" />
+    <script type="application/ld+json" set:html={JSON.stringify(eventsJsonLd)} />
+  </Fragment>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container hero-content">
+      <h1 class="hero-header" data-translate="events_hero_title">{t("events_hero_title")}</h1>
+      <p class="hero-slogan" data-translate="events_hero_slogan">{t("events_hero_slogan")}</p>
+      <p data-translate="events_hero_text">{t("events_hero_text")}</p>
+
+      <div class="hero-actions" style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+        <a href={link("/donate")} class="btn" aria-label={t("home_hero_donate_aria")} data-translate="cta_support">{t("cta_support")}</a>
+        <a href={link("/join")} class="btn" aria-label={t("home_hero_volunteer_aria")} data-translate="cta_become_volunteer">{t("cta_become_volunteer")}</a>
+        <a href={links.facebookGroup} class="btn" target="_blank" rel="noopener noreferrer" aria-label={t("events_hero_fb")} data-translate="events_hero_fb">{t("events_hero_fb")}</a>
+      </div>
+
+      <p style="margin-top:16px; font-size:0.95rem; opacity:0.9;" data-translate="events_hero_note">{t("events_hero_note")}</p>
+    </div>
+  </section>
+
+  <!-- UPCOMING -->
+  <section class="activities" id="calendar">
+    <div class="container">
+      <h2 class="section-title" data-translate="events_upcoming_title">{t("events_upcoming_title")}</h2>
+
+      <div class="activities-grid">
+        <div class="activity-card">
+          <h3>{pick(upcoming.title, upcoming.titleEn)}</h3>
+          <p style="opacity:0.9; margin-top:6px;">
+            <strong>{pick(upcoming.dateLabel, upcoming.dateLabelEn)}</strong> · <span>{pick(upcoming.location, upcoming.locationEn)}</span>
+          </p>
+          <p>{pick(upcoming.desc, upcoming.descEn)}</p>
+          <div style="margin-top:16px;">
+            <a class="btn" href={upcoming.href} target="_blank" rel="noopener noreferrer" aria-label={pick(upcoming.title, upcoming.titleEn)}>{pick(upcoming.cta, upcoming.ctaEn)}</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="view-more-container" style="margin-top:24px;">
+        <a href={link("/contacts")} class="btn" aria-label={t("events_upcoming_help")} data-translate="events_upcoming_help">{t("events_upcoming_help")}</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW TO JOIN -->
+  <section class="trust-block">
+    <div class="container">
+      <h2 class="section-title" data-translate="events_join_title">{t("events_join_title")}</h2>
+
+      <div class="activities-grid">
+        <div class="activity-card">
+          <h3 data-translate="events_join_1_title">{t("events_join_1_title")}</h3>
+          <p data-translate="events_join_1_desc">{t("events_join_1_desc")}</p>
+        </div>
+
+        <div class="activity-card">
+          <h3 data-translate="events_join_2_title">{t("events_join_2_title")}</h3>
+          <p>
+            <span data-translate="events_join_2_phones">{t("events_join_2_phones")}</span> <a href={`tel:${contacts.phone1.replace(/[^+0-9]/g, "")}`}>{contacts.phone1}</a>,
+            {" "}<a href={`tel:${contacts.phone2.replace(/[^+0-9]/g, "")}`}>{contacts.phone2}</a><br />
+            Email: <a href={`mailto:${contacts.email}`}>{contacts.email}</a>
+          </p>
+          <p style="opacity:0.9;">
+            <span data-translate="events_join_2_location">{t("events_join_2_location")}</span> <span data-translate="shared_kyiv">{t("shared_kyiv")}</span>, <span data-translate="shared_address_line">{t("shared_address_line")}</span>
+          </p>
+        </div>
+
+        <div class="activity-card">
+          <h3 data-translate="events_join_3_title">{t("events_join_3_title")}</h3>
+          <p data-translate="events_join_3_desc">{t("events_join_3_desc")}</p>
+          <div style="margin-top:16px;">
+            <a class="btn" href={link("/join")} aria-label={t("cta_fill_form")} data-translate="cta_fill_form">{t("cta_fill_form")}</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FORMATS -->
+  <section class="activities">
+    <div class="container">
+      <h2 class="section-title" data-translate="events_formats_title">{t("events_formats_title")}</h2>
+
+      <div class="activities-grid">
+        {formats.map((f) => (
+          <div class="activity-card">
+            <h3>{pick(f.title, f.titleEn)}</h3>
+            <p>{pick(f.desc, f.descEn)}</p>
+
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
+              {(en ? f.tagsEn : f.tags).map((tag) => (
+                <span class="tag">{tag}</span>
+              ))}
+            </div>
+
+            <div style="margin-top:16px;">
+              <a class="btn" href={link(f.href)} aria-label={pick(f.cta, f.ctaEn)}>{pick(f.cta, f.ctaEn)}</a>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ARCHIVE + FILTER -->
+  <section class="news" id="archive">
+    <div class="container">
+      <h2 data-translate="events_archive_title">{t("events_archive_title")}</h2>
+
+      <p style="max-width:860px; margin: 0 auto 16px; opacity:0.9;" data-translate="events_archive_desc">{t("events_archive_desc")}</p>
+
+      <div class="filters">
+        {filterTabs.map((tab, i) => (
+          <button type="button" class={`filter-btn${i === 0 ? " is-active" : ""}`} data-filter={tab.key} aria-pressed={i === 0 ? "true" : "false"}>
+            <span>{pick(tab.label, tab.labelEn)}</span>
+          </button>
+        ))}
+      </div>
+
+      <div class="news-items" data-archive>
+        {archive.map((e) => (
+          <article id={e.id} class="news-item" data-category={e.category} style="scroll-margin-top: 90px;">
+            <h3>{pick(e.title, e.titleEn)}</h3>
+
+            <p class="news-meta">
+              <time datetime={e.dateISO} aria-label={pick(e.dateLabel, e.dateLabelEn)}>{pick(e.dateLabel, e.dateLabelEn)}</time>
+              {" · "}
+              <span style="opacity:0.9;">{pick(e.category, e.categoryEn)}</span>
+            </p>
+
+            <p>{pick(e.desc, e.descEn)}</p>
+
+            <a href={link("/reports")} aria-label={pick(e.title, e.titleEn)} data-translate="events_view_materials">{t("events_view_materials")}</a>
+          </article>
+        ))}
+      </div>
+
+      <div class="view-more-container">
+        <a href={link("/reports")} class="btn" aria-label={t("events_reports_btn")} data-translate="events_reports_btn">{t("events_reports_btn")}</a>
+        <a href={link("/publications")} class="btn" aria-label={t("events_publications_btn")} data-translate="events_publications_btn">{t("events_publications_btn")}</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="trust-block">
+    <div class="container">
+      <h2 class="section-title" data-translate="events_faq_title">{t("events_faq_title")}</h2>
+
+      <div class="activities-grid">
+        <div class="activity-card">
+          <h3 data-translate="events_faq_1_q">{t("events_faq_1_q")}</h3>
+          <p data-translate="events_faq_1_a">{t("events_faq_1_a")}</p>
+          <div style="margin-top:16px;">
+            <a class="btn" href={links.facebookGroup} target="_blank" rel="noopener noreferrer" aria-label={t("events_faq_1_cta")} data-translate="events_faq_1_cta">{t("events_faq_1_cta")}</a>
+          </div>
+        </div>
+
+        <div class="activity-card">
+          <h3 data-translate="events_faq_2_q">{t("events_faq_2_q")}</h3>
+          <p data-translate="events_faq_2_a">{t("events_faq_2_a")}</p>
+          <div style="margin-top:16px;">
+            <a class="btn" href={link("/contacts")} aria-label={t("events_faq_2_cta")} data-translate="events_faq_2_cta">{t("events_faq_2_cta")}</a>
+          </div>
+        </div>
+
+        <div class="activity-card">
+          <h3 data-translate="events_faq_3_q">{t("events_faq_3_q")}</h3>
+          <p data-translate="events_faq_3_a">{t("events_faq_3_a")}</p>
+          <div style="margin-top:16px;">
+            <a class="btn" href={link("/join")} aria-label={t("events_faq_3_cta")} data-translate="events_faq_3_cta">{t("events_faq_3_cta")}</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FINAL CTA -->
+  <section class="activities">
+    <div class="container">
+      <h2 class="section-title" data-translate="events_final_title">{t("events_final_title")}</h2>
+
+      <div class="activities-grid">
+        <div class="activity-card">
+          <h3 data-translate="shared_support_donation_title">{t("shared_support_donation_title")}</h3>
+          <p data-translate="shared_support_donation_desc">{t("shared_support_donation_desc")}</p>
+          <div style="margin-top:16px;">
+            <a class="btn" href={link("/donate")} aria-label={t("home_hero_donate_aria")} data-translate="cta_support">{t("cta_support")}</a>
+          </div>
+        </div>
+
+        <div class="activity-card">
+          <h3 data-translate="shared_become_volunteer_title">{t("shared_become_volunteer_title")}</h3>
+          <p data-translate="events_final_volunteer_desc">{t("events_final_volunteer_desc")}</p>
+          <div style="margin-top:16px;">
+            <a class="btn" href={link("/join")} aria-label={t("home_hero_volunteer_aria")} data-translate="cta_fill_form">{t("cta_fill_form")}</a>
+          </div>
+        </div>
+
+        <div class="activity-card">
+          <h3 data-translate="events_final_suggest_title">{t("events_final_suggest_title")}</h3>
+          <p data-translate="events_final_suggest_desc">{t("events_final_suggest_desc")}</p>
+          <div style="margin-top:16px;">
+            <a class="btn" href={link("/contacts")} aria-label={t("cta_contact")} data-translate="cta_contact">{t("cta_contact")}</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Фільтр архіву -->
+  <script is:inline>
+    (function () {
+      const root = document.querySelector('[data-archive]');
+      const buttons = Array.from(document.querySelectorAll('.filter-btn[data-filter]'));
+      if (!root || !buttons.length) return;
+
+      const items = Array.from(root.querySelectorAll('.news-item[data-category]'));
+
+      const setActive = (btn) => {
+        buttons.forEach((b) => {
+          const on = b === btn;
+          b.classList.toggle('is-active', on);
+          b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+      };
+
+      const apply = (key) => {
+        items.forEach((el) => {
+          const cat = el.getAttribute('data-category') || '';
+          const show = key === 'all' ? true : cat === key;
+          el.style.display = show ? '' : 'none';
+        });
+      };
+
+      buttons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const key = btn.getAttribute('data-filter') || 'all';
+          setActive(btn);
+          apply(key);
+        });
+      });
+
+      apply('all');
+    })();
+  </script>
+</Base>

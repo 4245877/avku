@@ -1,22 +1,22 @@
 ---
 import Base from "../layouts/Base.astro";
 import "../styles/global.css";
+import { localePath, useTranslations } from "../i18n/ui";
 
 const lang = "uk";
-const title = "АВКУ — 404";
-const base = import.meta.env.BASE_URL;
-const home = base.endsWith("/") ? base : base + "/";
+const t = useTranslations(lang);
+const home = localePath("/", lang);
 ---
 
-<Base lang={lang} title={title}>
+<Base lang={lang} title={t("meta_404_title")} path="/404" noindex>
   <section class="notfound">
     <div class="container notfound__inner">
       <p class="notfound__code">404</p>
-      <h1 class="notfound__title" data-translate="not_found_lead">Сторінку не знайдено.</h1>
-      <p class="notfound__text" data-translate-en="The link may be outdated or the page may have been moved.">
-        Можливо, посилання застаріле або сторінку було переміщено.
+      <h1 class="notfound__title" data-translate="not_found_lead">{t("not_found_lead")}</h1>
+      <p class="notfound__text" data-translate="not_found_text">
+        {t("not_found_text")}
       </p>
-      <a class="btn btn-gradient" href={home} data-translate="not_found_back">На головну</a>
+      <a class="btn btn-gradient" href={home} data-translate="not_found_back">{t("not_found_back")}</a>
     </div>
   </section>
 </Base>

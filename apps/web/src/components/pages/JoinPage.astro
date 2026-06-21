@@ -1,0 +1,251 @@
+---
+// src/components/pages/JoinPage.astro
+import Base from "../../layouts/Base.astro";
+import "../../styles/pages/home.css";
+import { localePath, useTranslations, type Lang } from "../../i18n/ui";
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props as Props;
+const t = useTranslations(lang);
+const en = lang === "en";
+
+const link = (p: string) => localePath(p, lang);
+
+const contacts = {
+  phone1: "+38 (068) 847-34-01",
+  phone2: "+38 (063) 677-70-50",
+  email: "volunteer_ukraine@ukr.net",
+};
+
+const ways = [
+  {
+    title: "Логістика та пакування",
+    titleEn: "Logistics and packing",
+    desc: "Сортування, комплектація та підготовка вантажів до відправки, допомога з доставками.",
+    descEn: "Sorting, assembling, and preparing shipments, plus help with deliveries.",
+  },
+  {
+    title: "Волонтерські майстерні",
+    titleEn: "Volunteer workshops",
+    desc: "Маскувальні сітки, окопні свічки та інші необхідні речі — разом із командою та партнерами.",
+    descEn: "Camouflage nets, trench candles, and other essentials made together with the team and partners.",
+  },
+  {
+    title: "Комунікації та медіа",
+    titleEn: "Communications and media",
+    desc: "Допомога з дописами, фото та відео, оформленням звітів і веденням соцмереж.",
+    descEn: "Help with posts, photos, videos, report design, and social media.",
+  },
+  {
+    title: "Події та збори",
+    titleEn: "Events and fundraisers",
+    desc: "Організація благодійних ярмарків, заходів у громадах і навчальних закладах.",
+    descEn: "Organizing charity fairs and events in communities and educational institutions.",
+  },
+];
+
+const steps = [
+  {
+    title: "1) Залиш заявку",
+    titleEn: "1. Leave a request",
+    desc: "Заповни коротку анкету нижче — це займе менше хвилини.",
+    descEn: "Fill out the short form below. It takes less than a minute.",
+  },
+  {
+    title: "2) Ми зв'яжемося",
+    titleEn: "2. We will contact you",
+    desc: "Підкажемо напрям під твої можливості, час і місто.",
+    descEn: "We will suggest a role based on your skills, time, and city.",
+  },
+  {
+    title: "3) Долучайся до справи",
+    titleEn: "3. Join the work",
+    desc: "Знайдемо роль, у якій твоя допомога буде максимально корисною.",
+    descEn: "We will find a role where your help will be most useful.",
+  },
+];
+
+const pick = (uk: string, en2: string) => (en ? en2 : uk);
+---
+
+<Base
+  lang={lang}
+  title={t("meta_join_title")}
+  description={t("meta_join_desc")}
+  path="/join"
+>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container hero-content">
+      <h1 class="hero-header" data-translate="join_hero_title">{t("join_hero_title")}</h1>
+      <p class="hero-slogan" data-translate="join_hero_slogan">{t("join_hero_slogan")}</p>
+      <p data-translate="join_hero_text">{t("join_hero_text")}</p>
+
+      <div class="hero-actions" style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+        <a href="#join-form" class="btn" aria-label={pick("Перейти до анкети волонтера", "Go to the volunteer form")} data-translate="cta_fill_form">{t("cta_fill_form")}</a>
+        <a href={link("/donate")} class="btn" aria-label={pick("Перейти на сторінку підтримки", "Go to the support page")} data-translate="join_hero_support">{t("join_hero_support")}</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- WAYS TO HELP -->
+  <section class="activities">
+    <div class="container">
+      <h2 class="section-title" data-translate="join_ways_title">{t("join_ways_title")}</h2>
+      <div class="activities-grid">
+        {ways.map((w) => (
+          <div class="activity-card">
+            <h3>{pick(w.title, w.titleEn)}</h3>
+            <p>{pick(w.desc, w.descEn)}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="trust-block">
+    <div class="container">
+      <h2 class="section-title" data-translate="join_how_title">{t("join_how_title")}</h2>
+      <div class="activities-grid">
+        {steps.map((s) => (
+          <div class="activity-card">
+            <h3>{pick(s.title, s.titleEn)}</h3>
+            <p>{pick(s.desc, s.descEn)}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- FORM -->
+  <section class="activities" id="join-form">
+    <div class="container">
+      <h2 class="section-title" data-translate="join_form_title">{t("join_form_title")}</h2>
+
+      <div class="join-form-wrapper">
+        <form
+          class="join-form"
+          action={`mailto:${contacts.email}`}
+          method="post"
+          enctype="text/plain"
+        >
+          <div class="form-group">
+            <label for="v-name" data-translate="join_name_label">{t("join_name_label")}</label>
+            <input id="v-name" name="name" type="text" required autocomplete="name" placeholder={t("join_name_placeholder")} data-translate-placeholder="join_name_placeholder" />
+          </div>
+
+          <div class="form-group">
+            <label for="v-contact" data-translate="join_contact_label">{t("join_contact_label")}</label>
+            <input id="v-contact" name="contact" type="text" required placeholder={t("join_contact_placeholder")} data-translate-placeholder="join_contact_placeholder" />
+          </div>
+
+          <div class="form-group">
+            <label for="v-city" data-translate="join_city_label">{t("join_city_label")}</label>
+            <input id="v-city" name="city" type="text" placeholder={t("join_city_placeholder")} data-translate-placeholder="join_city_placeholder" />
+          </div>
+
+          <div class="form-group">
+            <label for="v-direction" data-translate="join_direction_label">{t("join_direction_label")}</label>
+            <select id="v-direction" name="direction">
+              <option value="Логістика та пакування" data-translate="join_dir_logistics">{t("join_dir_logistics")}</option>
+              <option value="Волонтерські майстерні" data-translate="join_dir_workshops">{t("join_dir_workshops")}</option>
+              <option value="Комунікації та медіа" data-translate="join_dir_media">{t("join_dir_media")}</option>
+              <option value="Події та збори" data-translate="join_dir_events">{t("join_dir_events")}</option>
+              <option value="Ще не визначився / порадьте" data-translate="join_dir_unsure">{t("join_dir_unsure")}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="v-message" data-translate="join_message_label">{t("join_message_label")}</label>
+            <textarea id="v-message" name="message" rows="4" placeholder={t("join_message_placeholder")} data-translate-placeholder="join_message_placeholder"></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-gradient w-full" data-translate="join_submit">{t("join_submit")}</button>
+
+          <p class="join-form__note">
+            <span data-translate="join_note_1">{t("join_note_1")}</span>
+            <a href={`mailto:${contacts.email}`}>{contacts.email}</a>.
+            <span data-translate="join_note_2">{t("join_note_2")}</span>
+          </p>
+        </form>
+
+        <aside class="join-contacts">
+          <h3 data-translate="join_contacts_title">{t("join_contacts_title")}</h3>
+          <p>
+            <span data-translate="join_phones_label">{t("join_phones_label")}</span><br />
+            <a href={`tel:${contacts.phone1.replace(/[^+0-9]/g, "")}`}>{contacts.phone1}</a><br />
+            <a href={`tel:${contacts.phone2.replace(/[^+0-9]/g, "")}`}>{contacts.phone2}</a>
+          </p>
+          <p>
+            Email:<br />
+            <a href={`mailto:${contacts.email}`}>{contacts.email}</a>
+          </p>
+          <p>
+            <span data-translate="join_location_label">{t("join_location_label")}</span><br />
+            <span data-translate="shared_kyiv">{t("shared_kyiv")}</span>, <span data-translate="shared_address_line">{t("shared_address_line")}</span>
+          </p>
+          <a href={link("/contacts")} class="btn view-more-btn" data-translate="join_all_contacts">{t("join_all_contacts")}</a>
+        </aside>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .join-form-wrapper {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: var(--space-8);
+    align-items: start;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  .join-form,
+  .join-contacts {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color-light);
+    border-radius: var(--radius-xl);
+    padding: var(--space-8);
+    box-shadow: var(--shadow-base);
+  }
+
+  .join-form .btn {
+    margin-top: var(--space-2);
+  }
+
+  .join-form__note {
+    margin-top: var(--space-4);
+    font-size: var(--text-sm);
+    color: var(--dark-500);
+  }
+
+  .join-contacts h3 {
+    margin-bottom: var(--space-4);
+  }
+
+  .join-contacts p {
+    margin-bottom: var(--space-4);
+    line-height: var(--leading-relaxed);
+  }
+
+  .join-contacts .view-more-btn {
+    background: var(--secondary);
+    color: var(--white);
+    margin-top: var(--space-2);
+  }
+
+  .join-contacts .view-more-btn:hover {
+    background: var(--secondary-hover);
+  }
+
+  @media (max-width: 768px) {
+    .join-form-wrapper {
+      grid-template-columns: 1fr;
+      gap: var(--space-6);
+    }
+  }
+</style>

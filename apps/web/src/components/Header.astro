@@ -1,57 +1,61 @@
 ---
 // apps/web/src/components/Header.astro
 import styles from "./Header.module.css";
+import {
+  localePath,
+  normalizePath,
+  useTranslations,
+  type Lang,
+} from "../i18n/ui";
 
-const base = import.meta.env.BASE_URL; // ожидаем "/avku/" (со слэшем в конце)
+interface Props {
+  lang?: Lang;
+  /** Логічний шлях без локалі: "/", "/about"… */
+  path?: string;
+}
 
-const join = (path) => {
-  if (/^https?:\/\//i.test(path)) return path;
-  const clean = String(path).replace(/^\//, "");
-  // Гарантируем наличие слэша в конце base перед склеиванием
-  const baseFixed = base.endsWith("/") ? base : base + "/";
-  return `${baseFixed}${clean}`;
-};
+const { lang = "uk", path = "/" } = Astro.props as Props;
+const t = useTranslations(lang);
 
 const navItems = [
-  { href: "/", key: "nav_home", label: "Головна" },
-  { href: "/about", key: "nav_about", label: "Про нас" },
-  { href: "/events", key: "nav_events", label: "Події" },
-  { href: "/news", key: "nav_news", label: "Новини" },
-  { href: "/publications", key: "nav_publications", label: "Публікації" },
-  { href: "/reports", key: "nav_reports", label: "Звіти" },
-  { href: "/donate", key: "nav_donate", label: "Підтримати" },
-  { href: "/contacts", key: "nav_contacts", label: "Контакти" },
+  { href: "/", key: "nav_home" },
+  { href: "/about", key: "nav_about" },
+  { href: "/events", key: "nav_events" },
+  { href: "/news", key: "nav_news" },
+  { href: "/publications", key: "nav_publications" },
+  { href: "/reports", key: "nav_reports" },
+  { href: "/donate", key: "nav_donate" },
+  { href: "/contacts", key: "nav_contacts" },
 ];
 
-const normalize = (p) => (p.length > 1 && p.endsWith("/") ? p.slice(0, -1) : p);
-
-const current = normalize(Astro.url.pathname);
-const baseNoSlash = normalize(base);
-
-const isActive = (href) => {
-  const target = normalize(join(href));
-  // Головна не має бути активною на всіх сторінках, якщо ми не в корені base
-  if (href === "/") return current === baseNoSlash;
+const current = normalizePath(path);
+const isActive = (href: string) => {
+  const target = normalizePath(href);
+  if (target === "/") return current === "/";
   return current === target || current.startsWith(target + "/");
 };
+
+// Посилання перемикача мови: той самий шлях в іншій локалі
+const ukHref = localePath(path, "uk");
+const enHref = localePath(path, "en");
 ---
 
 <header class={`${styles.header} header`} id="main-header">
   <nav class={`${styles.navbar} navbar`} aria-label="Primary navigation">
     <div class={`${styles.logo} logo`}>
-      <a class={`${styles.logoLink} logo-link`} href={join("/")} data-translate="Association">АВКУ</a>
+      <a class={`${styles.logoLink} logo-link`} href={localePath("/", lang)}>АВКУ</a>
     </div>
 
     <ul class={`${styles.navLinks} nav-links`} id="primary-nav" data-visible="false" aria-hidden="true">
       {navItems.map((item) => (
         <li class={`${styles.navItem} nav-item`}>
           <a
-            href={join(item.href)}
+            href={localePath(item.href, lang)}
             data-translate={item.key}
             class={`${styles.navLink} nav-link ${isActive(item.href) ? styles.active : ""}`}
             aria-current={isActive(item.href) ? "page" : undefined}
           >
-            {item.label}
+            {t(item.key)}
           </a>
         </li>
       ))}
@@ -59,8 +63,20 @@ const isActive = (href) => {
 
     <div class={styles.mobileControls}>
       <div class={`${styles.languageSelector} language-selector`} aria-label="Language selector">
-        <button type="button" class={`${styles.langBtn} lang-btn`} data-lang="en">EN</button>
-        <button type="button" class={`${styles.langBtn} lang-btn`} data-lang="uk">UA</button>
+        <a
+          href={enHref}
+          hreflang="en"
+          data-lang-switch="en"
+          class={`${styles.langBtn} lang-btn ${lang === "en" ? `${styles.active} active` : ""}`}
+          aria-current={lang === "en" ? "true" : undefined}
+        >EN</a>
+        <a
+          href={ukHref}
+          hreflang="uk"
+          data-lang-switch="uk"
+          class={`${styles.langBtn} lang-btn ${lang === "uk" ? `${styles.active} active` : ""}`}
+          aria-current={lang === "uk" ? "true" : undefined}
+        >UA</a>
       </div>
 
       <button

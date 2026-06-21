@@ -1,0 +1,97 @@
+---
+// src/components/pages/AboutPage.astro
+import Base from "../../layouts/Base.astro";
+import "../../styles/pages/about.css";
+import { useTranslations, type Lang } from "../../i18n/ui";
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props as Props;
+const t = useTranslations(lang);
+
+const listKeys = [
+  "about_list_1",
+  "about_list_2",
+  "about_list_5",
+  "about_list_6",
+  "about_list_7",
+  "about_list_8",
+  "about_list_9",
+  "about_list_10",
+  "about_list_11",
+  "about_list_12",
+  "about_list_13",
+  "about_list_14",
+  "about_list_15",
+  "about_list_16",
+  "about_list_17",
+  "about_list_18",
+  "about_list_19",
+  "about_list_20",
+  "about_list_21",
+];
+---
+
+<Base
+  lang={lang}
+  title={t("meta_about_title")}
+  description={t("meta_about_desc")}
+  path="/about"
+>
+  <Fragment slot="head">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+  </Fragment>
+
+  <div class="container">
+    <section class="about-section">
+      <h1 data-translate="nav_about">{t("nav_about")}</h1>
+
+      <p>
+        <span data-translate="about_text_1_1">{t("about_text_1_1")}</span
+        ><strong data-translate="about_text_1_2">{t("about_text_1_2")}</strong
+        ><span data-translate="about_text_1_3">{t("about_text_1_3")}</span>
+      </p>
+
+      <p>
+        <span data-translate="about_text_2_1">{t("about_text_2_1")}</span
+        ><strong data-translate="about_text_2_2">{t("about_text_2_2")}</strong
+        ><span data-translate="about_text_2_3">{t("about_text_2_3")}</span
+        ><strong data-translate="about_text_2_4">{t("about_text_2_4")}</strong
+        ><span data-translate="about_text_2_5">{t("about_text_2_5")}</span>
+      </p>
+
+      <p>
+        <span data-translate="about_text_3_1">{t("about_text_3_1")}</span
+        ><strong data-translate="about_text_3_2">{t("about_text_3_2")}</strong
+        ><span data-translate="about_text_3_3">{t("about_text_3_3")}</span
+        ><strong data-translate="about_text_3_4">{t("about_text_3_4")}</strong
+        ><span data-translate="about_text_3_5">{t("about_text_3_5")}</span>
+      </p>
+
+      <p>
+        <strong data-translate="about_text_4_1">{t("about_text_4_1")}</strong
+        ><span data-translate="about_text_4_2">{t("about_text_4_2")}</span
+        ><strong data-translate="about_text_4_3">{t("about_text_4_3")}</strong
+        ><span data-translate="about_text_4_4">{t("about_text_4_4")}</span>
+      </p>
+
+      <p>
+        <span data-translate="about_text_5_1">{t("about_text_5_1")}</span
+        ><strong data-translate="about_text_5_2">{t("about_text_5_2")}</strong
+        ><span data-translate="about_text_5_3">{t("about_text_5_3")}</span>
+      </p>
+
+      <ul>
+        {listKeys.map((key) => (
+          <li><strong data-translate={key}>{t(key)}</strong></li>
+        ))}
+      </ul>
+    </section>
+  </div>
+</Base>

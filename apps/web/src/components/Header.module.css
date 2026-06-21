@@ -289,6 +289,7 @@ body.menu-open {
   font-weight: var(--font-medium, 500);
 
   color: var(--dark-600, #475569);
+  text-decoration: none;
 
   background: transparent;
   border: none;

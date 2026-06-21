@@ -1,0 +1,474 @@
+---
+// src/components/pages/ReportsPage.astro
+import Base from "../../layouts/Base.astro";
+import "../../styles/pages/reports.css";
+import { getCollection } from "astro:content";
+import { localePath, useTranslations, type Lang } from "../../i18n/ui";
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props as Props;
+const t = useTranslations(lang);
+const en = lang === "en";
+const pick = (uk: string, en2: string) => (en ? en2 : uk);
+const link = (p: string) => localePath(p, lang);
+
+// Ассети (зображення) — лише BASE_URL, без локалі
+const base = import.meta.env.BASE_URL ?? "/";
+const url = (path) => {
+  const p = String(path ?? "");
+  if (/^https?:\/\//i.test(p)) return p;
+  const clean = p.replace(/^\//, "");
+  const baseFixed = base.endsWith("/") ? base : base + "/";
+  return encodeURI(`${baseFixed}${clean}`);
+};
+
+const categories = [
+  { id: "all", labelKey: "reports_filter_all" },
+  { id: "zsu", labelKey: "reports_filter_zsu" },
+  { id: "repair", labelKey: "reports_filter_repair" },
+  { id: "humanitarian", labelKey: "reports_filter_humanitarian" },
+  { id: "medical", labelKey: "reports_filter_medical" },
+  { id: "partners", labelKey: "reports_filter_partners" },
+  { id: "other", labelKey: "reports_filter_other" },
+];
+
+const reportEntries = await getCollection("reports", ({ data }) => data.draft !== true);
+
+const reports = reportEntries.map((entry) => {
+  const id = entry.id.replace(/\/index$/, "");
+  const data = entry.data;
+  return {
+    id,
+    titleFallback: data.titleFallback,
+    summaryFallback: data.summaryFallback,
+    dateISO: data.dateISO,
+    category: data.category || "other",
+    media: data.media || [],
+    docs: data.docs || [],
+    donation: data.donation,
+    social: data.social,
+  };
+});
+
+const reportsSorted = [...reports].sort((a, b) => (String(a.dateISO) < String(b.dateISO) ? 1 : -1));
+
+function formatDate(iso) {
+  const s = String(iso ?? "");
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return s;
+  return `${m[3]}.${m[2]}.${m[1]}`;
+}
+
+const categoryLabel = (id) =>
+  ({ zsu: "ЗСУ", repair: "Ремонт/техніка", humanitarian: "Гуманітарка", medical: "Медицина/реабілітація", partners: "Партнери", other: "Інше" }[id] || "Усі");
+
+const categoryLabelEn = (id) =>
+  ({ zsu: "Armed Forces", repair: "Repairs/equipment", humanitarian: "Humanitarian aid", medical: "Medical/rehabilitation", partners: "Partners", other: "Other" }[id] || "All");
+
+function formatDateEn(iso) {
+  const value = String(iso ?? "");
+  const date = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat("en", { day: "numeric", month: "long", year: "numeric" }).format(date);
+}
+
+const reportTopicEn = (category) =>
+  ({ zsu: "support for the Armed Forces", repair: "repairs and equipment", humanitarian: "humanitarian aid", medical: "medical and rehabilitation support", partners: "partner cooperation", other: "AVKU activity" }[String(category ?? "other")] || "AVKU activity");
+
+const reportManualEn = {
+  "report-2026-solomianskyi-charity-fair": { title: "Charity fair for FPV drones for the Svoboda battalion", summary: "AVKU joined a charity fair in Vidradnyi Park. The funds raised will support FPV drones for the Svoboda battalion of the Rubizh National Guard brigade." },
+  "report-2026-medevac-car-25-brigade": { title: "Fundraiser for a combat medic vehicle for the 25th Sicheslav Brigade completed", summary: "AVKU reports that the fundraiser for a vehicle for a combat medic of the 25th Sicheslav Brigade has been completed." },
+  "2026-05-15-example-report": { title: "Aid delivered to a Ukrainian Armed Forces unit", summary: "AVKU delivered the requested support to a Ukrainian Armed Forces unit and published the available confirmation materials." },
+};
+
+const reportTitleEn = (report) => {
+  const manual = reportManualEn[String(report.id ?? "")]?.title;
+  if (manual) return manual;
+  const date = formatDateEn(report.dateISO);
+  const category = categoryLabelEn(String(report.category ?? "other"));
+  return date ? `${category} report - ${date}` : `${category} report`;
+};
+
+const reportSummaryEn = (report) => {
+  const manual = reportManualEn[String(report.id ?? "")]?.summary;
+  if (manual) return manual;
+  return `AVKU report on ${reportTopicEn(report.category)}. Photos, documents, and source links are included when available.`;
+};
+
+const reportMediaAltEn = (report, index) => `${reportTitleEn(report)} photo ${index + 1}`;
+const reportMediaCaptionEn = (report, index) => `${reportTitleEn(report)} - photo ${index + 1}`;
+const reportDocLabelEn = (_doc, index) => `Document / confirmation${index > 0 ? ` ${index + 1}` : ""}`;
+---
+
+<Base lang={lang} title={t("meta_reports_title")} description={t("meta_reports_desc")} path="/reports">
+  <div class="container" id="reports">
+    <section class="page-hero" aria-labelledby="reports-title">
+      <h1 id="reports-title" data-translate="reports_title">{t("reports_title")}</h1>
+      <p data-translate="reports_subtitle">{t("reports_subtitle")}</p>
+
+      <div class="trust-widget" id="donationWidget" hidden>
+        <div class="trust-widget__head">
+          <strong data-translate="reports_current_campaign">{t("reports_current_campaign")}</strong>
+          <span class="muted" id="donationUpdated" aria-live="polite"></span>
+        </div>
+        <div class="trust-widget__title" id="donationTitle"></div>
+        <div class="trust-widget__progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div class="trust-widget__bar" id="donationBar"></div>
+        </div>
+        <div class="trust-widget__meta">
+          <span id="donationAmounts"></span>
+          <a class="btn btn-primary" href={link("/donate")} data-translate="reports_support_now">{t("reports_support_now")}</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="reports-layout" aria-label={pick("Фільтри, пошук та список звітів", "Filters, search, and report list")}>
+      <aside class="reports-sidebar" aria-label={t("reports_categories")}>
+        <p class="reports-sidebar__title muted" data-translate="reports_categories">{t("reports_categories")}</p>
+
+        <div class="reports-filters reports-filters--sidebar" role="tablist" aria-label={t("reports_categories")}>
+          {categories.map((c) => (
+            <button
+              type="button"
+              class={`filter-btn ${c.id === "all" ? "is-active" : ""}`}
+              data-filter={c.id}
+              role="tab"
+              aria-selected={c.id === "all" ? "true" : "false"}
+              data-translate={c.labelKey}
+            >
+              {t(c.labelKey)}
+            </button>
+          ))}
+        </div>
+      </aside>
+
+      <div class="reports-content">
+        <div class="reports-searchbar">
+          <label class="reports-search">
+            <span class="muted" data-translate="reports_search_label">{t("reports_search_label")}</span>
+            <input id="reportsSearch" type="search" placeholder={t("reports_search_placeholder")} data-translate-placeholder="reports_search_placeholder" autocomplete="off" />
+          </label>
+
+          <p class="muted" id="reportsCount" aria-live="polite"></p>
+        </div>
+
+        <section aria-label={pick("Список звітів", "Report list")}>
+          <ul class="reports-list" id="reportsList">
+            {reportsSorted.map((r) => {
+              const titleUk = String(r.titleFallback ?? "");
+              const summaryUk = String(r.summaryFallback ?? "");
+              const titleEn = reportTitleEn(r);
+              const summaryEn = reportSummaryEn(r);
+              const catText = categoryLabel(String(r.category ?? "other"));
+              const catTextEn = categoryLabelEn(String(r.category ?? "other"));
+              const searchText = `${titleUk} ${summaryUk} ${titleEn} ${summaryEn} ${catText} ${catTextEn}`.toLowerCase();
+
+              const reportId = String(r.id ?? "");
+              const media = Array.isArray(r.media) ? r.media : [];
+
+              return (
+                <li class="report-card" data-category={String(r.category ?? "other")} data-search={searchText} id={`report-${reportId}`}>
+                  <article>
+                    <header class="report-card__header">
+                      <div class="report-card__meta">
+                        <time datetime={String(r.dateISO ?? "")} class="muted">{formatDate(r.dateISO)}</time>
+                        <span class="badge" aria-label={t("reports_categories")}>{pick(catText, catTextEn)}</span>
+                      </div>
+
+                      <h2 class="report-card__title">{pick(titleUk, titleEn)}</h2>
+                      <p class="report-card__summary">{pick(summaryUk, summaryEn)}</p>
+                    </header>
+
+                    {media.length ? (
+                      <section class="report-media report-media--inline" aria-label={pick("Фото", "Photos")}>
+                        <ul class="report-media__grid">
+                          {media.map((m, idx) => {
+                            const altText = pick(String(m.alt ?? ""), reportMediaAltEn(r, idx));
+                            const captionText = pick(String(m.caption ?? ""), reportMediaCaptionEn(r, idx));
+                            return (
+                              <li class="report-media__item">
+                                <a
+                                  class="report-media__link"
+                                  href={url(m.src)}
+                                  data-media-thumb="1"
+                                  data-report={reportId}
+                                  data-index={String(idx)}
+                                  data-src={url(m.src)}
+                                  data-alt={altText}
+                                  data-caption={captionText}
+                                  data-title={pick(titleUk, titleEn)}
+                                >
+                                  <figure>
+                                    <img src={url(m.src)} alt={altText} loading="lazy" />
+                                    {m.caption ? <figcaption class="muted">{captionText}</figcaption> : null}
+                                  </figure>
+                                </a>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </section>
+                    ) : (
+                      <p class="muted" data-translate="reports_no_media">{t("reports_no_media")}</p>
+                    )}
+
+                    <div class="report-card__actions">
+                      {r.donation?.href ? (
+                        <a class="btn btn-outline" href={url(r.donation.href)}>{pick(String(r.donation.labelFallback ?? "Підтримати цей напрям"), "Support this case")}</a>
+                      ) : null}
+
+                      {r.social?.href ? (
+                        <a class="btn btn-outline" href={url(r.social.href)} target="_blank" rel="noopener">
+                          <span>{pick(String(r.social.labelFallback ?? "Джерело"), "Source post")}</span>
+                        </a>
+                      ) : null}
+
+                      <a class="btn btn-primary" href={link("/donate")} data-translate="reports_support_btn">{t("reports_support_btn")}</a>
+                    </div>
+
+                    <details class="report-card__details">
+                      <summary class="report-card__summary-toggle" data-translate="reports_details_toggle">{t("reports_details_toggle")}</summary>
+
+                      {r.docs?.length ? (
+                        <div class="report-docs" aria-label={t("reports_docs_title")}>
+                          <strong data-translate="reports_docs_title">{t("reports_docs_title")}</strong>
+                          <ul>
+                            {r.docs.map((d, idx) => (
+                              <li>
+                                <a href={url(d.href)} class="link">{pick(String(d.labelFallback ?? ""), reportDocLabelEn(d, idx))}</a>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : (
+                        <p class="muted" data-translate="reports_no_docs">{t("reports_no_docs")}</p>
+                      )}
+
+                      <div class="report-next-steps" aria-label={pick("Наступні кроки", "Next steps")}>
+                        <strong data-translate="reports_next_title">{t("reports_next_title")}</strong>
+                        <div class="report-next-steps__actions">
+                          <a class="btn btn-primary" href={link("/donate")} data-translate="reports_next_donate">{t("reports_next_donate")}</a>
+                          <a class="btn btn-outline" href="https://www.facebook.com/groups/555103805361838" target="_blank" rel="noopener" data-translate="reports_next_follow">{t("reports_next_follow")}</a>
+                          <a class="btn btn-outline" href={link("/contacts")} data-translate="reports_next_contact">{t("reports_next_contact")}</a>
+                        </div>
+                      </div>
+                    </details>
+                  </article>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      </div>
+    </section>
+
+    <section class="reports-official" aria-label={t("reports_official_title")}>
+      <h2 data-translate="reports_official_title">{t("reports_official_title")}</h2>
+      <p class="muted" data-translate="reports_official_desc">{t("reports_official_desc")}</p>
+      <a class="btn btn-outline" href={link("/publications")} data-translate="reports_official_btn">{t("reports_official_btn")}</a>
+    </section>
+
+    <dialog class="media-lightbox" id="mediaLightbox" aria-label={pick("Перегляд фото", "Photo preview")}>
+      <div class="media-lightbox__top">
+        <div class="media-lightbox__title" id="lightboxTitle"></div>
+        <button type="button" class="media-lightbox__close" id="lightboxClose" aria-label={pick("Закрити", "Close")}>✕</button>
+      </div>
+
+      <div class="media-lightbox__content">
+        <button type="button" class="media-lightbox__nav media-lightbox__prev" id="lightboxPrev" aria-label={pick("Попереднє фото", "Previous photo")}>‹</button>
+
+        <figure class="media-lightbox__figure">
+          <img id="lightboxImg" alt="" />
+          <figcaption class="muted media-lightbox__caption" id="lightboxCaption"></figcaption>
+          <div class="muted media-lightbox__counter" id="lightboxCounter"></div>
+        </figure>
+
+        <button type="button" class="media-lightbox__nav media-lightbox__next" id="lightboxNext" aria-label={pick("Наступне фото", "Next photo")}>›</button>
+      </div>
+    </dialog>
+  </div>
+
+  <script is:inline>
+    (function () {
+      const list = document.getElementById("reportsList");
+      const items = list ? Array.from(list.querySelectorAll(".report-card")) : [];
+      const search = document.getElementById("reportsSearch");
+      const countEl = document.getElementById("reportsCount");
+      const filterButtons = Array.from(document.querySelectorAll("[data-filter]"));
+      const isEn = () => (document.documentElement.lang || "uk").toLowerCase().startsWith("en");
+
+      const total = items.length;
+      let activeFilter = "all";
+      let activeQuery = "";
+      let t = null;
+
+      function setTabState(activeBtn) {
+        for (const b of filterButtons) {
+          const isActive = b === activeBtn;
+          b.classList.toggle("is-active", isActive);
+          b.setAttribute("aria-selected", isActive ? "true" : "false");
+        }
+      }
+
+      function apply() {
+        const q = (activeQuery || "").trim().toLowerCase();
+        let visible = 0;
+        for (const el of items) {
+          const cat = el.getAttribute("data-category") || "";
+          const hay = el.getAttribute("data-search") || "";
+          const okFilter = activeFilter === "all" ? true : cat === activeFilter;
+          const okQuery = !q ? true : hay.includes(q);
+          const show = okFilter && okQuery;
+          el.hidden = !show;
+          if (show) visible++;
+        }
+        if (countEl) {
+          countEl.textContent = isEn()
+            ? (visible ? `Shown: ${visible} of ${total}` : "Nothing found.")
+            : (visible ? `Показано: ${visible} із ${total}` : "Нічого не знайдено.");
+        }
+      }
+
+      for (const btn of filterButtons) {
+        btn.addEventListener("click", () => {
+          activeFilter = btn.getAttribute("data-filter") || "all";
+          setTabState(btn);
+          apply();
+        });
+      }
+
+      if (search) {
+        search.addEventListener("input", (e) => {
+          activeQuery = e && e.target && e.target.value ? e.target.value : "";
+          if (t) clearTimeout(t);
+          t = setTimeout(apply, 160);
+        });
+      }
+
+      apply();
+
+      // LIGHTBOX
+      const dialog = document.getElementById("mediaLightbox");
+      const imgEl = document.getElementById("lightboxImg");
+      const capEl = document.getElementById("lightboxCaption");
+      const titleEl = document.getElementById("lightboxTitle");
+      const counterEl = document.getElementById("lightboxCounter");
+      const btnPrev = document.getElementById("lightboxPrev");
+      const btnNext = document.getElementById("lightboxNext");
+      const btnClose = document.getElementById("lightboxClose");
+
+      const thumbs = Array.from(document.querySelectorAll('[data-media-thumb="1"]'));
+      const groups = new Map();
+      for (const a of thumbs) {
+        const rid = a.getAttribute("data-report") || "";
+        if (!groups.has(rid)) groups.set(rid, []);
+        groups.get(rid).push(a);
+      }
+
+      let activeGroupId = "";
+      let activeIndex = 0;
+
+      function setText(el, v) { if (el) el.textContent = String(v ?? ""); }
+
+      function renderLightbox() {
+        if (!dialog || !imgEl) return;
+        const arr = groups.get(activeGroupId) || [];
+        if (!arr.length) return;
+        const node = arr[activeIndex];
+        imgEl.src = node.getAttribute("data-src") || node.getAttribute("href") || "";
+        imgEl.alt = node.getAttribute("data-alt") || "";
+        setText(titleEl, node.getAttribute("data-title") || "");
+        setText(capEl, node.getAttribute("data-caption") || "");
+        setText(counterEl, `${activeIndex + 1} / ${arr.length}`);
+        if (btnPrev) btnPrev.disabled = arr.length <= 1;
+        if (btnNext) btnNext.disabled = arr.length <= 1;
+      }
+
+      function openLightbox(groupId, index) {
+        if (!dialog || typeof dialog.showModal !== "function") return;
+        activeGroupId = groupId;
+        activeIndex = Math.max(0, Number(index) || 0);
+        renderLightbox();
+        dialog.showModal();
+      }
+
+      function closeLightbox() { try { dialog && dialog.close(); } catch {} }
+
+      function step(dir) {
+        const arr = groups.get(activeGroupId) || [];
+        if (arr.length <= 1) return;
+        activeIndex = (activeIndex + dir + arr.length) % arr.length;
+        renderLightbox();
+      }
+
+      for (const a of thumbs) {
+        a.addEventListener("click", (e) => {
+          if (dialog && typeof dialog.showModal === "function") {
+            e.preventDefault();
+            openLightbox(a.getAttribute("data-report") || "", a.getAttribute("data-index") || "0");
+          }
+        });
+      }
+
+      if (btnPrev) btnPrev.addEventListener("click", () => step(-1));
+      if (btnNext) btnNext.addEventListener("click", () => step(+1));
+      if (btnClose) btnClose.addEventListener("click", closeLightbox);
+
+      if (dialog) {
+        dialog.addEventListener("click", (e) => { if (e.target === dialog) closeLightbox(); });
+        dialog.addEventListener("keydown", (e) => {
+          if (e.key === "ArrowLeft") { e.preventDefault(); step(-1); }
+          if (e.key === "ArrowRight") { e.preventDefault(); step(+1); }
+          if (e.key === "Escape") { closeLightbox(); }
+        });
+      }
+
+      // DONATION WIDGET
+      const widget = document.getElementById("donationWidget");
+      const donationTitleEl = document.getElementById("donationTitle");
+      const updatedEl = document.getElementById("donationUpdated");
+      const amountsEl = document.getElementById("donationAmounts");
+      const barEl = document.getElementById("donationBar");
+      const progressEl = widget ? widget.querySelector('[role="progressbar"]') : null;
+      const DONATION_STATUS_URL = "/api/monobank-jar-public";
+
+      function safeText(el, txt) { if (el) el.textContent = String(txt ?? ""); }
+
+      async function loadDonation() {
+        if (!widget) return;
+        try {
+          const res = await fetch(DONATION_STATUS_URL, { headers: { accept: "application/json" } });
+          if (!res.ok) return;
+          const data = await res.json();
+
+          const title = data?.title ?? data?.name ?? "";
+          const goal = Number(data?.goal ?? data?.targetAmount ?? data?.target ?? 0);
+          const raised = Number(data?.raised ?? data?.amount ?? data?.currentAmount ?? 0);
+
+          if (title) safeText(donationTitleEl, title);
+
+          if (Number.isFinite(goal) && goal > 0 && Number.isFinite(raised) && raised >= 0) {
+            const pct = Math.max(0, Math.min(100, Math.round((raised / goal) * 100)));
+            if (barEl) barEl.style.width = pct + "%";
+            if (progressEl) progressEl.setAttribute("aria-valuenow", String(pct));
+            const locale = isEn() ? "en-US" : "uk-UA";
+            const currency = isEn() ? "UAH" : "грн";
+            safeText(amountsEl, `${raised.toLocaleString(locale)} / ${goal.toLocaleString(locale)} ${currency}`);
+          }
+
+          if (updatedEl) {
+            const locale = isEn() ? "en-US" : "uk-UA";
+            const prefix = isEn() ? "updated" : "оновлено";
+            safeText(updatedEl, `${prefix}: ${new Date().toLocaleString(locale)}`);
+          }
+
+          widget.hidden = false;
+        } catch {}
+      }
+
+      loadDonation();
+    })();
+  </script>
+</Base>

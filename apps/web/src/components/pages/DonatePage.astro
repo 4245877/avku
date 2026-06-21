@@ -1,0 +1,658 @@
+---
+// src/components/pages/DonatePage.astro
+import Base from "../../layouts/Base.astro";
+import "../../styles/pages/donate.css";
+import { SITE_URL, localePath, useTranslations, type Lang } from "../../i18n/ui";
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props as Props;
+const t = useTranslations(lang);
+const en = lang === "en";
+const pick = (uk: string, en2: string) => (en ? en2 : uk);
+const link = (p: string) => localePath(p, lang);
+
+const MONO_JAR_URL_DEFAULT = import.meta.env.PUBLIC_MONO_JAR_URL ?? "";
+const MONO_API_URL_DEFAULT = import.meta.env.PUBLIC_MONO_API_URL ?? "/api/monobank-jar-public";
+
+const contacts = {
+  address: "м. Київ, вул. Зодчих, 58-а, 03170",
+  phones: ["+38 (068) 847-34-01", "+38 (063) 677-70-50"],
+  email: "volunteer_ukraine@ukr.net",
+  fbGroup: "https://www.facebook.com/groups/555103805361838",
+  telegram: "https://t.me/+380688473401",
+};
+
+const quickAmounts = [200, 500, 1000, 2000, 5000];
+
+const activeFund = {
+  id: "presidential_brigade_uav",
+  title: "Збір для захисників: Президентська бригада",
+  titleEn: "Fundraiser for defenders: Presidential Brigade",
+  unit: "Президентська бригада",
+  unitEn: "Presidential Brigade",
+  battalion: "Батальйон перехоплювачів безпілотних систем",
+  battalionEn: "Unmanned Systems Interceptor Battalion",
+  about: "Підрозділ щодня працює з перехопленням ворожих БПЛА. Для ефективної та безпечної роботи потрібне базове, але критично важливе обладнання.",
+  aboutEn: "The unit works every day to intercept enemy UAVs. For effective and safe work, it needs basic but critical equipment.",
+  needs: ["Дизельний обігрівач", "Інверторний генератор", "Ноутбук"],
+  needsEn: ["Diesel heater", "Inverter generator", "Laptop"],
+  goal: 60000,
+  jarUrl: "https://send.monobank.ua/jar/AYnqhv5wj7",
+  cardNumber: "4874 1000 2444 4732",
+};
+
+const campaigns = [
+  {
+    ...activeFund,
+    short: "Батальйон перехоплювачів безпілотних систем. Потрібні: дизельний обігрівач, інверторний генератор, ноутбук. Ціль — 60 000 ₴.",
+    shortEn: "Unmanned Systems Interceptor Battalion. Needed: diesel heater, inverter generator, laptop. Goal: UAH 60,000.",
+    progressApiUrl: "",
+    reportUrl: "/reports",
+    tags: ["Терміново", "Ціль 60 000 ₴"],
+    tagsEn: ["Urgent", "Goal UAH 60,000"],
+  },
+  {
+    id: "zsu", title: "Підтримка ЗСУ", titleEn: "Support for the Armed Forces",
+    short: "Закриваємо термінові запити підрозділів: спорядження, дрони, живлення, витратні матеріали.",
+    shortEn: "We close urgent unit requests: gear, drones, power solutions, and consumables.",
+    jarUrl: MONO_JAR_URL_DEFAULT, progressApiUrl: MONO_API_URL_DEFAULT, reportUrl: "/reports",
+    tags: ["Терміново", "Запити підрозділів"], tagsEn: ["Urgent", "Unit requests"],
+  },
+  {
+    id: "humanitarian", title: "Гуманітарна допомога", titleEn: "Humanitarian aid",
+    short: "Продукти, ліки та гігієна для військових і цивільних. Адресна доставка за потребою.",
+    shortEn: "Food, medicine, and hygiene supplies for service members and civilians, with targeted delivery when needed.",
+    jarUrl: MONO_JAR_URL_DEFAULT, progressApiUrl: MONO_API_URL_DEFAULT, reportUrl: "/reports",
+    tags: ["Пункти незламності", "Адресна підтримка"], tagsEn: ["Resilience points", "Targeted support"],
+  },
+  {
+    id: "workshops", title: "Майстерні та виробництво", titleEn: "Workshops and production",
+    short: "Матеріали для маскувальних сіток, окопних свічок та інших речей, які роблять волонтери.",
+    shortEn: "Materials for camouflage nets, trench candles, and other essentials made by volunteers.",
+    jarUrl: MONO_JAR_URL_DEFAULT, progressApiUrl: MONO_API_URL_DEFAULT, reportUrl: "/reports",
+    tags: ["Матеріали", "Постійна потреба"], tagsEn: ["Materials", "Ongoing need"],
+  },
+];
+
+const orgJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "АВКУ",
+  url: `${SITE_URL}/`,
+  email: contacts.email,
+  address: { "@type": "PostalAddress", addressLocality: pick("Київ", "Kyiv"), streetAddress: pick("вул. Зодчих, 58-а", "58-A Zodchykh St"), postalCode: "03170", addressCountry: "UA" },
+  contactPoint: contacts.phones.map((p) => ({ "@type": "ContactPoint", telephone: p, contactType: "customer support", areaServed: "UA" })),
+  sameAs: [contacts.fbGroup, contacts.telegram],
+};
+---
+
+<Base lang={lang} title={t("meta_donate_title")} description={t("meta_donate_desc")} path="/donate">
+  <Fragment slot="head">
+    <script type="application/ld+json" set:html={JSON.stringify(orgJsonLd)} />
+  </Fragment>
+
+  <div class="donate-page">
+    <section class="hero">
+      <div class="hero__left">
+        <h1 data-translate="donate_hero_title">{t("donate_hero_title")}</h1>
+        <p class="lead">
+          <span data-translate="donate_lead_1">{t("donate_lead_1")}</span><strong data-translate="donate_lead_choose">{t("donate_lead_choose")}</strong> →{" "}
+          <strong data-translate="donate_lead_action">{t("donate_lead_action")}</strong> → <strong data-translate="donate_lead_check">{t("donate_lead_check")}</strong> →{" "}
+          <strong data-translate="donate_lead_return">{t("donate_lead_return")}</strong>.
+        </p>
+
+        <ol class="steps" aria-label={pick("Кроки", "Steps")}>
+          <li><span class="step__num">1</span> <span data-translate="donate_step_1">{t("donate_step_1")}</span></li>
+          <li><span class="step__num">2</span> <span data-translate="donate_step_2">{t("donate_step_2")}</span></li>
+          <li><span class="step__num">3</span> <span data-translate="donate_step_3">{t("donate_step_3")}</span></li>
+          <li><span class="step__num">4</span> <span data-translate="donate_step_4">{t("donate_step_4")}</span></li>
+        </ol>
+
+        <div class="hero__cta">
+          <a class="btn btn--primary" href="#donate-widget" data-translate="donate_cta_donate">{t("donate_cta_donate")}</a>
+          <a class="btn btn--ghost" href="#trust" data-translate="donate_cta_verify">{t("donate_cta_verify")}</a>
+          <a class="btn btn--ghost" href={link("/reports")} data-translate="donate_cta_reports">{t("donate_cta_reports")}</a>
+        </div>
+
+        <p class="micro">
+          <span data-translate="donate_help_micro_1">{t("donate_help_micro_1")}</span>
+          <a href={"mailto:" + contacts.email}>{contacts.email}</a> <span data-translate="donate_help_or">{t("donate_help_or")}</span>
+          Telegram:{" "}
+          <a href={contacts.telegram} target="_blank" rel="noopener" data-translate="donate_help_chat">{t("donate_help_chat")}</a>.
+        </p>
+      </div>
+
+      <aside class="hero__right" aria-label={pick("Швидкі дії", "Quick actions")}>
+        <div class="card card--soft">
+          <h2 class="card__title" data-translate="donate_aside_title">{t("donate_aside_title")}</h2>
+          <p class="card__text" data-translate="donate_aside_desc">{t("donate_aside_desc")}</p>
+          <div class="action-grid">
+            <a class="btn btn--secondary" href={link("/contacts") + "#message"} data-translate="cta_become_volunteer">{t("cta_become_volunteer")}</a>
+            <a class="btn btn--secondary" href={link("/contacts") + "#message"} data-translate="donate_aside_partner">{t("donate_aside_partner")}</a>
+            <a class="btn btn--secondary" href={link("/contacts")} data-translate="donate_aside_contacts">{t("donate_aside_contacts")}</a>
+          </div>
+          <p class="micro">
+            <span data-translate="donate_aside_partnerships">{t("donate_aside_partnerships")}</span>{" "}
+            <a href={"mailto:" + contacts.email + "?subject=Партнерство%20з%20АВКУ"} data-translate="donate_aside_email">{t("donate_aside_email")}</a>
+          </p>
+        </div>
+      </aside>
+    </section>
+
+    <section class="grid">
+      <div class="grid__left">
+        <section class="section" aria-label={t("donate_current_title")}>
+          <header class="section__header">
+            <h2 data-translate="donate_current_title">{t("donate_current_title")}</h2>
+            <p class="section__hint" data-translate="donate_current_hint">{t("donate_current_hint")}</p>
+          </header>
+
+          <div class="card">
+            <h3 class="card__title">{pick(activeFund.unit, activeFund.unitEn)}</h3>
+            <p class="card__text"><strong>{pick(activeFund.battalion, activeFund.battalionEn)}</strong></p>
+            <p class="card__text">{pick(activeFund.about, activeFund.aboutEn)}</p>
+
+            <p class="card__text"><strong data-translate="donate_required_equipment">{t("donate_required_equipment")}</strong></p>
+            <ul class="list">
+              {(en ? activeFund.needsEn : activeFund.needs).map((x) => (<li>{x}</li>))}
+            </ul>
+
+            <p class="card__text"><strong data-translate="donate_goal_label">{t("donate_goal_label")}</strong> {pick("60 000 ₴", "UAH 60,000")}</p>
+            <p class="card__text">
+              <strong data-translate="donate_jar_link_label">{t("donate_jar_link_label")}</strong>{" "}
+              <a class="link" href={activeFund.jarUrl} target="_blank" rel="noopener">{activeFund.jarUrl}</a>
+            </p>
+            <p class="card__text"><strong data-translate="donate_jar_card_label">{t("donate_jar_card_label")}</strong> {activeFund.cardNumber}</p>
+          </div>
+        </section>
+
+        <section class="section" aria-label={t("donate_choose_title")}>
+          <header class="section__header">
+            <h2 data-translate="donate_choose_title">{t("donate_choose_title")}</h2>
+            <p class="section__hint" data-translate="donate_choose_hint">{t("donate_choose_hint")}</p>
+          </header>
+
+          <div class="campaigns" id="campaigns">
+            {campaigns.map((c) => (
+              <article class="campaign" data-campaign-id={c.id}>
+                <div class="campaign__top">
+                  <h3 class="campaign__title">{pick(c.title, c.titleEn)}</h3>
+                  <div class="campaign__tags" aria-label={pick("Теги", "Tags")}>
+                    {(en ? c.tagsEn : c.tags)?.map((tag) => <span class="tag">{tag}</span>)}
+                  </div>
+                </div>
+
+                <p class="campaign__desc">{pick(c.short, c.shortEn)}</p>
+
+                <div class="campaign__meta">
+                  <a class="link" href={link(c.reportUrl)} data-translate="donate_reports_for_direction">{t("donate_reports_for_direction")}</a>
+                  <span class="dot" aria-hidden="true">•</span>
+                  <a class="link" href={link("/publications")} data-translate="donate_publications">{t("donate_publications")}</a>
+                </div>
+
+                <div class="campaign__actions">
+                  <button type="button" class="btn btn--primary" data-select-campaign={c.id} data-translate="donate_choose_btn">{t("donate_choose_btn")}</button>
+                  <button type="button" class="btn btn--ghost" data-scroll-to="#donate-widget" data-translate="donate_to_donation">{t("donate_to_donation")}</button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section class="section" id="trust" aria-label={t("donate_trust_title")}>
+          <header class="section__header">
+            <h2 data-translate="donate_trust_title">{t("donate_trust_title")}</h2>
+            <p class="section__hint" data-translate="donate_trust_hint">{t("donate_trust_hint")}</p>
+          </header>
+
+          <div class="trust">
+            <div class="card">
+              <h3 class="card__title" data-translate="donate_trust_proof_title">{t("donate_trust_proof_title")}</h3>
+              <ul class="list">
+                <li><a class="link" href={link("/reports")} data-translate="donate_trust_reports">{t("donate_trust_reports")}</a></li>
+                <li><a class="link" href={link("/publications")} data-translate="donate_trust_publications">{t("donate_trust_publications")}</a></li>
+                <li><a class="link" href={link("/news")} data-translate="donate_trust_news">{t("donate_trust_news")}</a></li>
+                <li>
+                  <span data-translate="donate_trust_fb">{t("donate_trust_fb")}</span>{" "}
+                  <a class="link" href={contacts.fbGroup} target="_blank" rel="noopener" data-translate="donate_trust_open">{t("donate_trust_open")}</a>
+                </li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <h3 class="card__title" data-translate="donate_contacts_title">{t("donate_contacts_title")}</h3>
+              <ul class="list">
+                <li><strong data-translate="donate_address_label">{t("donate_address_label")}</strong> <span data-translate="donate_address_value">{t("donate_address_value")}</span></li>
+                <li>
+                  <strong data-translate="donate_phones_label">{t("donate_phones_label")}</strong>{" "}
+                  {contacts.phones.map((p, idx) => (
+                    <>
+                      <a class="link" href={"tel:" + p.replace(/[^\d+]/g, "")}>{p}</a>
+                      {idx < contacts.phones.length - 1 ? ", " : ""}
+                    </>
+                  ))}
+                </li>
+                <li><strong>Email:</strong> <a class="link" href={"mailto:" + contacts.email}>{contacts.email}</a></li>
+                <li><strong>Telegram:</strong> <a class="link" href={contacts.telegram} target="_blank" rel="noopener" data-translate="donate_telegram_write">{t("donate_telegram_write")}</a></li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" aria-label="FAQ">
+          <header class="section__header">
+            <h2 data-translate="donate_faq_title">{t("donate_faq_title")}</h2>
+          </header>
+
+          <div class="faq">
+            <details class="faq__item">
+              <summary data-translate="donate_faq_1_q">{t("donate_faq_1_q")}</summary>
+              <p>
+                <span data-translate="donate_faq_1_a_1">{t("donate_faq_1_a_1")}</span>
+                <a class="link" href={link("/reports")} data-translate="donate_faq_1_reports">{t("donate_faq_1_reports")}</a><span data-translate="donate_faq_1_a_2">{t("donate_faq_1_a_2")}</span>
+                <a class="link" href={contacts.fbGroup} target="_blank" rel="noopener" data-translate="donate_faq_1_fb">{t("donate_faq_1_fb")}</a>.
+              </p>
+            </details>
+
+            <details class="faq__item">
+              <summary data-translate="donate_faq_2_q">{t("donate_faq_2_q")}</summary>
+              <p data-translate="donate_faq_2_a">{t("donate_faq_2_a")}</p>
+            </details>
+
+            <details class="faq__item">
+              <summary data-translate="donate_faq_3_q">{t("donate_faq_3_q")}</summary>
+              <p>
+                <span data-translate="donate_faq_3_a_1">{t("donate_faq_3_a_1")}</span>
+                <a class="link" href={"mailto:" + contacts.email}>{contacts.email}</a><span data-translate="donate_faq_3_or">{t("donate_faq_3_or")}</span>
+                <a class="link" href={contacts.telegram} target="_blank" rel="noopener">Telegram</a><span data-translate="donate_faq_3_a_2">{t("donate_faq_3_a_2")}</span>
+              </p>
+            </details>
+          </div>
+        </section>
+      </div>
+
+      <aside class="grid__right" aria-label={t("donate_widget_title")}>
+        <section class="widget" id="donate-widget">
+          <div class="widget__header">
+            <h2 data-translate="donate_widget_title">{t("donate_widget_title")}</h2>
+            <p class="widget__sub" data-translate="donate_widget_sub">{t("donate_widget_sub")}</p>
+          </div>
+
+          <div class="widget__body">
+            <div class="select">
+              <label for="campaignSelect" data-translate="donate_direction_label">{t("donate_direction_label")}</label>
+              <select id="campaignSelect">
+                {campaigns.map((c) => (<option value={c.id}>{pick(c.title, c.titleEn)}</option>))}
+              </select>
+            </div>
+
+            <div class="progress" aria-label={t("donate_progress_label")}>
+              <div class="progress__top">
+                <span class="progress__label" data-translate="donate_progress_label">{t("donate_progress_label")}</span>
+                <span class="progress__value" id="progressText">—</span>
+              </div>
+              <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                <div class="bar__fill" id="progressFill"></div>
+              </div>
+              <p class="micro" id="progressMeta">
+                <span data-translate="donate_progress_meta">{t("donate_progress_meta")}</span>
+              </p>
+            </div>
+
+            <div class="amount">
+              <label data-translate="donate_amount_label">{t("donate_amount_label")}</label>
+              <div class="chips" role="group" aria-label={t("donate_amount_label")}>
+                {quickAmounts.map((a) => (<button type="button" class="chip" data-amount={a}>{a}</button>))}
+              </div>
+              <input id="amountInput" inputmode="numeric" pattern="[0-9]*" placeholder={t("donate_amount_placeholder")} aria-label={t("donate_amount_placeholder")} data-translate-placeholder="donate_amount_placeholder" />
+            </div>
+
+            <div class="pay">
+              <button type="button" class="btn btn--primary btn--full" id="payBtn" data-translate="donate_pay_btn">{t("donate_pay_btn")}</button>
+              <p class="micro" id="payHint" data-translate="donate_pay_hint">{t("donate_pay_hint")}</p>
+
+              <div class="mini-trust" aria-label={pick("Реквізити", "Payment details")}>
+                <p class="micro" id="requisitesCard"></p>
+                <p class="micro" id="requisitesJar"></p>
+                <div class="inline-actions">
+                  <button type="button" class="btn btn--ghost btn--small" id="copyCardBtn" data-translate="donate_copy_card">{t("donate_copy_card")}</button>
+                  <button type="button" class="btn btn--ghost btn--small" id="copyJarBtn" data-translate="donate_copy_jar">{t("donate_copy_jar")}</button>
+                </div>
+              </div>
+
+              <div class="inline-actions">
+                <button type="button" class="btn btn--ghost btn--small" id="copyMessageBtn" data-translate="donate_copy_message">{t("donate_copy_message")}</button>
+                <a class="btn btn--ghost btn--small" id="openTelegramBtn" href={contacts.telegram} target="_blank" rel="noopener" data-translate="donate_write_telegram">{t("donate_write_telegram")}</a>
+              </div>
+            </div>
+
+            <hr class="sep" />
+
+            <div class="after">
+              <h3 data-translate="donate_after_title">{t("donate_after_title")}</h3>
+              <p class="micro" data-translate="donate_after_desc">{t("donate_after_desc")}</p>
+
+              <form id="reportForm" class="form" action={"mailto:" + contacts.email} method="post" enctype="text/plain">
+                <label for="contactInput" data-translate="donate_contact_label">{t("donate_contact_label")}</label>
+                <input id="contactInput" name="contact" placeholder={t("donate_contact_placeholder")} data-translate-placeholder="donate_contact_placeholder" />
+
+                <label for="commentInput" data-translate="donate_comment_label">{t("donate_comment_label")}</label>
+                <textarea id="commentInput" name="comment" rows="3" placeholder={t("donate_comment_placeholder")} data-translate-placeholder="donate_comment_placeholder"></textarea>
+
+                <input type="hidden" id="hiddenCampaign" name="campaign" value="" />
+                <input type="hidden" id="hiddenAmount" name="amount" value="" />
+                <input type="hidden" id="hiddenPage" name="page" value="https://avku.org/donate" />
+
+                <button type="submit" class="btn btn--secondary btn--full" data-translate="donate_send_email">{t("donate_send_email")}</button>
+              </form>
+
+              <div class="template" aria-label={t("donate_template_label")}>
+                <div class="template__head">
+                  <strong data-translate="donate_template_label">{t("donate_template_label")}</strong>
+                  <button type="button" class="btn btn--ghost btn--small" id="copyTemplateBtn" data-translate="donate_copy">{t("donate_copy")}</button>
+                </div>
+                <pre id="templateText" class="template__text"></pre>
+              </div>
+            </div>
+          </div>
+        </section>
+      </aside>
+    </section>
+  </div>
+
+  <script type="module" define:vars={{ campaigns, contacts }}>
+    const CAMPAIGNS = campaigns;
+    const CONTACTS = contacts;
+
+    const els = {
+      campaignSelect: document.getElementById("campaignSelect"),
+      amountInput: document.getElementById("amountInput"),
+      payBtn: document.getElementById("payBtn"),
+      payHint: document.getElementById("payHint"),
+      progressText: document.getElementById("progressText"),
+      progressFill: document.getElementById("progressFill"),
+      progressMeta: document.getElementById("progressMeta"),
+      progressBar: document.querySelector('[role="progressbar"]'),
+      copyMessageBtn: document.getElementById("copyMessageBtn"),
+      copyTemplateBtn: document.getElementById("copyTemplateBtn"),
+      templateText: document.getElementById("templateText"),
+      hiddenCampaign: document.getElementById("hiddenCampaign"),
+      hiddenAmount: document.getElementById("hiddenAmount"),
+      contactInput: document.getElementById("contactInput"),
+      commentInput: document.getElementById("commentInput"),
+      requisitesCard: document.getElementById("requisitesCard"),
+      requisitesJar: document.getElementById("requisitesJar"),
+      copyCardBtn: document.getElementById("copyCardBtn"),
+      copyJarBtn: document.getElementById("copyJarBtn"),
+    };
+
+    const chips = Array.from(document.querySelectorAll("[data-amount]"));
+    const selectBtns = Array.from(document.querySelectorAll("[data-select-campaign]"));
+    const scrollBtns = Array.from(document.querySelectorAll("[data-scroll-to]"));
+
+    function safeSetItem(key, value) { try { localStorage.setItem(key, value); } catch {} }
+    function safeGetItem(key) { try { return localStorage.getItem(key); } catch { return null; } }
+
+    function byId(id) { return CAMPAIGNS.find((c) => c.id === id) || CAMPAIGNS[0]; }
+    function isEn() { return (document.documentElement.lang || "uk").toLowerCase().startsWith("en"); }
+
+    function formatUah(n) {
+      try {
+        const locale = isEn() ? "en-US" : "uk-UA";
+        const suffix = isEn() ? " UAH" : " ₴";
+        return new Intl.NumberFormat(locale).format(n) + suffix;
+      } catch { return String(n) + (isEn() ? " UAH" : " ₴"); }
+    }
+
+    function toNumber(value) { const n = Number(value); return Number.isFinite(n) ? n : null; }
+
+    function pickNumber(obj, paths) {
+      for (const p of paths) {
+        const parts = p.split(".");
+        let cur = obj; let ok = true;
+        for (const part of parts) {
+          if (cur && typeof cur === "object" && part in cur) cur = cur[part];
+          else { ok = false; break; }
+        }
+        if (ok) { const n = toNumber(cur); if (n !== null) return n; }
+      }
+      return null;
+    }
+
+    function setChipActive(amount) {
+      chips.forEach((b) => {
+        const a = Number(b.getAttribute("data-amount"));
+        b.setAttribute("aria-pressed", a === amount && amount > 0 ? "true" : "false");
+      });
+    }
+
+    function setProgressPct(pct) { if (els.progressBar) els.progressBar.setAttribute("aria-valuenow", String(pct)); }
+
+    function getSelectedAmount() {
+      const raw = (els.amountInput?.value || "").trim();
+      const n = raw ? Number(raw) : 0;
+      return Number.isFinite(n) && n > 0 ? n : 0;
+    }
+
+    function normalizeCardNumber(s) { return String(s || "").replace(/[^\d]/g, ""); }
+
+    function setRequisites() {
+      const c = byId(els.campaignSelect.value);
+      if (els.requisitesCard) els.requisitesCard.textContent = c.cardNumber ? (isEn() ? "Jar card: " : "Картка банки: ") + c.cardNumber : "";
+      if (els.requisitesJar) els.requisitesJar.textContent = c.jarUrl ? (isEn() ? "Jar link: " : "Посилання на банку: ") + c.jarUrl : "";
+    }
+
+    function buildTemplate(c, amount) {
+      const lines = [];
+      if (isEn()) {
+        lines.push("Hello! I made a donation for AVKU.", "");
+        lines.push("Direction: " + (c.titleEn || c.title));
+        if (c.unitEn || c.unit) lines.push("Unit: " + (c.unitEn || c.unit));
+        if (c.battalionEn || c.battalion) lines.push("Unit details: " + (c.battalionEn || c.battalion));
+        if (Array.isArray(c.needsEn) && c.needsEn.length) lines.push("Needs: " + c.needsEn.join(", "));
+        else if (Array.isArray(c.needs) && c.needs.length) lines.push("Needs: " + c.needs.join(", "));
+        if (amount > 0) lines.push("Amount: " + amount + " UAH");
+        if (c.jarUrl) lines.push("Jar link: " + c.jarUrl);
+        if (c.cardNumber) lines.push("Card: " + c.cardNumber);
+        lines.push("", "Please send me a report link for this direction when it is published.");
+        lines.push("My contact: " + ((els.contactInput?.value || "").trim() || "(not specified)"));
+        const commentEn = (els.commentInput?.value || "").trim();
+        if (commentEn) lines.push("", "Comment: " + commentEn);
+        return lines.join("\n");
+      }
+      lines.push("Привіт! Я зробив(ла) донат для АВКУ.", "");
+      lines.push("Напрям: " + c.title);
+      if (c.unit) lines.push("Підрозділ: " + c.unit);
+      if (c.battalion) lines.push("Підрозділ (деталі): " + c.battalion);
+      if (Array.isArray(c.needs) && c.needs.length) lines.push("Потреби: " + c.needs.join(", "));
+      if (amount > 0) lines.push("Сума: " + amount + " ₴");
+      if (c.jarUrl) lines.push("Посилання на банку: " + c.jarUrl);
+      if (c.cardNumber) lines.push("Картка: " + c.cardNumber);
+      lines.push("", "Будь ласка, надішліть посилання на звіт по цьому напряму, коли він буде опублікований.");
+      lines.push("Мій контакт: " + ((els.contactInput?.value || "").trim() || "(не вказано)"));
+      const comment = (els.commentInput?.value || "").trim();
+      if (comment) lines.push("", "Коментар: " + comment);
+      return lines.join("\n");
+    }
+
+    function setTemplateText() {
+      const c = byId(els.campaignSelect.value);
+      const amount = getSelectedAmount();
+      setChipActive(amount);
+      els.templateText.textContent = buildTemplate(c, amount);
+      if (els.hiddenCampaign) els.hiddenCampaign.value = isEn() ? (c.titleEn || c.title) : c.title;
+      if (els.hiddenAmount) els.hiddenAmount.value = amount ? String(amount) : "";
+      setRequisites();
+    }
+
+    async function updateProgress() {
+      const c = byId(els.campaignSelect.value);
+      const apiUrl = c.progressApiUrl;
+
+      if (!apiUrl || typeof apiUrl !== "string") {
+        if (typeof c.goal === "number" && c.goal > 0) {
+          els.progressText.textContent = isEn() ? `Goal: ${formatUah(c.goal)}` : `Ціль: ${formatUah(c.goal)}`;
+          els.progressFill.style.width = "0%"; setProgressPct(0);
+          els.progressMeta.textContent = isEn() ? "Goal is set manually (no progress API)." : "Ціль задана вручну (без API прогресу).";
+          return;
+        }
+        els.progressText.textContent = "—"; els.progressFill.style.width = "0%"; setProgressPct(0);
+        els.progressMeta.textContent = isEn() ? "Progress API is not configured." : "API прогресу не налаштовано.";
+        return;
+      }
+
+      try {
+        const res = await fetch(apiUrl, { cache: "no-store" });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+
+        const balance = pickNumber(data, ["balance", "data.balance", "jar.balance", "result.balance", "amount"]);
+        const goal = pickNumber(data, ["goal", "data.goal", "jar.goal", "result.goal", "target"]);
+        const goalValid = goal !== null && goal > 0;
+
+        if (balance === null && !goalValid) {
+          if (typeof c.goal === "number" && c.goal > 0) {
+            els.progressText.textContent = isEn() ? `Goal: ${formatUah(c.goal)}` : `Ціль: ${formatUah(c.goal)}`;
+            els.progressFill.style.width = "0%"; setProgressPct(0);
+            els.progressMeta.textContent = isEn() ? "Goal is set manually." : "Ціль задана вручну.";
+            return;
+          }
+          els.progressText.textContent = isEn() ? "Data unavailable" : "Дані недоступні";
+          els.progressFill.style.width = "0%"; setProgressPct(0);
+          els.progressMeta.textContent = isEn() ? "The source did not return progress data." : "Джерело не повернуло дані прогресу.";
+          return;
+        }
+
+        if (balance !== null && goalValid) {
+          const pct = Math.max(0, Math.min(100, Math.round((balance / goal) * 100)));
+          els.progressText.textContent = isEn() ? `${formatUah(balance)} of ${formatUah(goal)} (${pct}%)` : `${formatUah(balance)} з ${formatUah(goal)} (${pct}%)`;
+          els.progressFill.style.width = pct + "%"; setProgressPct(pct);
+          els.progressMeta.textContent = isEn() ? "Updated from a public source." : "Оновлено з публічного джерела.";
+          return;
+        }
+
+        if (balance !== null) {
+          els.progressText.textContent = isEn() ? `Raised: ${formatUah(balance)}` : `Зібрано: ${formatUah(balance)}`;
+          els.progressFill.style.width = "0%"; setProgressPct(0);
+          els.progressMeta.textContent = isEn() ? "The source did not provide a goal, so only the amount is shown." : "Ціль не передано джерелом (показуємо лише суму).";
+          return;
+        }
+
+        els.progressText.textContent = isEn() ? `Goal: ${formatUah(goal)}` : `Ціль: ${formatUah(goal)}`;
+        els.progressFill.style.width = "0%"; setProgressPct(0);
+        els.progressMeta.textContent = isEn() ? "The source did not provide a balance, so only the goal is shown." : "Баланс не передано джерелом (показуємо лише ціль).";
+      } catch (e) {
+        if (typeof c.goal === "number" && c.goal > 0) {
+          els.progressText.textContent = isEn() ? `Goal: ${formatUah(c.goal)}` : `Ціль: ${formatUah(c.goal)}`;
+          els.progressFill.style.width = "0%"; setProgressPct(0);
+          els.progressMeta.textContent = isEn() ? "Could not load progress, showing the goal." : "Не вдалося отримати прогрес (показуємо ціль).";
+          return;
+        }
+        els.progressText.textContent = "—"; els.progressFill.style.width = "0%"; setProgressPct(0);
+        els.progressMeta.textContent = isEn() ? "Could not load progress." : "Не вдалося отримати прогрес.";
+      }
+    }
+
+    function openPayment() {
+      const c = byId(els.campaignSelect.value);
+      const amount = getSelectedAmount();
+      if (!c.jarUrl) {
+        alert([
+          isEn() ? "The payment link is not configured yet." : "Посилання на оплату ще не налаштовано.",
+          isEn() ? "Please write to us and we will suggest the current donation method:" : "Будь ласка, напиши нам — підкажемо актуальний спосіб донату:",
+          CONTACTS.email, CONTACTS.telegram,
+        ].join("\n"));
+        return;
+      }
+      window.open(c.jarUrl, "_blank", "noopener,noreferrer");
+      els.payHint.textContent = amount > 0
+        ? (isEn() ? "Payment opened. If convenient, enter " + amount + " UAH on the payment page." : "Відкрили оплату. Якщо зручно — введи суму " + amount + " ₴ на сторінці оплати.")
+        : (isEn() ? "Payment opened. Enter the amount on the payment page." : "Відкрили оплату. Вкажи суму на сторінці оплати.");
+    }
+
+    function selectCampaign(id) {
+      els.campaignSelect.value = id;
+      safeSetItem("avku_campaign", id);
+      setTemplateText();
+      updateProgress();
+    }
+
+    function scrollToSelector(sel) { const el = document.querySelector(sel); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); }
+
+    const params = new URLSearchParams(location.search);
+    const fromQuery = params.get("campaign");
+    const fromStorage = safeGetItem("avku_campaign");
+    const initial = fromQuery && CAMPAIGNS.some((c) => c.id === fromQuery) ? fromQuery : (fromStorage && CAMPAIGNS.some((c) => c.id === fromStorage) ? fromStorage : CAMPAIGNS[0].id);
+    const amountFromQuery = params.get("amount");
+    if (amountFromQuery && els.amountInput) {
+      const n = Number(amountFromQuery);
+      if (Number.isFinite(n) && n > 0) els.amountInput.value = String(Math.round(n));
+    }
+
+    selectCampaign(initial);
+
+    selectBtns.forEach((btn) => btn.addEventListener("click", () => {
+      const id = btn.getAttribute("data-select-campaign");
+      if (id) { selectCampaign(id); scrollToSelector("#donate-widget"); }
+    }));
+    scrollBtns.forEach((btn) => btn.addEventListener("click", () => {
+      const sel = btn.getAttribute("data-scroll-to");
+      if (sel) scrollToSelector(sel);
+    }));
+    els.campaignSelect.addEventListener("change", () => selectCampaign(els.campaignSelect.value));
+    chips.forEach((b) => b.addEventListener("click", () => {
+      const a = Number(b.getAttribute("data-amount"));
+      if (Number.isFinite(a) && a > 0 && els.amountInput) { els.amountInput.value = String(a); setChipActive(a); setTemplateText(); }
+    }));
+    els.amountInput.addEventListener("input", () => { setChipActive(getSelectedAmount()); setTemplateText(); });
+    els.payBtn.addEventListener("click", openPayment);
+
+    async function copyToClipboard(text) {
+      try { await navigator.clipboard.writeText(text); return true; }
+      catch {
+        const ta = document.createElement("textarea");
+        ta.value = text; ta.style.position = "fixed"; ta.style.left = "-9999px";
+        document.body.appendChild(ta); ta.focus(); ta.select();
+        const ok = document.execCommand("copy");
+        document.body.removeChild(ta); return ok;
+      }
+    }
+
+    els.copyTemplateBtn.addEventListener("click", async () => {
+      const ok = await copyToClipboard(els.templateText.textContent || "");
+      els.copyTemplateBtn.textContent = ok ? (isEn() ? "Copied" : "Скопійовано") : (isEn() ? "Failed" : "Не вдалось");
+      setTimeout(() => (els.copyTemplateBtn.textContent = isEn() ? "Copy" : "Скопіювати"), 900);
+    });
+
+    els.copyMessageBtn.addEventListener("click", async () => {
+      const c = byId(els.campaignSelect.value);
+      const ok = await copyToClipboard(buildTemplate(c, getSelectedAmount()));
+      els.copyMessageBtn.textContent = ok ? (isEn() ? "Copied" : "Скопійовано") : (isEn() ? "Failed" : "Не вдалось");
+      setTimeout(() => (els.copyMessageBtn.textContent = isEn() ? "Copy message" : "Скопіювати повідомлення"), 900);
+    });
+
+    els.copyCardBtn?.addEventListener("click", async () => {
+      const c = byId(els.campaignSelect.value);
+      const text = c.cardNumber ? normalizeCardNumber(c.cardNumber) : "";
+      const ok = text ? await copyToClipboard(text) : false;
+      els.copyCardBtn.textContent = ok ? (isEn() ? "Copied" : "Скопійовано") : (isEn() ? "Failed" : "Не вдалось");
+      setTimeout(() => (els.copyCardBtn.textContent = isEn() ? "Copy card" : "Скопіювати картку"), 900);
+    });
+
+    els.copyJarBtn?.addEventListener("click", async () => {
+      const c = byId(els.campaignSelect.value);
+      const ok = c.jarUrl ? await copyToClipboard(c.jarUrl) : false;
+      els.copyJarBtn.textContent = ok ? (isEn() ? "Copied" : "Скопійовано") : (isEn() ? "Failed" : "Не вдалось");
+      setTimeout(() => (els.copyJarBtn.textContent = isEn() ? "Copy jar link" : "Скопіювати лінк банки"), 900);
+    });
+
+    ["input", "change"].forEach((evt) => {
+      els.contactInput?.addEventListener(evt, setTemplateText);
+      els.commentInput?.addEventListener(evt, setTemplateText);
+    });
+
+    setInterval(updateProgress, 90_000);
+  </script>
+</Base>
