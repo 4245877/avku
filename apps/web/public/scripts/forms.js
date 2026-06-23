@@ -5,16 +5,30 @@
       sending: "Надсилаємо...",
       success: "Дякуємо. Повідомлення надіслано.",
       error: "Не вдалося надіслати. Спробуйте ще раз або напишіть нам напряму.",
+      validation: "Будь ласка, заповніть усі обовʼязкові поля.",
+      email: "Перевірте, будь ласка, адресу електронної пошти.",
+      rate_limited: "Забагато спроб. Зачекайте кілька хвилин і спробуйте ще раз.",
+      not_configured: "Форма тимчасово недоступна. Напишіть нам напряму.",
+      forbidden: "Запит відхилено. Спробуйте з офіційного сайту avku.org.",
     },
     en: {
       sending: "Sending...",
       success: "Thank you. Your message has been sent.",
       error: "Could not send the message. Please try again or contact us directly.",
+      validation: "Please fill in all required fields.",
+      email: "Please check your email address.",
+      rate_limited: "Too many attempts. Please wait a few minutes and try again.",
+      not_configured: "The form is temporarily unavailable. Please contact us directly.",
+      forbidden: "Request rejected. Please use the official site avku.org.",
     },
   };
 
   function lang() {
     return (document.documentElement.lang || "uk").toLowerCase().startsWith("en") ? "en" : "uk";
+  }
+
+  function errorText(copy, code) {
+    return (code && copy[code]) || copy.error;
   }
 
   function statusEl(form) {
@@ -71,7 +85,12 @@
         body: JSON.stringify(payloadFrom(form)),
       });
       const result = await response.json().catch(() => ({}));
-      if (!response.ok || result.success === false) throw new Error(result.error || "Request failed");
+
+      if (!response.ok || result.success === false) {
+        const code = result.code || (response.status === 429 ? "rate_limited" : "");
+        setStatus(form, "error", errorText(copy, code));
+        return;
+      }
 
       form.reset();
       form.dispatchEvent(new CustomEvent("avku:form-success", { bubbles: true }));

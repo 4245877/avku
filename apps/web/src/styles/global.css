@@ -12,6 +12,17 @@
   padding: 0;
 }
 
+/* Anti-spam honeypot: приховане поле, яке заповнюють лише боти.
+   Не використовуємо display:none — частина ботів його ігнорує. */
+.hp-field {
+  position: absolute !important;
+  left: -9999px !important;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
 html {
   font-size: 16px;
   scroll-behavior: smooth;

@@ -7,6 +7,20 @@ const { URL } = require('url');
 
 const cache = new Map(); // sendId -> { ts, data }
 
+// Origin-и, яким дозволено слати POST у Telegram. Розширюється через ALLOWED_ORIGINS.
+const DEFAULT_ALLOWED_ORIGINS = ['https://avku.org', 'https://www.avku.org'];
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Приховані поля-пастки для ботів (мають збігатися з формами сайту).
+const HONEYPOT_FIELDS = ['company', 'website', '_gotcha'];
+
+function allowedOrigins() {
+  const extra = String(process.env.ALLOWED_ORIGINS || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  return new Set([...DEFAULT_ALLOWED_ORIGINS, ...extra]);
+}
+
 // helper: универсальный fetch (использует global fetch если есть, иначе node-fetch)
 async function getFetch() {
   if (typeof fetch !== 'undefined') return fetch;
@@ -75,28 +89,55 @@ async function handleMonobank(req, res, searchParams) {
 
 // -------------------- Telegram contact handler --------------------
 async function handleTelegramPost(req, res, body) {
-  // Разрешаем CORS (можно отрегулировать домен при необходимости)
-  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
+  // CORS: пропускаємо лише дозволені origin-и (чужі сайти не можуть слати у Telegram).
+  const origin = req.headers && req.headers.origin;
+  if (origin) {
+    if (!allowedOrigins().has(origin)) {
+      res.writeHead(403, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: false, code: 'forbidden', error: 'Origin not allowed' }));
+    }
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+  }
+
   // body уже распарсен и передан сюда как объект
   const { TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID } = process.env;
-  const { name, email, message } = body || {};
+  const src = body || {};
+  const name = String(src.name || '').trim();
+  const email = String(src.email || '').trim();
+  const message = String(src.message || '').trim();
+
+  // Honeypot: приховане поле заповнене → бот. Вдаємо успіх, нічого не шлемо.
+  if (HONEYPOT_FIELDS.some((field) => String(src[field] || '').trim())) {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({ success: true }));
+  }
 
   if (!name || !email || !message) {
     res.writeHead(400, { 'Content-Type': 'application/json' });
-    return res.end(JSON.stringify({ success: false, error: 'Всі поля є обовʼязковими для заповнення' }));
+    return res.end(JSON.stringify({ success: false, code: 'validation', error: 'Всі поля є обовʼязковими для заповнення' }));
+  }
+  if (!EMAIL_RE.test(email)) {
+    res.writeHead(400, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({ success: false, code: 'email', error: 'Невірний формат email' }));
   }
 
-  const text = `Нове повідомлення з сайту! \n\n*Ім'я:* ${name}\n*Email:* ${email}\n*Сообщение:*\n${message}`;
+  if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
+    res.writeHead(503, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({ success: false, code: 'not_configured', error: 'Сервіс доставки не налаштовано' }));
+  }
+
+  // Звичайний текст без parse_mode — спецсимволи в полях нічого не ламають.
+  const text = `Нове повідомлення з сайту!\n\nІм'я: ${name}\nEmail: ${email}\nПовідомлення:\n${message}`;
 
   const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
 
   const payload = {
     chat_id: TELEGRAM_CHAT_ID,
     text,
-    parse_mode: 'Markdown',
     disable_web_page_preview: true
   };
 
@@ -114,25 +155,33 @@ async function handleTelegramPost(req, res, body) {
       return res.end(JSON.stringify({ success: true, message: 'Повідомлення успішно надіслано!' }));
     } else {
       console.error('Telegram API error:', data);
-      res.writeHead(500, { 'Content-Type': 'application/json' });
-      return res.end(JSON.stringify({ success: false, error: 'Помилка при відправці в Telegram.' }));
+      res.writeHead(502, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: false, code: 'delivery_failed', error: 'Помилка при відправці в Telegram.' }));
     }
   } catch (error) {
     console.error('Telegram send error:', error);
-    res.writeHead(500, { 'Content-Type': 'application/json' });
-    return res.end(JSON.stringify({ success: false, error: 'Внутрішня помилка сервера.' }));
+    res.writeHead(502, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({ success: false, code: 'delivery_failed', error: 'Внутрішня помилка сервера.' }));
   }
 }
 
 // -------------------- Vercel / serverless handler --------------------
 module.exports = async (req, res) => {
-  // Handle preflight CORS for any route
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  // CORS: для дозволених origin-ів рефлектимо їх; для решти лишаємо '*'
+  // (GET monobank-jar — публічні дані для віджета). POST-обробник нижче
+  // додатково блокує чужі origin-и.
+  const origin = req.headers && req.headers.origin;
+  if (origin && allowedOrigins().has(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') {
-  res.statusCode = 200;
-  return res.end();
+    res.statusCode = 200;
+    return res.end();
   }
 
 

@@ -3,6 +3,7 @@
 import Base from "../../layouts/Base.astro";
 import "../../styles/pages/home.css";
 import { localePath, useTranslations, type Lang } from "../../i18n/ui";
+import { CONTACT_ENDPOINT } from "../../lib/config";
 
 interface Props {
   lang: Lang;
@@ -128,11 +129,16 @@ const pick = (uk: string, en2: string) => (en ? en2 : uk);
       <div class="join-form-wrapper">
         <form
           class="join-form"
-          action="/api/contact"
+          action={CONTACT_ENDPOINT}
           method="post"
           data-async-form
           data-form-type="join"
         >
+          <div class="hp-field" aria-hidden="true">
+            <label for="v-company">Leave this field empty</label>
+            <input type="text" id="v-company" name="company" tabindex="-1" autocomplete="off" />
+          </div>
+
           <div class="form-group">
             <label for="v-name" data-translate="join_name_label">{t("join_name_label")}</label>
             <input id="v-name" name="name" type="text" required autocomplete="name" placeholder={t("join_name_placeholder")} data-translate-placeholder="join_name_placeholder" />

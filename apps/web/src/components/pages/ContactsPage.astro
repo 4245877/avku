@@ -3,6 +3,7 @@
 import Base from "../../layouts/Base.astro";
 import "../../styles/pages/contacts.css";
 import { useTranslations, type Lang } from "../../i18n/ui";
+import { CONTACT_ENDPOINT } from "../../lib/config";
 
 interface Props {
   lang: Lang;
@@ -90,7 +91,12 @@ const addressLines = t("address_text").split("\n");
         <div class="form-wrapper">
           <h2 data-translate="write_title">{t("write_title")}</h2>
 
-          <form id="contactForm" action="/api/contact" method="post" data-async-form data-form-type="contact">
+          <form id="contactForm" action={CONTACT_ENDPOINT} method="post" data-async-form data-form-type="contact">
+            <div class="hp-field" aria-hidden="true">
+              <label for="company">Leave this field empty</label>
+              <input type="text" id="company" name="company" tabindex="-1" autocomplete="off" />
+            </div>
+
             <div class="form-group">
               <input
                 type="text"

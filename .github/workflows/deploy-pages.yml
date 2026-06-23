@@ -34,6 +34,13 @@ jobs:
 
       - name: Build web
         run: pnpm --filter @avku/web build
+        env:
+          # Абсолютні URL Vercel-API (статика на GitHub Pages не має serverless).
+          # Значення задаються в Settings → Secrets and variables → Actions → Variables.
+          # Якщо порожні — фронтенд відкотиться на відносний /api/* (працює лише на Vercel).
+          PUBLIC_CONTACT_API_URL: ${{ vars.PUBLIC_CONTACT_API_URL }}
+          PUBLIC_MONO_API_URL: ${{ vars.PUBLIC_MONO_API_URL }}
+          PUBLIC_MONO_SEND_ID: ${{ vars.PUBLIC_MONO_SEND_ID }}
 
       - name: Disable Jekyll
         run: touch apps/web/dist/.nojekyll

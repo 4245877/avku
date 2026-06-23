@@ -3,6 +3,7 @@
 import Base from "../../layouts/Base.astro";
 import "../../styles/pages/donate.css";
 import { SITE_URL, localePath, useTranslations, type Lang } from "../../i18n/ui";
+import { CONTACT_ENDPOINT } from "../../lib/config";
 
 interface Props {
   lang: Lang;
@@ -350,7 +351,12 @@ const orgJsonLd = {
               <h3 data-translate="donate_after_title">{t("donate_after_title")}</h3>
               <p class="micro" data-translate="donate_after_desc">{t("donate_after_desc")}</p>
 
-              <form id="reportForm" class="form" action="/api/contact" method="post" data-async-form data-form-type="donation-report">
+              <form id="reportForm" class="form" action={CONTACT_ENDPOINT} method="post" data-async-form data-form-type="donation-report">
+                <div class="hp-field" aria-hidden="true">
+                  <label for="reportCompany">Leave this field empty</label>
+                  <input type="text" id="reportCompany" name="company" tabindex="-1" autocomplete="off" />
+                </div>
+
                 <label for="contactInput" data-translate="donate_contact_label">{t("donate_contact_label")}</label>
                 <input id="contactInput" name="contact" required placeholder={t("donate_contact_placeholder")} data-translate-placeholder="donate_contact_placeholder" />
 
