@@ -21,10 +21,19 @@ const addressLines = t("address_text").split("\n");
   path="/contacts"
 >
   <Fragment slot="head">
+    <!-- Font Awesome грузим неблокирующе, чтобы не задерживать рендер -->
     <link
-      rel="stylesheet"
+      rel="preload"
+      as="style"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      onload="this.onload=null;this.rel='stylesheet'"
     />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      />
+    </noscript>
   </Fragment>
 
   <div class="contacts-page">
@@ -37,7 +46,7 @@ const addressLines = t("address_text").split("\n");
             <div class="contact-icon" aria-hidden="true">
               <i class="fa-solid fa-location-dot"></i>
             </div>
-            <h3 data-translate="address_title">{t("address_title")}</h3>
+            <h2 data-translate="address_title">{t("address_title")}</h2>
             <p data-translate="address_text">
               {addressLines.map((line, i) => (
                 <Fragment>{i > 0 && <br />}{line}</Fragment>
@@ -49,7 +58,7 @@ const addressLines = t("address_text").split("\n");
             <div class="contact-icon" aria-hidden="true">
               <i class="fa-solid fa-phone"></i>
             </div>
-            <h3 data-translate="phones_title">{t("phones_title")}</h3>
+            <h2 data-translate="phones_title">{t("phones_title")}</h2>
             <p>
               <a href="tel:+380688473401">+38 (068) 847-34-01</a><br />
               <a href="tel:+380636777050">+38 (063) 677-70-50</a>
@@ -60,7 +69,7 @@ const addressLines = t("address_text").split("\n");
             <div class="contact-icon" aria-hidden="true">
               <i class="fa-solid fa-envelope"></i>
             </div>
-            <h3 data-translate="email_title">{t("email_title")}</h3>
+            <h2 data-translate="email_title">{t("email_title")}</h2>
             <p>
               <a href="mailto:volunteer_ukraine@ukr.net">volunteer_ukraine@ukr.net</a><br />
             </p>
@@ -70,7 +79,7 @@ const addressLines = t("address_text").split("\n");
             <div class="contact-icon" aria-hidden="true">
               <i class="fa-brands fa-facebook-f"></i>
             </div>
-            <h3 data-translate="facebook_title">{t("facebook_title")}</h3>
+            <h2 data-translate="facebook_title">{t("facebook_title")}</h2>
             <p>
               <a
                 href="https://www.facebook.com/groups/555103805361838"
@@ -133,7 +142,7 @@ const addressLines = t("address_text").split("\n");
               <label for="message" data-translate="message_label">{t("message_label")}</label>
             </div>
 
-            <button type="submit" class="btn btn-primary" data-translate="send_button">
+            <button type="submit" class="btn btn-gradient" data-translate="send_button">
               {t("send_button")}
               <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
             </button>
@@ -151,7 +160,6 @@ const addressLines = t("address_text").split("\n");
         <iframe
           title="Google Map"
           src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2540.652592073314!2d30.36245731592181!3d50.43072357947188!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNTDCsDI1JzUwLjYiTiAzMMKwMjEnNTIuNyJF!5e0!3m2!1suk!2sua!4v1677654321098!5m2!1suk!2sua"
-          style="border:0;"
           allowfullscreen
           loading="lazy"
           referrerpolicy="no-referrer-when-downgrade"
