@@ -11,9 +11,19 @@
   --primary-light: #5dc3ec;
   --primary-lighter: #b8e5f7;
   --primary-lightest: #e8f7fc;
+
+  /* «Чернильный» вариант фирменного синего — только для ТЕКСТА на светлом.
+     Сам --primary (#2cade5) на белом даёт контраст 2.6:1 при норме WCAG AA
+     4.5:1: подписи контурных кнопок и текстовые ссылки на белом читались
+     блёкло, а на --primary-lightest (ховер контурной кнопки) почти сливались
+     с подложкой. --primary-ink — тот же оттенок, затемнённый до 5:1.
+     Для заливок, границ, иконок и узоров по-прежнему берём --primary. */
+  --primary-ink: #1178a8;
+  --primary-ink-hover: #0e6890;
   
   --secondary: #4d7abc;
   --secondary-hover: #4269aa;
+  --secondary-ink: #3f639e;   /* текстовый вариант, 5.9:1 на белом */
   --secondary-light: #7698cf;
   --secondary-lighter: #b8cce8;
   --secondary-lightest: #e6eef8;
@@ -38,26 +48,47 @@
   --white: #FFFFFF;
   --black: #000000;
   
-  /* Семантические цвета */
+  /* Семантические цвета.
+     -light — подложка, основной тон — заливки и рамки, -ink — ТЕКСТ на
+     светлой подложке. Раньше подпись красили основным тоном прямо поверх
+     -light (например #10B981 на #D1FAE5): контраст около 2.5:1, статусы
+     форм и бейджи читались с трудом. */
   --success: #10B981;
   --success-light: #D1FAE5;
+  --success-ink: #047857;
   --warning: #F59E0B;
   --warning-light: #FEF3C7;
+  --warning-ink: #B45309;
   --error: #EF4444;
   --error-light: #FEE2E2;
+  --error-ink: #B91C1C;
   --info: #3B82F6;
   --info-light: #DBEAFE;
+  --info-ink: #1D4ED8;
   
-  /* Градиенты */
+  /* Градиенты.
+
+     --gradient — декоративный: полоски над карточками, подчёркивания
+     заголовков, маркеры списков, прогресс-бары. Там он ничего не
+     перекрывает и может оставаться ярким.
+
+     --gradient-cta — тот же фирменный переход, но затемнённый до
+     уровня, на котором БЕЛАЯ подпись поверх него читается по WCAG AA
+     (5:1 против прежних 2.6:1). Им заливаются кнопки, активные фильтры,
+     бейджи и шапки виджетов — всё, где поверх заливки лежит текст.
+     Раньше и то и другое было одним ярким --gradient, поэтому надпись
+     на кнопке «плавала» по светло-голубому фону даже без наведения. */
   --gradient: linear-gradient(135deg, #2cade5, #4d7abc);
   --gradient-hover: linear-gradient(135deg, #25a0d8, #4269aa);
+  --gradient-cta: linear-gradient(135deg, var(--primary-ink), var(--secondary-ink));
   --gradient-light: linear-gradient(135deg, #5dc3ec, #7698cf);
   --gradient-radial: radial-gradient(circle at top right, #2cade5, #4d7abc);
   --gradient-soft: linear-gradient(180deg, rgba(44, 173, 229, 0.1), rgba(77, 122, 188, 0.1));
   
-  /* Кнопки */
-  --btn-primary: var(--secondary);
-  --btn-primary-hover: var(--secondary-hover);
+  /* Кнопки. Сплошная синяя кнопка несёт белую подпись, поэтому берёт
+     текстовый (затемнённый) вариант тона — как и --gradient-cta. */
+  --btn-primary: var(--secondary-ink);
+  --btn-primary-hover: #35578f;
   --btn-accent: #FFD900;
   --btn-accent-hover: #F0CD00;
   
@@ -226,20 +257,35 @@
   
   /* ========== АНИМАЦИЯ И ПЕРЕХОДЫ ========== */
   
-  /* Продолжительность */
+  /* Продолжительность.
+     Ховер-состояния держим в пределах 250 мс: длиннее — и интерфейс
+     начинает «догонять» курсор, особенно когда указатель быстро проходит
+     по ряду карточек. Полсекунды оставляем только протяжённым эффектам
+     (блик по кнопке, появление блока при прокрутке). */
   --duration-instant: 50ms;
-  --duration-fast: 150ms;
+  --duration-fast: 140ms;
   --duration-base: 200ms;
-  --duration-medium: 300ms;
-  --duration-slow: 500ms;
-  --duration-slower: 700ms;
+  --duration-medium: 260ms;
+  --duration-slow: 440ms;
+  --duration-slower: 650ms;
   
-  /* Кривые анимации */
+  /* Кривые анимации.
+
+     --ease-smooth раньше был cubic-bezier(0.45, 0, 0.15, 1) — симметричный
+     ease-in-out. Он «разгоняется» в начале, поэтому реакция на наведение
+     ощущалась вялой, а обратный ход (уход курсора) — резким. Этой кривой
+     на сайте описано подавляющее большинство переходов и все появления
+     блоков, так что дёрганость расходилась по всем страницам.
+
+     Теперь это ease-out-quint: движение начинается сразу на полной
+     скорости и мягко останавливается — стандартное поведение для
+     интерфейсных переходов и въездов элементов. */
   --ease-linear: linear;
   --ease-in: cubic-bezier(0.4, 0, 1, 1);
-  --ease-out: cubic-bezier(0, 0, 0.2, 1);
-  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
-  --ease-smooth: cubic-bezier(0.45, 0, 0.15, 1);
+  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-entrance: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
   --ease-elastic: cubic-bezier(0.175, 0.885, 0.32, 1.275);
   

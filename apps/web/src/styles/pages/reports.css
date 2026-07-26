@@ -78,7 +78,7 @@
 #reports-title {
   font-size: clamp(var(--text-4xl), 6vw, var(--text-6xl));
   font-weight: var(--font-extrabold);
-  background: var(--gradient);
+  background: var(--gradient-cta);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -368,7 +368,7 @@
 
 .filter-btn:hover {
   border-color: var(--primary-light);
-  color: var(--primary);
+  color: var(--primary-ink);
   transform: translateY(-2px);
   box-shadow: var(--shadow-sm);
 }
@@ -379,11 +379,21 @@
 }
 
 .filter-btn.is-active {
-  background: var(--gradient);
+  background: var(--gradient-cta);
   color: var(--white);
-  border-color: var(--primary);
+  border-color: transparent;
   box-shadow: var(--shadow-primary);
   transform: translateY(-2px);
+}
+
+/* Правило .filter-btn:hover выше красит подпись в --primary-ink. Пока
+   активная кнопка описана ниже, каскад её защищает, но стоит кому-то
+   поменять порядок правил — и текст активного фильтра при наведении
+   пропадёт на своей же заливке. Фиксируем состояние явно. */
+.filter-btn.is-active:hover,
+.filter-btn.is-active:focus-visible {
+  color: var(--white);
+  border-color: transparent;
 }
 
 .filter-btn.is-active::before {
@@ -509,7 +519,7 @@
 .report-card__meta .badge {
   font-size: var(--text-xs);
   padding: var(--space-2) var(--space-4);
-  background: var(--gradient);
+  background: var(--gradient-cta);
   color: var(--white);
   font-weight: var(--font-semibold);
   box-shadow: var(--shadow-sm);
@@ -531,7 +541,7 @@
 }
 
 .report-card:hover .report-card__title {
-  color: var(--primary);
+  color: var(--primary-ink);
 }
 
 .report-card__summary {
@@ -649,18 +659,18 @@
 }
 
 .report-card__actions .btn-primary {
-  background: var(--secondary);
+  background: var(--secondary-ink);
   box-shadow: var(--shadow-secondary);
 }
 
 .report-card__actions .btn-primary:hover {
-  background: var(--secondary-hover);
+  background: var(--btn-primary-hover);
   transform: translateY(-2px) scale(1.02);
 }
 
 .report-card__actions .btn-outline {
   background: transparent;
-  color: var(--primary);
+  color: var(--primary-ink);
   border: 2px solid var(--primary-light);
 }
 
@@ -680,7 +690,7 @@
 .report-card__summary-toggle {
   font-size: var(--text-base);
   font-weight: var(--font-semibold);
-  color: var(--primary);
+  color: var(--primary-ink);
   cursor: pointer;
   padding: var(--space-3) var(--space-4);
   background: var(--primary-lightest);
@@ -709,7 +719,7 @@ details[open] .report-card__summary-toggle::before {
 
 .report-card__summary-toggle:hover {
   background: var(--primary-lighter);
-  color: var(--primary-hover);
+  color: var(--primary-ink-hover);
   transform: translateX(4px);
 }
 
@@ -820,7 +830,7 @@ details[open] .report-card__summary-toggle {
 .reports-official h2 {
   font-size: clamp(var(--text-3xl), 4vw, var(--text-5xl));
   margin-bottom: var(--space-5);
-  background: var(--gradient);
+  background: var(--gradient-cta);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;

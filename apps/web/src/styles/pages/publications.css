@@ -154,7 +154,7 @@
 
 .search-input:focus ~ .publications-search::before,
 .publications-search:has(.search-input:focus)::before {
-  color: var(--primary);
+  color: var(--primary-ink);
 }
 
 
@@ -207,7 +207,7 @@
 }
 
 .filter-btn:hover {
-  color: var(--primary);
+  color: var(--primary-ink);
   border-color: var(--primary-light);
   box-shadow: var(--shadow-sm);
   transform: translateY(-2px);
@@ -215,10 +215,18 @@
 
 .filter-btn.active {
   color: var(--white);
-  background: var(--gradient);
+  background: var(--gradient-cta);
   border-color: transparent;
   box-shadow: var(--shadow-primary);
   font-weight: var(--font-semibold);
+}
+
+/* См. комментарий в reports.css: подпись активного фильтра не должна
+   зависеть от порядка правил в файле. */
+.filter-btn.active:hover,
+.filter-btn.active:focus-visible {
+  color: var(--white);
+  border-color: transparent;
 }
 
 .filter-btn.active::before {
@@ -350,7 +358,7 @@
 
 .publication-thumbnail i {
   font-size: 4rem;
-  color: var(--primary);
+  color: var(--primary-ink);
   transition: all var(--duration-medium) var(--ease-smooth);
   position: relative;
   z-index: 1;
@@ -384,7 +392,7 @@
 }
 
 .publication-card:hover .publication-title {
-  color: var(--primary);
+  color: var(--primary-ink);
 }
 
 .publication-date {
@@ -448,7 +456,7 @@
 
 /* Кнопка просмотра */
 .publication-preview-btn {
-  background: var(--gradient);
+  background: var(--gradient-cta);
   color: var(--white);
   box-shadow: var(--shadow-sm);
 }
@@ -484,7 +492,7 @@
 /* Кнопка загрузки */
 .publication-download-btn {
   background: var(--white);
-  color: var(--primary);
+  color: var(--primary-ink);
   border: 2px solid var(--primary);
   box-shadow: var(--shadow-xs);
 }
@@ -607,7 +615,7 @@
 }
 
 .pdf-action-btn:hover {
-  color: var(--primary);
+  color: var(--primary-ink);
   border-color: var(--primary-light);
   background: var(--primary-lightest);
   transform: translateY(-2px);

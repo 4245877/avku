@@ -76,7 +76,7 @@
 .hero-slogan {
   font-size: clamp(1rem, 2.5vw, 1.5rem);
   font-weight: var(--font-bold);
-  color: var(--primary);
+  color: var(--primary-ink);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: var(--space-5);
@@ -270,7 +270,7 @@
 }
 
 .activity-card:hover h3 {
-  color: var(--primary);
+  color: var(--primary-ink);
 }
 
 .activity-card p {
@@ -416,7 +416,7 @@
 
 .partner:hover .partner__placeholder {
   border-color: var(--primary-light);
-  color: var(--primary);
+  color: var(--primary-ink);
 }
 
 .partner__no-link {
@@ -450,7 +450,7 @@
   align-items: center;
   margin-top: auto;
   font-size: var(--text-sm);
-  color: var(--primary);
+  color: var(--primary-ink);
   font-weight: var(--font-medium);
   padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-base);
@@ -461,7 +461,7 @@
 
 .partner a:hover {
   background: var(--primary-lightest);
-  color: var(--primary-hover);
+  color: var(--primary-ink-hover);
 }
 
 .partner a[aria-disabled="true"] {
@@ -639,7 +639,7 @@
   display: block;
   font-size: var(--text-base);
   font-weight: var(--font-semibold);
-  color: var(--primary);
+  color: var(--primary-ink);
   font-style: normal;
   margin-top: var(--space-4);
 }
@@ -703,7 +703,7 @@
 }
 
 .news-item:hover h3 {
-  color: var(--primary);
+  color: var(--primary-ink);
 }
 
 .news-meta {
@@ -732,7 +732,7 @@
   gap: var(--space-2);
   font-size: var(--text-base);
   font-weight: var(--font-semibold);
-  color: var(--primary);
+  color: var(--primary-ink);
   margin-top: var(--space-4);
   transition: all var(--duration-base) var(--ease-out);
   position: relative;
@@ -744,7 +744,7 @@
 }
 
 .news-item a:hover {
-  color: var(--primary-hover);
+  color: var(--primary-ink-hover);
   gap: var(--space-3);
 }
 

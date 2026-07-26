@@ -61,8 +61,10 @@
   position: relative;
   display: inline-block;
   width: 100%;
-  opacity: 0;
-  animation: fadeInUp var(--duration-slow) var(--ease-smooth) 0.2s forwards;
+  /* opacity/transform стартового кадра берём из самой анимации (fill-mode both),
+     а не из базового правила: если анимации не выполнятся, блок останется
+     видимым, а не исчезнет со страницы навсегда. */
+  animation: fadeInUp var(--duration-slow) var(--ease-smooth) 0.2s both;
 }
 
 /* Декоративна лінія під заголовком.
@@ -79,9 +81,9 @@
   height: 4px;
   background: var(--gradient);
   border-radius: var(--radius-full);
-  animation: underlineIn var(--duration-medium) var(--ease-smooth) 0.5s forwards;
+  /* fill-mode both, см. пояснение выше */
+  animation: underlineIn var(--duration-medium) var(--ease-smooth) 0.5s both;
   transform-origin: center;
-  opacity: 0;
 }
 
 /* Власне ім'я замість scaleIn: цей файл підключається після tokens.css
@@ -108,9 +110,8 @@
   max-width: 900px;
   margin-left: auto;
   margin-right: auto;
-  opacity: 0;
-  transform: translateY(20px);
-  animation: fadeInUp var(--duration-medium) var(--ease-smooth) forwards;
+  /* fill-mode both, см. пояснение выше */
+  animation: fadeInUp var(--duration-medium) var(--ease-smooth) both;
   position: relative;
   padding-left: var(--space-6);
 }
@@ -142,7 +143,7 @@
 /* Виділення strong елементів */
 .about-section p strong {
   font-weight: var(--font-bold);
-  color: var(--primary);
+  color: var(--primary-ink);
   position: relative;
   display: inline-block;
   transition: color var(--duration-base) var(--ease-out);
@@ -178,8 +179,8 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: var(--space-4);
-  opacity: 0;
-  animation: fadeInUp var(--duration-slow) var(--ease-smooth) 0.8s forwards;
+  /* fill-mode both, см. пояснение выше */
+  animation: fadeInUp var(--duration-slow) var(--ease-smooth) 0.8s both;
 }
 
 .about-section li {
@@ -192,9 +193,8 @@
   transition: all var(--duration-medium) var(--ease-smooth);
   cursor: default;
   overflow: hidden;
-  opacity: 0;
-  transform: translateY(20px);
-  animation: fadeInUp var(--duration-medium) var(--ease-smooth) forwards;
+  /* fill-mode both, см. пояснение выше */
+  animation: fadeInUp var(--duration-medium) var(--ease-smooth) both;
 }
 
 /* Поступове з'явлення елементів списку */
@@ -274,7 +274,7 @@
 }
 
 .about-section li:hover strong {
-  color: var(--primary);
+  color: var(--primary-ink);
 }
 
 /* ========== RESPONSIVE DESIGN ========== */

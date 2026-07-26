@@ -164,15 +164,34 @@ em, i {
 /* Ссылки
    display:inline-block здесь был багом: ссылка внутри абзаца переставала
    переноситься по словам и «выпадала» из строки на узких экранах.
-   Инлайновость по умолчанию, блочность — там, где она нужна (.btn, карточки). */
-a {
+   Инлайновость по умолчанию, блочность — там, где она нужна (.btn, карточки).
+
+   Исключение .btn — не косметика, а исправление главного бага ховера.
+   Селектор `a:hover` весит (0,1,1), а `.btn` — только (0,1,0). В покое
+   кнопка-ссылка выигрывала (её (0,1,0) против (0,0,1) у `a`), но стоило
+   навести курсор — и `a:hover` перебивал цвет кнопки: белый текст
+   становился светло-голубым --primary-hover прямо поверх синей заливки.
+   Так ломались ВСЕ ссылки-кнопки сайта («Підтримати зараз», CTA первого
+   экрана, кнопки в карточках звітів), потому что ни одно правило
+   .btn:hover цвет не переопределяло.
+
+   Именно :not(:where(.btn)), а не :not(.btn): обычный :not() принимает
+   вес своего аргумента, и правило выросло бы до (0,1,1) — тогда базовый
+   цвет ссылки начал бы перебивать любое правило с одним классом
+   (.logoLink, .navLink), и вся навигация покрасилась бы в синий.
+   :where() не добавляет веса, так что специфичность остаётся прежней. */
+a:not(:where(.btn)) {
   color: var(--primary);
   text-decoration: none;
   transition: var(--transition-colors);
 }
 
-a:hover {
+a:not(:where(.btn)):hover {
   color: var(--primary-hover);
+}
+
+a.btn {
+  text-decoration: none;
 }
 
 /* Анимированное подчёркивание для текстовых ссылок */
@@ -256,12 +275,20 @@ nav ul > li::before,
 
 /* ========== КНОПКИ ========== */
 
+/* transition: all у голого <button> задевал в том числе width/height и
+   содержимое: при смене надписи (переключение языка, счётчики) кнопка
+   заметно «переезжала». Анимируем только оформление. */
 button {
   font-family: var(--font-primary);
   cursor: pointer;
   border: none;
   background: none;
-  transition: var(--transition-base);
+  transition:
+    color var(--duration-base) var(--ease-out),
+    background-color var(--duration-base) var(--ease-out),
+    border-color var(--duration-base) var(--ease-out),
+    box-shadow var(--duration-base) var(--ease-out),
+    transform var(--duration-base) var(--ease-smooth);
 }
 
 /* Базовая кнопка.
@@ -291,7 +318,7 @@ button {
   user-select: none;
   -webkit-tap-highlight-color: transparent;
 
-  background: var(--gradient);
+  background: var(--gradient-cta);
   background-size: 140% 140%;
   background-position: 0% 50%;
   color: var(--text-inverse);
@@ -306,16 +333,31 @@ button {
     border-color var(--duration-base) var(--ease-out);
 }
 
-/* Мягкий блик вместо «расползающегося круга»: работает на любом фоне
-   и не конфликтует с оформлением кнопок на отдельных страницах */
+/* Подсветка при наведении.
+   Была светлая: linear-gradient от rgba(255,255,255,0.28). Она осветляла
+   синюю заливку ровно там, где лежит белая подпись, — то есть ховер
+   СНИЖАЛ контраст текста вместо того, чтобы его повышать. Теперь блик
+   уходит в тень: заливка при наведении становится плотнее, подпись
+   читается лучше, чем в покое. */
 .btn::after {
   content: '';
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: linear-gradient(160deg, rgba(255, 255, 255, 0.28), transparent 60%);
+  background: linear-gradient(160deg, rgba(15, 23, 42, 0.16), rgba(15, 23, 42, 0.04) 65%);
   opacity: 0;
   transition: opacity var(--duration-medium) var(--ease-smooth);
+}
+
+/* Цвет подписи повторён во всех состояниях намеренно: без него
+   глобальное `a:hover` (0,1,1) перебивает `.btn` (0,1,0) и красит
+   текст кнопки-ссылки в цвет обычной ссылки. Селектор `.btn:hover`
+   весит (0,2,0) и закрывает эту дыру даже там, где страница добавит
+   свои правила для `a`. */
+.btn:hover,
+.btn:focus-visible,
+.btn:active {
+  color: var(--text-inverse);
 }
 
 .btn:hover {
@@ -351,12 +393,13 @@ button {
 .btn-primary:hover,
 .btn--primary:hover {
   background: var(--btn-primary-hover);
+  color: var(--text-inverse);
   box-shadow: var(--shadow-lg), 0 18px 34px -14px rgba(77, 122, 188, 0.45);
 }
 
 /* Градиентная — то же, что базовая .btn; оставлена для явности в разметке */
 .btn-gradient {
-  background: var(--gradient);
+  background: var(--gradient-cta);
   color: var(--text-inverse);
   box-shadow: var(--shadow-primary);
 }
@@ -370,11 +413,19 @@ button {
 
 .btn-accent:hover {
   background: var(--btn-accent-hover);
+  /* Жёлтая кнопка — единственная со ТЁМНОЙ подписью: наследовать
+     белый текст из .btn:hover ей нельзя */
+  color: var(--dark-900);
   box-shadow: var(--shadow-lg), 0 18px 34px -14px rgba(255, 217, 0, 0.5);
 }
 
+.btn-accent:focus-visible,
+.btn-accent:active {
+  color: var(--dark-900);
+}
+
 .btn-accent::after {
-  background: linear-gradient(160deg, rgba(255, 255, 255, 0.5), transparent 60%);
+  background: linear-gradient(160deg, rgba(15, 23, 42, 0.14), transparent 65%);
 }
 
 /* Контурная — вторичное действие */
@@ -382,16 +433,22 @@ button {
 .btn--secondary,
 .btn-outline {
   background: var(--white);
-  color: var(--primary);
+  color: var(--primary-ink);
   border-color: var(--primary-lighter);
   box-shadow: var(--shadow-xs);
 }
 
 .btn-secondary:hover,
 .btn--secondary:hover,
-.btn-outline:hover {
+.btn-outline:hover,
+.btn-secondary:focus-visible,
+.btn--secondary:focus-visible,
+.btn-outline:focus-visible,
+.btn-secondary:active,
+.btn--secondary:active,
+.btn-outline:active {
   background: var(--primary-lightest);
-  color: var(--primary-hover);
+  color: var(--primary-ink);
   border-color: var(--primary);
   box-shadow: var(--shadow-sm);
 }
@@ -402,19 +459,29 @@ button {
   content: none;
 }
 
-/* Призрачная — третичное действие */
+/* Призрачная — третичное действие.
+   Полностью прозрачная заливка + прозрачная рамка делали её неотличимой
+   от обычного текста: на странице «Підтримай АВКУ» в одном ряду с залитой
+   кнопкой стояли две подписи, по которым не было видно, что это кнопки.
+   Даём едва заметную подложку и рамку — иерархия сохраняется, но объект
+   читается как элемент управления. */
 .btn-ghost,
 .btn--ghost {
-  background: transparent;
+  background: var(--light-50);
   color: var(--dark-700);
-  border-color: transparent;
+  border-color: var(--border-color);
   box-shadow: none;
 }
 
 .btn-ghost:hover,
-.btn--ghost:hover {
+.btn--ghost:hover,
+.btn-ghost:focus-visible,
+.btn--ghost:focus-visible,
+.btn-ghost:active,
+.btn--ghost:active {
   background: var(--light-100);
   color: var(--dark-900);
+  border-color: var(--border-color-hover);
   box-shadow: none;
 }
 
@@ -558,7 +625,10 @@ input[type="radio"] {
   border-radius: var(--radius-xl);
   padding: var(--space-6);
   box-shadow: var(--shadow-base);
-  transition: var(--transition-base), var(--transition-shadow);
+  transition:
+    transform var(--duration-medium) var(--ease-smooth),
+    box-shadow var(--duration-medium) var(--ease-smooth),
+    border-color var(--duration-medium) var(--ease-smooth);
   position: relative;
   overflow: hidden;
 }
@@ -596,7 +666,7 @@ input[type="radio"] {
 }
 
 .card-gradient {
-  background: var(--gradient);
+  background: var(--gradient-cta);
   color: var(--white);
 }
 
@@ -976,7 +1046,7 @@ section section {
 .text-right { text-align: right; }
 
 /* Цвета текста */
-.text-primary { color: var(--primary); }
+.text-primary { color: var(--primary-ink); }
 .text-secondary { color: var(--secondary); }
 .text-dark { color: var(--dark-900); }
 .text-light { color: var(--dark-500); }
@@ -1106,9 +1176,29 @@ img {
   object-fit: contain;
 }
 
-/* Плейсхолдер-фон, пока картинка не загрузилась: вместо «дыры» — мягкая подложка */
-img[loading="lazy"] {
+/* Плейсхолдер-фон, пока картинка не загрузилась: вместо «дыры» — мягкая
+   подложка.
+
+   Правило было навешано на ВСЕ img[loading="lazy"] и, поскольку это фон
+   самой картинки, оно никуда не девалось после загрузки. Для фотографий
+   это незаметно (пиксели перекрывают фон целиком), а вот прозрачные SVG
+   получали сплошную заливку по всему прямоугольнику: в тёмном футере под
+   иконками соцсетей светились белые квадраты. Тот же эффект был у любого
+   логотипа-PNG с прозрачностью.
+
+   Подложка нужна только там, где картинка занимает заранее известный
+   прямоугольник и заведомо непрозрачна, — перечисляем эти места явно. */
+.gallery-card img,
+.featured img,
+.news-card img,
+.report-media__item img {
   background-color: var(--light-100);
+}
+
+/* Иконки и логотипы — прозрачные по определению: никакой подложки */
+.social-icon,
+.partner__logo {
+  background-color: transparent;
 }
 
 
@@ -1129,22 +1219,22 @@ img[loading="lazy"] {
 
 .badge-primary {
   background: var(--primary-lightest);
-  color: var(--primary);
+  color: var(--primary-ink);
 }
 
 .badge-success {
   background: var(--success-light);
-  color: var(--success);
+  color: var(--success-ink);
 }
 
 .badge-warning {
   background: var(--warning-light);
-  color: var(--warning);
+  color: var(--warning-ink);
 }
 
 .badge-error {
   background: var(--error-light);
-  color: var(--error);
+  color: var(--error-ink);
 }
 
 
@@ -1177,7 +1267,9 @@ hr {
   z-index: var(--z-backdrop);
   opacity: 0;
   visibility: hidden;
-  transition: all var(--duration-medium) var(--ease-smooth);
+  transition:
+    opacity var(--duration-medium) var(--ease-smooth),
+    visibility var(--duration-medium) var(--ease-smooth);
 }
 
 .overlay.active {
@@ -1200,7 +1292,10 @@ hr {
   z-index: var(--z-modal);
   opacity: 0;
   visibility: hidden;
-  transition: all var(--duration-medium) var(--ease-smooth);
+  transition:
+    opacity var(--duration-medium) var(--ease-smooth),
+    transform var(--duration-medium) var(--ease-smooth),
+    visibility var(--duration-medium) var(--ease-smooth);
 }
 
 .modal.active {
@@ -1234,14 +1329,17 @@ hr {
 
 /* ========== ВЫДЕЛЕНИЕ ТЕКСТА ========== */
 
+/* Выделение текста. Было белым по --primary-light (#5dc3ec) — контраст
+   около 2:1, выделенный фрагмент читался хуже невыделенного. Светлая
+   подложка с тёмной подписью работает одинаково на любом фоне сайта. */
 ::selection {
-  background: var(--primary-light);
-  color: var(--white);
+  background: var(--primary-lighter);
+  color: var(--dark-900);
 }
 
 ::-moz-selection {
-  background: var(--primary-light);
-  color: var(--white);
+  background: var(--primary-lighter);
+  color: var(--dark-900);
 }
 
 
@@ -1382,7 +1480,10 @@ body {
   border-radius: var(--radius-base);
   white-space: nowrap;
   opacity: 0;
-  transition: all var(--duration-base) var(--ease-out);
+  transition:
+    opacity var(--duration-base) var(--ease-out),
+    transform var(--duration-base) var(--ease-smooth),
+    visibility var(--duration-base) var(--ease-out);
   z-index: var(--z-tooltip);
   pointer-events: none;
 }
@@ -1433,25 +1534,25 @@ body {
 .alert-info {
   background: var(--info-light);
   border-color: var(--info);
-  color: var(--info);
+  color: var(--info-ink);
 }
 
 .alert-success {
   background: var(--success-light);
   border-color: var(--success);
-  color: var(--success);
+  color: var(--success-ink);
 }
 
 .alert-warning {
   background: var(--warning-light);
   border-color: var(--warning);
-  color: var(--warning);
+  color: var(--warning-ink);
 }
 
 .alert-error {
   background: var(--error-light);
   border-color: var(--error);
-  color: var(--error);
+  color: var(--error-ink);
 }
 
 .form-status {
@@ -1460,7 +1561,7 @@ body {
   border-radius: var(--radius-base);
   border-left: 4px solid var(--info);
   background: var(--info-light);
-  color: var(--info);
+  color: var(--info-ink);
   font-size: var(--text-sm);
   line-height: var(--leading-normal);
 }
@@ -1472,17 +1573,17 @@ body {
 .form-status--success {
   background: var(--success-light);
   border-color: var(--success);
-  color: var(--success);
+  color: var(--success-ink);
 }
 
 .form-status--error {
   background: var(--error-light);
   border-color: var(--error);
-  color: var(--error);
+  color: var(--error-ink);
 }
 
 .form-status--loading {
   background: var(--info-light);
   border-color: var(--info);
-  color: var(--info);
+  color: var(--info-ink);
 }

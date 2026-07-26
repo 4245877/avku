@@ -56,8 +56,10 @@
   max-width: 900px;
   margin: 0 auto;
   text-align: center;
-  opacity: 0;
-  animation: fadeInUp var(--duration-slow) var(--ease-smooth) 0.2s forwards;
+  /* opacity/transform стартового кадра берём из самой анимации (fill-mode both),
+     а не из базового правила: если анимации не выполнятся, блок останется
+     видимым, а не исчезнет со страницы навсегда. */
+  animation: fadeInUp var(--duration-slow) var(--ease-smooth) 0.2s both;
 }
 
 .hero-header {
@@ -67,12 +69,15 @@
   margin-bottom: var(--space-6);
   letter-spacing: -0.03em;
   line-height: 1.1;
-  background: linear-gradient(135deg, var(--dark-900), var(--primary));
+  /* Заголовок залит градиентом через background-clip: text. Светлый край
+     градиента (--primary) давал на белом контраст 2.6:1 — хвост фразы
+     заметно выцветал. Берём текстовый вариант тона. */
+  background: linear-gradient(135deg, var(--dark-900), var(--primary-ink));
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  opacity: 0;
-  animation: fadeInUp var(--duration-slow) var(--ease-smooth) 0.3s forwards;
+  /* fill-mode both, см. пояснение выше */
+  animation: fadeInUp var(--duration-slow) var(--ease-smooth) 0.3s both;
 }
 
 .hero-slogan {
@@ -80,8 +85,8 @@
   font-weight: var(--font-medium);
   color: var(--dark-700);
   margin-bottom: var(--space-4);
-  opacity: 0;
-  animation: fadeInUp var(--duration-slow) var(--ease-smooth) 0.4s forwards;
+  /* fill-mode both, см. пояснение выше */
+  animation: fadeInUp var(--duration-slow) var(--ease-smooth) 0.4s both;
 }
 
 .hero-content > p {
@@ -90,13 +95,13 @@
   max-width: 700px;
   margin: 0 auto var(--space-6);
   line-height: var(--leading-relaxed);
-  opacity: 0;
-  animation: fadeInUp var(--duration-slow) var(--ease-smooth) 0.5s forwards;
+  /* fill-mode both, см. пояснение выше */
+  animation: fadeInUp var(--duration-slow) var(--ease-smooth) 0.5s both;
 }
 
 .hero-actions {
-  opacity: 0;
-  animation: fadeInUp var(--duration-slow) var(--ease-smooth) 0.6s forwards;
+  /* fill-mode both, см. пояснение выше */
+  animation: fadeInUp var(--duration-slow) var(--ease-smooth) 0.6s both;
 }
 
 .hero-actions .btn {
@@ -115,7 +120,7 @@
 
 /* Основная кнопка в hero */
 .hero-actions .btn:first-child {
-  background: var(--gradient);
+  background: var(--gradient-cta);
   color: var(--white);
   position: relative;
   overflow: hidden;
@@ -291,7 +296,7 @@
 }
 
 .activity-card:hover h3 {
-  color: var(--primary);
+  color: var(--primary-ink);
 }
 
 .activity-card p {
@@ -305,14 +310,14 @@
   margin-top: auto;
   width: 100%;
   justify-content: center;
-  background: var(--secondary);
+  background: var(--secondary-ink);
   color: var(--white);
   font-weight: var(--font-medium);
   transition: all var(--duration-medium) var(--ease-smooth);
 }
 
 .activity-card .btn:hover {
-  background: var(--secondary-hover);
+  background: var(--btn-primary-hover);
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
 }
@@ -325,7 +330,7 @@
   padding: var(--space-2) var(--space-3);
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
-  color: var(--primary);
+  color: var(--primary-ink);
   background: var(--primary-lightest);
   border: 1px solid var(--primary-lighter);
   border-radius: var(--radius-full);
@@ -441,16 +446,24 @@
 
 .filter-btn:hover {
   border-color: var(--primary-light);
-  color: var(--primary);
+  color: var(--primary-ink);
   transform: translateY(-2px);
 }
 
 .filter-btn.is-active {
-  background: var(--gradient);
+  background: var(--gradient-cta);
   color: var(--white);
   border-color: transparent;
   box-shadow: var(--shadow-primary);
   transform: translateY(-2px);
+}
+
+/* См. комментарий в reports.css: подпись активного фильтра не должна
+   зависеть от порядка правил в файле. */
+.filter-btn.is-active:hover,
+.filter-btn.is-active:focus-visible {
+  color: var(--white);
+  border-color: transparent;
 }
 
 .filter-btn.is-active::before {
@@ -531,7 +544,7 @@
 }
 
 .news-item:hover h3 {
-  color: var(--primary);
+  color: var(--primary-ink);
 }
 
 .news-meta {
@@ -545,7 +558,7 @@
 }
 
 .news-meta time {
-  color: var(--primary);
+  color: var(--primary-ink);
   font-weight: var(--font-semibold);
 }
 
@@ -561,7 +574,7 @@
   gap: var(--space-2);
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);
-  color: var(--primary);
+  color: var(--primary-ink);
   transition: all var(--duration-base) var(--ease-out);
   position: relative;
 }
@@ -573,7 +586,7 @@
 }
 
 .news-item a:hover {
-  color: var(--primary-hover);
+  color: var(--primary-ink-hover);
   gap: var(--space-3);
 }
 
@@ -602,14 +615,14 @@
   min-width: 160px;
   padding: var(--space-4) var(--space-6);
   background: transparent;
-  color: var(--primary);
+  color: var(--primary-ink);
   border: 2px solid var(--primary);
   font-weight: var(--font-semibold);
   transition: all var(--duration-medium) var(--ease-smooth);
 }
 
 .view-more-container .btn:hover {
-  background: var(--primary);
+  background: var(--primary-ink);
   color: var(--white);
   border-color: var(--primary);
   transform: translateY(-2px);

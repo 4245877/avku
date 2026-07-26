@@ -56,7 +56,7 @@
   font-weight: var(--font-extrabold);
   letter-spacing: -0.03em;
   margin-bottom: var(--space-5);
-  background: var(--gradient);
+  background: var(--gradient-cta);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -92,7 +92,7 @@
 }
 
 .hero-actions .btn:first-child {
-  background: var(--gradient);
+  background: var(--gradient-cta);
   color: var(--white);
 }
 
@@ -160,7 +160,7 @@
 }
 
 .featured:hover h2 {
-  color: var(--primary);
+  color: var(--primary-ink);
 }
 
 .featured p {
@@ -214,7 +214,7 @@
   text-transform: uppercase;
   letter-spacing: var(--tracking-wide);
   border-radius: var(--radius-full);
-  background: var(--gradient);
+  background: var(--gradient-cta);
   color: var(--white);
   white-space: nowrap;
   transition: all var(--duration-base) var(--ease-out);
@@ -442,7 +442,7 @@
 }
 
 .news-card:hover h3 {
-  color: var(--primary);
+  color: var(--primary-ink);
 }
 
 .news-card p {
@@ -468,7 +468,7 @@
   align-items: center;
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
-  color: var(--primary);
+  color: var(--primary-ink);
   padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-base);
   transition: all var(--duration-base) var(--ease-out);
@@ -488,7 +488,7 @@
 }
 
 .news-card .body > div:last-child a:hover {
-  color: var(--primary-hover);
+  color: var(--primary-ink-hover);
   background: var(--primary-lightest);
 }
 
@@ -538,7 +538,7 @@
   font-size: var(--text-base);
   font-weight: var(--font-semibold);
   background: var(--white);
-  color: var(--primary);
+  color: var(--primary-ink);
   border: 2px solid var(--primary);
   border-radius: var(--radius-lg);
   transition: all var(--duration-medium) var(--ease-smooth);
@@ -554,7 +554,7 @@
   left: -100%;
   width: 100%;
   height: 100%;
-  background: var(--gradient);
+  background: var(--gradient-cta);
   transition: left var(--duration-medium) var(--ease-smooth);
   z-index: -1;
 }
@@ -678,7 +678,7 @@ aside {
 }
 
 .aside-card ul li a:hover {
-  color: var(--primary);
+  color: var(--primary-ink);
 }
 
 .aside-card .divider {
@@ -699,7 +699,7 @@ aside {
 }
 
 .aside-card .btn {
-  background: var(--gradient);
+  background: var(--gradient-cta);
   color: var(--white);
   border: none;
   box-shadow: var(--shadow-sm);
@@ -712,7 +712,7 @@ aside {
 
 .aside-card .btn-secondary {
   background: transparent;
-  color: var(--primary);
+  color: var(--primary-ink);
   border: 2px solid var(--primary);
   box-shadow: none;
 }
