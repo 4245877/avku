@@ -459,7 +459,13 @@
   flex-wrap: wrap;
 }
 
+/* display вказано явно: раніше блочність приходила з глобального
+   a { display: inline-block }, який ламав перенесення посилань
+   усередині тексту й тому прибраний. Тут вона потрібна — у посилання
+   є вертикальні відступи та фон при наведенні. */
 .news-card .body > div:last-child a {
+  display: inline-flex;
+  align-items: center;
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
   color: var(--primary);
@@ -884,12 +890,20 @@ html {
 
 /* ========== MICRO-INTERACTIONS ========== */
 
-/* Плавна поява зображень */
-.news-card img,
-.featured img {
-  opacity: 0;
-  animation: fadeIn var(--duration-medium) var(--ease-out) forwards;
-  animation-delay: 0.1s;
+/* Плавна поява зображень.
+   Було opacity:0 + fadeIn…forwards на всіх зображеннях сторінки.
+   Картинки нижче першого екрана «проявлялися» ще до того, як до них
+   доскролять, а до старту анімації сторінка виглядала порожньою.
+   Ефект прив'язаний до прокрутки; без підтримки — зображення просто видиме. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .news-card img,
+    .featured img {
+      animation: fadeIn linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 40%;
+    }
+  }
 }
 
 /* Ripple effect для кнопок (опціонально) */

@@ -342,11 +342,6 @@
 
 /* ========== ТЕМНАЯ ТЕМА ========== */
 
-[data-theme="dark"] .footer {
-  background: var(--dark-900);
-  border-top-color: rgba(255, 255, 255, 0.1);
-}
-
-[data-theme="light"] .footer {
-  background: var(--dark-900);
-}
+/* Правила [data-theme="dark"] удалены: атрибут data-theme нигде
+   не выставляется — ни в разметке, ни в скриптах, — так что это
+   был мёртвый код. */

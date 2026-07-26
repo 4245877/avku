@@ -5,7 +5,7 @@
 /* ========== ОБЩАЯ СТРУКТУРА СТРАНИЦЫ ========== */
 
 .contacts-page {
-  min-height: 100vh;
+  min-height: 100svh;
   background: linear-gradient(
     180deg,
     var(--light-50) 0%,
@@ -667,28 +667,10 @@
 
 /* ========== ДОПОЛНИТЕЛЬНЫЕ АНИМАЦИИ ========== */
 
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0) rotate(0deg);
-  }
-  33% {
-    transform: translateY(-20px) rotate(2deg);
-  }
-  66% {
-    transform: translateY(-10px) rotate(-2deg);
-  }
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+/* Локальные @keyframes float и fadeInUp удалены: они дублировали
+   одноимённые анимации из tokens.css и, поскольку файл страницы
+   грузится позже, молча перекрывали их для всей страницы. Теперь
+   используются глобальные — движение одинаково на всех разделах. */
 
 
 /* ========== СОСТОЯНИЯ ВАЛИДАЦИИ ========== */
@@ -716,61 +698,11 @@
 
 /* ========== ТЕМНАЯ ТЕМА (опционально) ========== */
 
-@media (prefers-color-scheme: dark) {
-  .contacts-page {
-    background: linear-gradient(
-      180deg,
-      var(--dark-900) 0%,
-      var(--dark-800) 50%,
-      var(--dark-900) 100%
-    );
-  }
-
-  .contact-card,
-  .form-wrapper {
-    background: var(--dark-800);
-    border-color: var(--dark-700);
-  }
-
-  .section-title,
-  .contact-card h3,
-  .form-wrapper h2,
-  .map h2 {
-    color: var(--light-50);
-  }
-
-  .contact-card p {
-    color: var(--light-300);
-  }
-
-  .contact-icon {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: var(--dark-700);
-  }
-
-  .form-group input,
-  .form-group textarea {
-    /* совпадает с фоном .form-wrapper, чтобы «вырез» лейбла был незаметен */
-    background: var(--dark-800);
-    border-color: var(--dark-600);
-    color: var(--light-50);
-  }
-
-  .form-group label {
-    background: var(--dark-800);
-    color: var(--light-400);
-  }
-
-  .contact-form {
-    background: var(--dark-800);
-  }
-
-  .map {
-    background: var(--dark-900);
-  }
-}
-
-
+/* Блок оформления под тёмную тему ОС удалён.
+   Он перекрашивал часть элементов (карточки, отдельные заголовки),
+   но цвет основного текста и фон страницы задаются светлой палитрой
+   в global.css — в тёмной теме ОС раздел получался нечитаемым.
+   Цветовая схема зафиксирована как светлая в tokens.css. */
 /* ========== ACCESSIBILITY ========== */
 
 @media (prefers-reduced-motion: reduce) {

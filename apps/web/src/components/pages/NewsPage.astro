@@ -150,7 +150,7 @@ const orgJsonLd = {
       <p class="hero-slogan" data-translate="news_hero_slogan">{t("news_hero_slogan")}</p>
       <p class="muted" data-translate="news_hero_text">{t("news_hero_text")}</p>
 
-      <div class="hero-actions" style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+      <div class="hero-actions btn-row btn-row-center">
         <a href={link("/donate")} class="btn" aria-label={t("home_hero_donate_aria")} data-translate="cta_support">{t("cta_support")}</a>
         <a href={link("/join")} class="btn" aria-label={t("home_hero_volunteer_aria")} data-translate="cta_become_volunteer">{t("cta_become_volunteer")}</a>
         <a href={link("/reports")} class="btn" aria-label={t("home_hero_reports_aria")} data-translate="cta_reports_transparency">{t("cta_reports_transparency")}</a>
@@ -159,7 +159,7 @@ const orgJsonLd = {
   </section>
 
   {featured ? (
-    <section class="container" style="margin-top:24px;">
+    <section class="container mt-6">
       <article class="featured" aria-label={pick("Головна новина", "Featured news")}>
         {featured.img ? (
           <img src={url(featured.img)} alt={pick(featured.imgAlt, featured.imgAltEn)} loading="lazy" decoding="async" />
@@ -169,19 +169,19 @@ const orgJsonLd = {
           <div class="meta">
             <span class="pill">{pick(featured.categoryLabel, featured.categoryLabelEn)}</span>
             <time datetime={featured.dateISO}>{pick(featured.dateLabel, featured.dateLabelEn)}</time>
-            {featured.sourceLabel ? <span style="opacity:.8;">· {pick(featured.sourceLabel, featured.sourceLabelEn)}</span> : null}
+            {featured.sourceLabel ? <span class="text-muted">· {pick(featured.sourceLabel, featured.sourceLabelEn)}</span> : null}
           </div>
 
-          <h2 style="margin:10px 0 8px;">{pick(featured.title, featured.titleEn)}</h2>
-          <p style="opacity:.95;">{pick(featured.excerpt, featured.excerptEn)}</p>
+          <h2 class="mt-3 mb-2">{pick(featured.title, featured.titleEn)}</h2>
+          <p class="text-muted">{pick(featured.excerpt, featured.excerptEn)}</p>
 
-          <a href={detailsHref(featured)} class="btn" style="margin-top:14px;" aria-label={pick(featured.title, featured.titleEn)} data-translate="cta_details">{t("cta_details")}</a>
+          <a href={detailsHref(featured)} class="btn mt-4" aria-label={pick(featured.title, featured.titleEn)} data-translate="cta_details">{t("cta_details")}</a>
         </div>
       </article>
     </section>
   ) : null}
 
-  <section class="container" style="margin-top:22px; margin-bottom:30px;">
+  <section class="container mt-6 mb-8">
     <div class="news-layout">
       <div>
         <h2 class="section-title" data-translate="news_feed_title">{t("news_feed_title")}</h2>
@@ -216,20 +216,18 @@ const orgJsonLd = {
           {t("news_no_results")}
         </div>
 
-        <div class="news-items" id="newsList" style="display:grid; gap:14px;">
+        <div class="news-items stack" id="newsList">
           {news.map((n) => (
             <article
               id={n.id}
-              class="news-card"
-              data-news-card="1"
-              data-cat={n.categoryKey || ""}
+              class="news-card" data-news-card="1" data-cat={n.categoryKey || ""}
               data-date={n.dateISO || ""}
               data-title={`${n.title || ""} ${n.titleEn || ""}`.toLowerCase()}
               data-text={`${n.excerpt || ""} ${n.excerptEn || ""}`.toLowerCase()}
             >
               {n.img ? (
                 <a href={detailsHref(n)} aria-label={pick(n.title, n.titleEn)}>
-                  <img src={url(n.img)} alt={pick(n.imgAlt, n.imgAltEn)} loading="lazy" decoding="async" style="width:100%; height:auto; display:block;" />
+                  <img src={url(n.img)} alt={pick(n.imgAlt, n.imgAltEn)} loading="lazy" decoding="async" class="w-full" />
                 </a>
               ) : null}
 
@@ -237,13 +235,13 @@ const orgJsonLd = {
                 <div class="meta">
                   <span class="pill">{pick(n.categoryLabel, n.categoryLabelEn)}</span>
                   <time datetime={n.dateISO} aria-label={pick(n.dateLabel, n.dateLabelEn)}>{pick(n.dateLabel, n.dateLabelEn)}</time>
-                  {n.sourceLabel ? <span style="opacity:.8;">· {pick(n.sourceLabel, n.sourceLabelEn)}</span> : null}
+                  {n.sourceLabel ? <span class="text-muted">· {pick(n.sourceLabel, n.sourceLabelEn)}</span> : null}
                 </div>
 
                 <h3>{pick(n.title, n.titleEn)}</h3>
-                <p style="opacity:.95;">{pick(n.excerpt, n.excerptEn)}</p>
+                <p class="text-muted">{pick(n.excerpt, n.excerptEn)}</p>
 
-                <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
+                <div class="btn-row mt-3">
                   <a href={detailsHref(n)} aria-label={pick(n.title, n.titleEn)} data-translate="cta_details">{t("cta_details")}</a>
                   {n.img ? (
                     <a href={detailsHref(n)} aria-label={pick(n.title, n.titleEn)} data-translate="news_photo">{t("news_photo")}</a>
@@ -255,20 +253,20 @@ const orgJsonLd = {
           ))}
         </div>
 
-        <div class="view-more-container" style="margin-top:16px;">
+        <div class="view-more-container mt-4">
           <button id="loadMoreBtn" type="button" class="btn" data-translate="news_load_more">{t("news_load_more")}</button>
         </div>
 
         <noscript>
-          <p class="muted small" style="margin-top:12px;" data-translate="news_noscript">{t("news_noscript")}</p>
+          <p class="muted small mt-3" data-translate="news_noscript">{t("news_noscript")}</p>
         </noscript>
       </div>
 
-      <aside style="display:grid; gap:14px;">
+      <aside class="stack">
         <div class="aside-card">
           <h3 data-translate="news_aside_channels">{t("news_aside_channels")}</h3>
-          <p class="muted small" style="margin:0 0 10px;" data-translate="news_aside_channels_desc">{t("news_aside_channels_desc")}</p>
-          <div style="display:flex; flex-direction:column; gap:10px;">
+          <p class="muted small m-0 mb-3" data-translate="news_aside_channels_desc">{t("news_aside_channels_desc")}</p>
+          <div class="stack stack-sm">
             <a class="btn-secondary" href="https://www.facebook.com/groups/555103805361838/?locale=ru_RU" target="_blank" rel="noopener noreferrer" data-translate="news_fb_group">{t("news_fb_group")}</a>
             <a class="btn-secondary" href="https://avku.org/" target="_blank" rel="noopener noreferrer" data-translate="news_old_site">{t("news_old_site")}</a>
             <a class="btn-secondary" href={link("/reports")} data-translate="cta_reports_transparency">{t("cta_reports_transparency")}</a>
@@ -277,8 +275,8 @@ const orgJsonLd = {
 
         <div class="aside-card">
           <h3 data-translate="news_aside_help">{t("news_aside_help")}</h3>
-          <p class="muted small" style="margin:0 0 10px;" data-translate="news_aside_help_desc">{t("news_aside_help_desc")}</p>
-          <div style="display:flex; flex-direction:column; gap:10px;">
+          <p class="muted small m-0 mb-3" data-translate="news_aside_help_desc">{t("news_aside_help_desc")}</p>
+          <div class="stack stack-sm">
             <a class="btn" href={link("/donate")} data-translate="cta_support">{t("cta_support")}</a>
             <a class="btn-secondary" href={link("/join")} data-translate="news_join">{t("news_join")}</a>
           </div>
@@ -289,22 +287,22 @@ const orgJsonLd = {
           {documents?.length ? (
             <ul>
               {documents.map((d) => (
-                <li style="margin-bottom:10px;">
+                <li class="mb-3">
                   <a href={d.href} target="_blank" rel="noopener noreferrer" aria-label={pick(d.title, d.titleEn)}>{pick(d.title, d.titleEn)}</a>
                   <div class="muted small">{pick(d.label, d.labelEn)}</div>
                 </li>
               ))}
             </ul>
           ) : (
-            <p class="muted small" style="margin:0;" data-translate="news_aside_no_docs">{t("news_aside_no_docs")}</p>
+            <p class="muted small m-0" data-translate="news_aside_no_docs">{t("news_aside_no_docs")}</p>
           )}
           <div class="divider"></div>
-          <p class="muted small" style="margin:0;" data-translate="news_aside_docs_note">{t("news_aside_docs_note")}</p>
+          <p class="muted small m-0" data-translate="news_aside_docs_note">{t("news_aside_docs_note")}</p>
         </div>
 
         <div class="aside-card">
           <h3 data-translate="news_aside_tip">{t("news_aside_tip")}</h3>
-          <p class="muted small" style="margin:0;" data-translate="news_aside_tip_desc">{t("news_aside_tip_desc")}</p>
+          <p class="muted small m-0" data-translate="news_aside_tip_desc">{t("news_aside_tip_desc")}</p>
         </div>
       </aside>
     </div>

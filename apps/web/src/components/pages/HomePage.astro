@@ -303,13 +303,13 @@ const orgJsonLd = {
       <p class="hero-slogan" data-translate="hero_slogan">{t("hero_slogan")}</p>
       <p data-translate="hero_text">{t("hero_text")}</p>
 
-      <div class="hero-actions" style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+      <div class="hero-actions btn-row btn-row-center">
         <a href={link("/donate")} class="btn" aria-label={t("home_hero_donate_aria")} data-translate="cta_support">{t("cta_support")}</a>
-        <a href={link("/join")} class="btn" aria-label={t("home_hero_volunteer_aria")} data-translate="cta_become_volunteer">{t("cta_become_volunteer")}</a>
-        <a href={link("/reports")} class="btn" aria-label={t("home_hero_reports_aria")} data-translate="cta_reports_transparency">{t("cta_reports_transparency")}</a>
+        <a href={link("/join")} class="btn btn-secondary" aria-label={t("home_hero_volunteer_aria")} data-translate="cta_become_volunteer">{t("cta_become_volunteer")}</a>
+        <a href={link("/reports")} class="btn btn-secondary" aria-label={t("home_hero_reports_aria")} data-translate="cta_reports_transparency">{t("cta_reports_transparency")}</a>
       </div>
 
-      <p style="margin-top:16px; font-size:0.95rem; opacity:0.9;" data-translate="home_hero_note">{t("home_hero_note")}</p>
+      <p class="hero-note" data-translate="home_hero_note">{t("home_hero_note")}</p>
     </div>
   </section>
 
@@ -323,15 +323,15 @@ const orgJsonLd = {
           <div class="activity-card">
             <h3 data-translate={n.titleKey}>{t(n.titleKey)}</h3>
             <p data-translate={n.descKey}>{t(n.descKey)}</p>
-            <div style="margin-top:16px;">
+            <div class="activity-card__actions">
               <a class="btn" href={link(n.href)} aria-label={`${t("home_support_prefix")} ${t(n.titleKey)}`} data-translate={n.ctaKey}>{t(n.ctaKey)}</a>
             </div>
           </div>
         ))}
       </div>
 
-      <div class="view-more-container" style="margin-top:24px;">
-        <a href={link("/donate")} class="btn" aria-label={t("home_urgent_more_aria")} data-translate="urgent_needs_more_cta">{t("urgent_needs_more_cta")}</a>
+      <div class="view-more-container">
+        <a href={link("/donate")} class="btn btn-secondary" aria-label={t("home_urgent_more_aria")} data-translate="urgent_needs_more_cta">{t("urgent_needs_more_cta")}</a>
       </div>
     </div>
   </section>
@@ -366,8 +366,8 @@ const orgJsonLd = {
         ))}
       </div>
 
-      <div class="view-more-container" style="margin-top:0;">
-        <a href={link("/reports")} class="btn" aria-label={t("home_reports_aria")} data-translate="cta_view_reports">{t("cta_view_reports")}</a>
+      <div class="view-more-container">
+        <a href={link("/reports")} class="btn btn-secondary" aria-label={t("home_reports_aria")} data-translate="cta_view_reports">{t("cta_view_reports")}</a>
       </div>
 
       <h2 class="section-title" data-translate="photo_reports_title">{t("photo_reports_title")}</h2>
@@ -384,7 +384,7 @@ const orgJsonLd = {
       </div>
 
       <div class="view-more-container">
-        <a href={link("/reports")} class="btn" aria-label={t("home_photos_aria")} data-translate="cta_more_photos">{t("cta_more_photos")}</a>
+        <a href={link("/reports")} class="btn btn-secondary" aria-label={t("home_photos_aria")} data-translate="cta_more_photos">{t("cta_more_photos")}</a>
       </div>
 
       <h2 class="section-title" data-translate="testimonials_title">{t("testimonials_title")}</h2>
@@ -392,7 +392,9 @@ const orgJsonLd = {
       <div class="testimonials-container">
         {testimonials.map((tm) => (
           <div class="testimonial">
-            <blockquote>"{pick(tm.quote, tm.quoteEn)}"</blockquote>
+            {/* Кавычки не дублируем в тексте: декоративная «лапка» уже
+                отрисована в .testimonial::before */}
+            <blockquote>{pick(tm.quote, tm.quoteEn)}</blockquote>
             <cite>{pick(tm.cite, tm.citeEn)}</cite>
           </div>
         ))}
@@ -410,18 +412,14 @@ const orgJsonLd = {
           <div class="partner">
             {p.logo ? (
               <img
+                class="partner__logo"
                 src={p.logo}
                 alt={pick(`Логотип партнера: ${p.name}`, `Partner logo: ${p.nameEn}`)}
                 loading="lazy"
                 decoding="async"
-                style="width:100%; height:96px; object-fit:contain; display:block;"
               />
             ) : (
-              <div
-                aria-hidden="true"
-                style="width:100%; height:96px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.12); border-radius:12px; opacity:0.9; font-weight:700; letter-spacing:0.04em;"
-                title={t("home_logo_missing")}
-              >
+              <div class="partner__placeholder" aria-hidden="true" title={t("home_logo_missing")}>
                 <span>{pick(initials(p.name), initials(p.nameEn))}</span>
               </div>
             )}
@@ -429,16 +427,16 @@ const orgJsonLd = {
             <h3>{pick(p.name, p.nameEn)}</h3>
 
             {p.url ? (
-              <a href={p.url} target="_blank" rel="noopener noreferrer" data-translate="visit_site">{t("visit_site")}</a>
+              <a class="partner__link" href={p.url} target="_blank" rel="noopener noreferrer" data-translate="visit_site">{t("visit_site")}</a>
             ) : (
-              <span style="opacity:0.65;" data-translate="site_missing">{t("site_missing")}</span>
+              <span class="partner__no-link" data-translate="site_missing">{t("site_missing")}</span>
             )}
           </div>
         ))}
       </div>
 
       <div class="view-more-container">
-        <a href={link("/about")} class="btn" aria-label={t("home_partners_about_aria")} data-translate="about_btn">{t("about_btn")}</a>
+        <a href={link("/about")} class="btn btn-secondary" aria-label={t("home_partners_about_aria")} data-translate="about_btn">{t("about_btn")}</a>
       </div>
     </div>
   </section>
@@ -465,7 +463,7 @@ const orgJsonLd = {
       </div>
 
       <div class="view-more-container">
-        <a href={link("/news")} class="btn" aria-label={t("home_allnews_aria")} data-translate="cta_all_news">{t("cta_all_news")}</a>
+        <a href={link("/news")} class="btn btn-secondary" aria-label={t("home_allnews_aria")} data-translate="cta_all_news">{t("cta_all_news")}</a>
       </div>
     </div>
   </section>
@@ -479,7 +477,7 @@ const orgJsonLd = {
         <div class="activity-card">
           <h3 data-translate="shared_support_donation_title">{t("shared_support_donation_title")}</h3>
           <p data-translate="shared_support_donation_desc">{t("shared_support_donation_desc")}</p>
-          <div style="margin-top:16px;">
+          <div class="activity-card__actions">
             <a class="btn" href={link("/donate")} aria-label={t("home_hero_donate_aria")} data-translate="cta_support">{t("cta_support")}</a>
           </div>
         </div>
@@ -487,16 +485,16 @@ const orgJsonLd = {
         <div class="activity-card">
           <h3 data-translate="shared_become_volunteer_title">{t("shared_become_volunteer_title")}</h3>
           <p data-translate="home_final_volunteer_desc">{t("home_final_volunteer_desc")}</p>
-          <div style="margin-top:16px;">
-            <a class="btn" href={link("/join")} aria-label={t("home_hero_volunteer_aria")} data-translate="cta_fill_form">{t("cta_fill_form")}</a>
+          <div class="activity-card__actions">
+            <a class="btn btn-secondary" href={link("/join")} aria-label={t("home_hero_volunteer_aria")} data-translate="cta_fill_form">{t("cta_fill_form")}</a>
           </div>
         </div>
 
         <div class="activity-card">
           <h3 data-translate="home_final_partner_title">{t("home_final_partner_title")}</h3>
           <p data-translate="home_final_partner_desc">{t("home_final_partner_desc")}</p>
-          <div style="margin-top:16px;">
-            <a class="btn" href={link("/contacts")} aria-label={t("cta_contact")} data-translate="cta_contact">{t("cta_contact")}</a>
+          <div class="activity-card__actions">
+            <a class="btn btn-secondary" href={link("/contacts")} aria-label={t("cta_contact")} data-translate="cta_contact">{t("cta_contact")}</a>
           </div>
         </div>
       </div>

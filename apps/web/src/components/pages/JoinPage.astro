@@ -75,8 +75,7 @@ const pick = (uk: string, en2: string) => (en ? en2 : uk);
   lang={lang}
   title={t("meta_join_title")}
   description={t("meta_join_desc")}
-  path="/join"
->
+  path="/join">
   <!-- HERO -->
   <section class="hero">
     <div class="container hero-content">
@@ -84,7 +83,7 @@ const pick = (uk: string, en2: string) => (en ? en2 : uk);
       <p class="hero-slogan" data-translate="join_hero_slogan">{t("join_hero_slogan")}</p>
       <p data-translate="join_hero_text">{t("join_hero_text")}</p>
 
-      <div class="hero-actions" style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+      <div class="hero-actions btn-row btn-row-center">
         <a href="#join-form" class="btn" aria-label={pick("Перейти до анкети волонтера", "Go to the volunteer form")} data-translate="cta_fill_form">{t("cta_fill_form")}</a>
         <a href={link("/donate")} class="btn" aria-label={pick("Перейти на сторінку підтримки", "Go to the support page")} data-translate="join_hero_support">{t("join_hero_support")}</a>
       </div>
@@ -128,12 +127,10 @@ const pick = (uk: string, en2: string) => (en ? en2 : uk);
 
       <div class="join-form-wrapper">
         <form
-          class="join-form"
-          action={CONTACT_ENDPOINT}
+          class="join-form" action={CONTACT_ENDPOINT}
           method="post"
           data-async-form
-          data-form-type="join"
-        >
+          data-form-type="join">
           <div class="hp-field" aria-hidden="true">
             <label for="v-company">Leave this field empty</label>
             <input type="text" id="v-company" name="company" tabindex="-1" autocomplete="off" />

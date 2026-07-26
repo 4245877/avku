@@ -5,7 +5,7 @@
 /* ========== БАЗОВІ СТИЛІ СТОРІНКИ ========== */
 
 .donate-page {
-  min-height: 100vh;
+  min-height: 100svh;
   background: var(--bg-body);
   padding-top: calc(var(--navbar-height) + var(--space-6));
   padding-bottom: var(--space-16);
@@ -279,7 +279,8 @@
   height: 4px;
   background: var(--gradient);
   border-radius: var(--radius-full);
-  animation: scaleIn var(--duration-medium) var(--ease-smooth);
+  animation: expandX var(--duration-medium) var(--ease-smooth);
+  transform-origin: left;
 }
 
 .donate-page .section__hint {
@@ -760,7 +761,7 @@
     rgba(255, 255, 255, 0.3),
     transparent
   );
-  animation: shimmer 2s linear infinite;
+  animation: sweep 2s linear infinite;
 }
 
 .donate-page .bar__fill {
@@ -1219,18 +1220,15 @@
 
 /* ========== АНІМАЦІЇ ========== */
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+/* fadeInUp и float удалены как дубли tokens.css (файл страницы грузится
+   позже и перекрывал глобальные версии на всей странице).
 
-@keyframes scaleIn {
+   Две оставшиеся анимации отличаются по смыслу от одноимённых глобальных,
+   поэтому переименованы: scaleIn в токенах — это scale(0.9)+opacity, а
+   здесь нужен рост полосы по ширине; shimmer в токенах сдвигает
+   background-position, а здесь блик едет через transform. */
+
+@keyframes expandX {
   from {
     transform: scaleX(0);
   }
@@ -1239,16 +1237,7 @@
   }
 }
 
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0) rotate(0deg);
-  }
-  50% {
-    transform: translateY(-20px) rotate(5deg);
-  }
-}
-
-@keyframes shimmer {
+@keyframes sweep {
   0% {
     transform: translateX(-100%);
   }

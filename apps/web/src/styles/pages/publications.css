@@ -5,7 +5,7 @@
 /* ========== ОСНОВНИЙ КОНТЕЙНЕР ========== */
 
 .publications-page {
-  min-height: 100vh;
+  min-height: 100svh;
   padding-top: calc(var(--navbar-height) + var(--space-8));
   padding-bottom: var(--space-20);
   background: linear-gradient(
@@ -699,7 +699,7 @@
   }
 
   .pdf-modal-content {
-    max-height: 85vh;
+    max-height: 85svh;
     border-radius: var(--radius-xl);
   }
 
@@ -825,22 +825,6 @@
 
 /* ========== АНИМАЦИИ ========== */
 
-@keyframes scaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -1000px 0;
-  }
-  100% {
-    background-position: 1000px 0;
-  }
-}
+/* @keyframes scaleIn и shimmer удалены: дубли одноимённых анимаций
+   из tokens.css. Файл страницы подключается позже и перекрывал их
+   глобально, хотя поведение задумано то же. */

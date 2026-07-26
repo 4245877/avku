@@ -1,4 +1,5 @@
 ---
+import "../styles/fonts.css";
 import "../styles/tokens.css";
 import "../styles/global.css";
 
@@ -86,6 +87,26 @@ const organizationJsonLd = {
 
     <!-- база для public/scripts/app.js (редірект кореня на обрану локаль) -->
     <meta name="app-base" content={base} />
+
+    <!--
+      Шрифти хостимо самі (public/fonts, @font-face у src/styles/fonts.css).
+      Раніше в токенах значився Inter, але жоден файл не завантажувався —
+      сайт малювався системним шрифтом, а заголовки й текст виглядали
+      однаково. Прелоадимо лише ту підмножину, яка потрібна поточній
+      локалі: для укр. сторінок — кирилиця, для англ. — латиниця.
+    -->
+    {(lang === "uk"
+      ? ["/fonts/manrope-cyrillic.woff2", "/fonts/inter-cyrillic.woff2"]
+      : ["/fonts/manrope-latin.woff2", "/fonts/inter-latin.woff2"]
+    ).map((href) => (
+      <link
+        rel="preload"
+        href={join(href)}
+        as="font"
+        type="font/woff2"
+        crossorigin
+      />
+    ))}
 
     <!-- hreflang: uk / en / x-default -->
     {altLinks.map((alt) => (

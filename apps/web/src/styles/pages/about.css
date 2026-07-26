@@ -65,23 +65,29 @@
   animation: fadeInUp var(--duration-slow) var(--ease-smooth) 0.2s forwards;
 }
 
-/* Декоративна лінія під заголовком */
+/* Декоративна лінія під заголовком.
+   `bottom: -var(--space-4)` — недійсний CSS: мінус не можна ставити
+   перед var(), потрібен calc(). Браузер відкидав оголошення цілком,
+   тож лінія отримувала bottom:auto і з'їжджала до тексту заголовка. */
 .about-section h1::after {
   content: '';
   position: absolute;
-  bottom: -var(--space-4);
+  bottom: calc(var(--space-4) * -1);
   left: 50%;
   transform: translateX(-50%);
   width: 120px;
   height: 4px;
   background: var(--gradient);
   border-radius: var(--radius-full);
-  animation: scaleIn var(--duration-medium) var(--ease-smooth) 0.5s forwards;
+  animation: underlineIn var(--duration-medium) var(--ease-smooth) 0.5s forwards;
   transform-origin: center;
   opacity: 0;
 }
 
-@keyframes scaleIn {
+/* Власне ім'я замість scaleIn: цей файл підключається після tokens.css
+   і однойменні @keyframes глобально перекривали базову анімацію
+   (у токенах scaleIn — це scale(0.9)→scale(1) без зсуву по X). */
+@keyframes underlineIn {
   from {
     opacity: 0;
     transform: translateX(-50%) scaleX(0);
@@ -286,7 +292,7 @@
   .about-section h1::after {
     width: 80px;
     height: 3px;
-    bottom: -var(--space-3);
+    bottom: calc(var(--space-3) * -1);
   }
 
   .about-section p {
@@ -438,78 +444,14 @@
 
 /* ========== ТЕМНА ТЕМА ========== */
 
-@media (prefers-color-scheme: dark) {
-  .about-section h1 {
-    color: var(--light-50);
-  }
-
-  .about-section p {
-    color: var(--light-300);
-  }
-
-  .about-section p strong {
-    color: var(--primary-light);
-  }
-
-  .about-section li {
-    background: var(--dark-800);
-    border-color: var(--dark-700);
-    color: var(--light-300);
-  }
-
-  .about-section li:hover {
-    border-color: var(--primary);
-    background: linear-gradient(
-      135deg,
-      var(--dark-800),
-      rgba(44, 173, 229, 0.1)
-    );
-  }
-
-  .about-section li strong {
-    color: var(--light-50);
-  }
-
-  .about-section li:hover strong {
-    color: var(--primary-light);
-  }
-}
-
-[data-theme="dark"] .about-section h1 {
-  color: var(--light-50);
-}
-
-[data-theme="dark"] .about-section p {
-  color: var(--light-300);
-}
-
-[data-theme="dark"] .about-section p strong {
-  color: var(--primary-light);
-}
-
-[data-theme="dark"] .about-section li {
-  background: var(--dark-800);
-  border-color: var(--dark-700);
-  color: var(--light-300);
-}
-
-[data-theme="dark"] .about-section li:hover {
-  border-color: var(--primary);
-  background: linear-gradient(
-    135deg,
-    var(--dark-800),
-    rgba(44, 173, 229, 0.1)
-  );
-}
-
-[data-theme="dark"] .about-section li strong {
-  color: var(--light-50);
-}
-
-[data-theme="dark"] .about-section li:hover strong {
-  color: var(--primary-light);
-}
-
+/* Блок оформления под тёмную тему ОС удалён.
+   Он перекрашивал часть элементов (карточки, отдельные заголовки),
+   но цвет основного текста и фон страницы задаются светлой палитрой
+   в global.css — в тёмной теме ОС раздел получался нечитаемым.
+   Цветовая схема зафиксирована как светлая в tokens.css. */
+/* Правила [data-theme="dark"] удалены: атрибут data-theme нигде
+   не выставляется — ни в разметке, ни в скриптах, — так что это
+   был мёртвый код. */
 /* ========== FOCUS STATES ========== */
 
 .about-section a:focus-visible,

@@ -5,8 +5,11 @@
 
 /* Компенсация фиксированного header, чтобы hero не "заезжал" под навигацию */
 #reports {
-  /* если в проекте уже есть переменная высоты хедера — она подхватится */
-  --reports-header-offset: var(--header-height, var(--site-header-height, 48px));
+  /* Здесь стояло var(--header-height, var(--site-header-height, 48px)) —
+     ни одна из этих переменных в проекте не объявлена, поэтому всегда
+     срабатывал запасной 48px. Реальная высота шапки — --navbar-height
+     (80px), так что верх страницы уезжал под фиксированный хедер на 32px. */
+  --reports-header-offset: var(--navbar-height);
 
   /* тонкая настройка расстояния между "Показано..." и списком */
   --reports-list-gap: 0px; /* поставь var(--space-2) если нужен "воздух" */
@@ -420,17 +423,22 @@
   padding: 0;
 }
 
-.report-card {
-  opacity: 0;
-  animation: fadeInUp var(--duration-slow) var(--ease-smooth) forwards;
+/* Поява карток звітів прив'язана до прокрутки.
+   Було opacity:0 + fadeInUp…forwards із затримками по nth-child.
+   Список звітів довгий: усі картки стартували невидимими й
+   «проявлялися» за перші пів секунди після завантаження — тобто
+   нижні встигали відпрацювати задовго до того, як до них доскролять.
+   Крім того, opacity:0 у базовому стані означав, що будь-який збій
+   анімації лишав сторінку порожньою. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .report-card {
+      animation: fadeInUp linear both;
+      animation-timeline: view();
+      animation-range: entry 5% entry 55%;
+    }
+  }
 }
-
-.report-card:nth-child(1) { animation-delay: 0.1s; }
-.report-card:nth-child(2) { animation-delay: 0.15s; }
-.report-card:nth-child(3) { animation-delay: 0.2s; }
-.report-card:nth-child(4) { animation-delay: 0.25s; }
-.report-card:nth-child(5) { animation-delay: 0.3s; }
-.report-card:nth-child(n+6) { animation-delay: 0.35s; }
 
 .report-card[hidden] {
   display: none;
@@ -1144,27 +1152,30 @@ html {
   }
 }
 
-/* Плавна поява елементів при скролі (потребує JS) */
-.reveal {
-  opacity: 0;
-  transform: translateY(30px);
-  transition: all var(--duration-slow) var(--ease-smooth);
-}
-
-.reveal.active {
-  opacity: 1;
-  transform: translateY(0);
+/* Плавна поява елементів при скролі.
+   Було: opacity:0 і очікування класу .active від скрипта, якого
+   в проєкті немає, — елемент із класом .reveal зникав назавжди. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: fadeInUp linear both;
+      animation-timeline: view();
+      animation-range: entry 5% entry 55%;
+    }
+  }
 }
 
 /* ========== ACCESSIBILITY ========== */
 
 /* Покращена видимість focus для клавіатурної навігації */
+/* Кільце фокуса через outline, а не box-shadow: тінь обрізається
+   будь-яким предком з overflow:hidden — а це всі картки звітів. */
 .filter-btn:focus-visible,
 .report-card__summary-toggle:focus-visible,
 .report-media__link:focus-visible,
 .btn:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
 }
 
 /* Анімації тільки якщо користувач не має prefers-reduced-motion */
@@ -1204,10 +1215,16 @@ html {
 
 /* ========== СТАН ЗАВАНТАЖЕННЯ ========== */
 
+/* --shimmer раньше нигде не был объявлен: свойство background отбрасывалось
+   целиком, и «скелет» загрузки выглядел как обычный прозрачный блок
+   с невидимым текстом. Токен добавлен в tokens.css. */
 .trust-widget[aria-busy="true"] .trust-widget__title,
 .trust-widget[aria-busy="true"] .trust-widget__bar,
 .trust-widget[aria-busy="true"] .trust-widget__meta > span {
   background: var(--shimmer);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s linear infinite;
+  border-radius: var(--radius-sm);
   color: transparent;
   user-select: none;
   pointer-events: none;

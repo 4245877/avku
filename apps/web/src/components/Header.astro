@@ -41,8 +41,13 @@ const ukHref = localePath(switchPath, "uk");
 const enHref = localePath(switchPath, "en");
 ---
 
+<a class={`${styles.skipLink} skip-link`} href="#content">{t("skip_to_content")}</a>
+
 <header class={`${styles.header} header`} id="main-header">
-  <nav class={`${styles.navbar} navbar`} aria-label="Primary navigation">
+  <!-- Класс .navbar убран: в global.css лежало одноимённое правило
+       от прежней вёрстки с position:fixed и собственным фоном, из-за
+       которого поверх шапки появлялся второй зафиксированный слой. -->
+  <nav class={styles.navbar} aria-label="Primary navigation">
     <div class={`${styles.logo} logo`}>
       <a class={`${styles.logoLink} logo-link`} href={localePath("/", lang)}>АВКУ</a>
     </div>
@@ -183,6 +188,22 @@ const enHref = localePath(switchPath, "en");
     if (mql.addEventListener) mql.addEventListener('change', onMqlChange);
     else if (mql.addListener) mql.addListener(onMqlChange);
 
+    // Уплотнение шапки при скролле.
+    // Стили для .scrolled в Header.module.css были, но класс никто
+    // не выставлял — состояние существовало только на бумаге.
+    // Наблюдаем за метрикой-«часовым» вместо слушателя scroll:
+    // никаких вычислений на каждый кадр прокрутки.
+    const sentinel = document.createElement('div');
+    sentinel.setAttribute('aria-hidden', 'true');
+    sentinel.style.cssText = 'position:absolute;top:0;left:0;width:1px;height:1px;pointer-events:none;';
+    document.body.prepend(sentinel);
+
+    const scrollObserver = new IntersectionObserver(
+      ([entry]) => header.classList.toggle('scrolled', !entry.isIntersecting),
+      { rootMargin: '0px' }
+    );
+    scrollObserver.observe(sentinel);
+
     header.__navCleanup = () => {
       closeMenu();
       hamburger.removeEventListener('click', onHamburgerClick);
@@ -192,6 +213,10 @@ const enHref = localePath(switchPath, "en");
 
       if (mql.removeEventListener) mql.removeEventListener('change', onMqlChange);
       else if (mql.removeListener) mql.removeListener(onMqlChange);
+
+      scrollObserver.disconnect();
+      sentinel.remove();
+      header.classList.remove('scrolled');
     };
   };
 

@@ -6,7 +6,7 @@
 
 .hero {
   position: relative;
-  min-height: 85vh;
+  min-height: 85svh;
   display: flex;
   align-items: center;
   padding-top: calc(var(--navbar-height) + var(--space-8));
@@ -726,30 +726,11 @@
 }
 
 /* Темна тема (якщо підключена) */
-@media (prefers-color-scheme: dark) {
-  .hero::before {
-    background: linear-gradient(
-      135deg,
-      rgba(44, 173, 229, 0.1) 0%,
-      rgba(77, 122, 188, 0.1) 50%,
-      rgba(15, 23, 42, 0.95) 100%
-    );
-  }
-  
-  .activity-card,
-  .news-item {
-    background: var(--dark-800);
-    border-color: var(--dark-700);
-  }
-  
-  .filter-btn {
-    background: var(--dark-800);
-    border-color: var(--dark-700);
-    color: var(--light-300);
-  }
-}
-
-
+/* Блок оформления под тёмную тему ОС удалён.
+   Он перекрашивал часть элементов (карточки, отдельные заголовки),
+   но цвет основного текста и фон страницы задаются светлой палитрой
+   в global.css — в тёмной теме ОС раздел получался нечитаемым.
+   Цветовая схема зафиксирована как светлая в tokens.css. */
 /* ========== ADVANCED INTERACTIONS ========== */
 
 /* Parallax ефект для декоративних елементів */
@@ -764,14 +745,21 @@
 }
 
 /* Stagger animation для cards */
-.activities-grid .activity-card {
-  opacity: 0;
-  animation: fadeInUp var(--duration-medium) var(--ease-smooth) forwards;
+/* Поява карток прив'язана до прокрутки, а не до завантаження сторінки.
+   Раніше тут стояло opacity:0 + animation…forwards із затримками:
+   картки «з'являлися» ще до того, як користувач до них доскролив,
+   а при будь-якому збої анімації лишалися невидимими назавжди. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .activities-grid .activity-card,
+    .events-grid > *,
+    .news-item {
+      animation: fadeInUp linear both;
+      animation-timeline: view();
+      animation-range: entry 5% entry 60%;
+    }
+  }
 }
-
-.activities-grid .activity-card:nth-child(1) { animation-delay: 0.1s; }
-.activities-grid .activity-card:nth-child(2) { animation-delay: 0.2s; }
-.activities-grid .activity-card:nth-child(3) { animation-delay: 0.3s; }
 .activities-grid .activity-card:nth-child(4) { animation-delay: 0.4s; }
 .activities-grid .activity-card:nth-child(5) { animation-delay: 0.5s; }
 .activities-grid .activity-card:nth-child(6) { animation-delay: 0.6s; }
@@ -853,16 +841,19 @@
 
 /* ========== SCROLL ANIMATIONS ========== */
 
-/* Плавне появлення при скролі (якщо підключено Intersection Observer) */
-.fade-in-on-scroll {
-  opacity: 0;
-  transform: translateY(30px);
-  transition: all var(--duration-slow) var(--ease-smooth);
-}
-
-.fade-in-on-scroll.visible {
-  opacity: 1;
-  transform: translateY(0);
+/* Плавне появлення при скролі.
+   Було: opacity:0 + очікування класу .visible від Intersection Observer,
+   якого в проєкті немає, — тобто будь-який елемент із цим класом зникав
+   назавжди. Тепер анімація керується самою прокруткою, а там, де така
+   прив'язка не підтримується, елемент просто видимий. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .fade-in-on-scroll {
+      animation: fadeInUp linear both;
+      animation-timeline: view();
+      animation-range: entry 5% entry 60%;
+    }
+  }
 }
 
 
@@ -906,15 +897,11 @@
   transition-timing-function: var(--ease-smooth);
 }
 
-/* Оптимізація анімацій */
-.activity-card,
-.news-item,
-.filter-btn,
-.btn {
+/* Тут стояв постійний will-change: transform на всіх картках, фільтрах
+   і кнопках сторінки. Кожен такий елемент отримував окремий шар
+   композитора і тримав пам'ять увесь час, хоча анімується лише той,
+   на який навели. Підказку варто давати безпосередньо перед анімацією. */
+.activities-grid:hover .activity-card,
+.news-items:hover .news-item {
   will-change: transform;
-}
-
-.activity-card:hover,
-.news-item:hover {
-  will-change: transform, box-shadow;
 }

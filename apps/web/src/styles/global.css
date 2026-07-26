@@ -24,11 +24,20 @@
 }
 
 html {
-  font-size: 16px;
-  scroll-behavior: smooth;
+  /* 100%, а не 16px: жёсткий px игнорирует настройку размера шрифта
+     в браузере пользователя и ломает доступность. */
+  font-size: 100%;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
+  /* Якорные переходы не должны прятать цель под фиксированным хедером */
+  scroll-padding-top: calc(var(--navbar-height) + var(--space-4));
+}
+
+/* scroll-behavior только там, где пользователь не просил убрать анимации */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
 }
 
 body {
@@ -36,21 +45,16 @@ body {
   font-size: var(--text-base);
   font-weight: var(--font-regular);
   line-height: var(--leading-relaxed);
-  color: var(--dark-900);
+  color: var(--text-strong);
   background-color: var(--bg-body);
-  overflow-x: hidden;
-  transition: background-color var(--duration-medium) var(--ease-smooth);
-}
-
-/* Улучшенная прокрутка */
-body {
+  /* clip, а не hidden: overflow-x:hidden превращает body в скролл-контейнер
+     и ломает position:sticky у потомков (боковая колонка фильтров на
+     странице звітів). clip обрезает так же, но контейнер не создаёт. */
+  overflow-x: clip;
   overscroll-behavior-y: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  html {
-    scroll-behavior: smooth;
-  }
+  /* Пропорциональные цифры в тексте, табличные — точечно (счётчики, суммы) */
+  font-variant-numeric: proportional-nums;
+  transition: background-color var(--duration-medium) var(--ease-smooth);
 }
 
 
@@ -61,8 +65,11 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: var(--font-bold);
   line-height: var(--leading-tight);
   letter-spacing: var(--tracking-tight);
-  color: var(--dark-900);
+  color: var(--text-strong);
   margin-bottom: var(--space-4);
+  /* Длинные украинские слова не должны рвать сетку */
+  overflow-wrap: break-word;
+  text-wrap: balance;
   transition: color var(--duration-base) var(--ease-out);
 }
 
@@ -101,8 +108,22 @@ h6 {
 
 p {
   margin-bottom: var(--space-4);
-  color: var(--dark-600);
+  color: var(--text-body);
+  overflow-wrap: break-word;
+  text-wrap: pretty;
   transition: color var(--duration-base) var(--ease-out);
+}
+
+/* Комфортная длина строки (60–75 знаков) — включается точечно,
+   чтобы не ломать выравнивание текста в карточках и оверлеях */
+.measure {
+  max-width: 68ch;
+}
+
+.measure-center {
+  max-width: 68ch;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 p:last-child {
@@ -116,12 +137,13 @@ p:last-child {
   line-height: var(--leading-relaxed);
   color: var(--dark-700);
   margin-bottom: var(--space-6);
+  text-wrap: pretty;
 }
 
 /* Мелкий текст */
 small, .text-small {
   font-size: var(--text-sm);
-  color: var(--dark-500);
+  color: var(--text-muted);
 }
 
 .text-xs {
@@ -139,23 +161,18 @@ em, i {
   font-style: italic;
 }
 
-/* Ссылки */
+/* Ссылки
+   display:inline-block здесь был багом: ссылка внутри абзаца переставала
+   переноситься по словам и «выпадала» из строки на узких экранах.
+   Инлайновость по умолчанию, блочность — там, где она нужна (.btn, карточки). */
 a {
   color: var(--primary);
   text-decoration: none;
   transition: var(--transition-colors);
-  position: relative;
-  display: inline-block;
 }
 
 a:hover {
   color: var(--primary-hover);
-}
-
-a:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-  border-radius: var(--radius-sm);
 }
 
 /* Анимированное подчёркивание для текстовых ссылок */
@@ -178,7 +195,12 @@ a.link-underline:hover::after {
   width: 100%;
 }
 
-/* Списки */
+/* Списки
+   Раньше градиентный маркер вешался на КАЖДЫЙ ul li на сайте — включая
+   меню, футер, списки карточек и фильтры, — и каждому приходилось его
+   отключать вручную. Теперь декоративный маркер только у смысловых
+   списков внутри контента; служебные списки помечаются .list-plain
+   (или лежат внутри nav / [role="list"]). */
 ul, ol {
   margin-bottom: var(--space-4);
   padding-left: var(--space-6);
@@ -186,29 +208,49 @@ ul, ol {
 
 li {
   margin-bottom: var(--space-2);
-  color: var(--dark-600);
+  color: var(--text-body);
 }
 
-ul li {
+/* Маркер намеренно описан селекторами низкой специфичности (0,0,3),
+   чтобы любое правило страницы с классом перебивало его без !important —
+   у карточек-списков (например, .about-section li) свой акцент слева. */
+ul > li {
   list-style-type: none;
   position: relative;
   padding-left: var(--space-4);
 }
 
-ul li::before {
+ul > li::before {
   content: '';
   position: absolute;
   left: 0;
-  top: 0.7em;
+  top: 0.65em;
   width: 6px;
   height: 6px;
   background: var(--gradient);
   border-radius: var(--radius-full);
-  transition: transform var(--duration-fast) var(--ease-out);
 }
 
-ul li:hover::before {
-  transform: scale(1.3);
+/* Служебные списки: навигация, ряды кнопок, сетки карточек */
+nav ul,
+.list-plain,
+[role="list"] {
+  list-style: none;
+  padding-left: 0;
+  margin-bottom: 0;
+}
+
+nav ul > li,
+.list-plain > li,
+[role="list"] > li {
+  margin-bottom: 0;
+  padding-left: 0;
+}
+
+nav ul > li::before,
+.list-plain > li::before,
+[role="list"] > li::before {
+  content: none;
 }
 
 
@@ -222,158 +264,210 @@ button {
   transition: var(--transition-base);
 }
 
+/* Базовая кнопка.
+   Раньше .btn задавала только геометрию — без фона и цвета. В разметке
+   73 элемента используют голый class="btn", и все они выглядели как
+   обычный текст: непонятно, что это кнопка и куда нажимать.
+   Теперь .btn сама по себе — полноценная основная кнопка, а модификаторы
+   лишь меняют её характер. */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
+  min-height: 2.75rem;            /* 44px — комфортная цель для пальца */
   padding: var(--space-3) var(--space-6);
+  font-family: var(--font-primary);
   font-size: var(--text-base);
-  font-weight: var(--font-medium);
-  line-height: 1;
+  font-weight: var(--font-semibold);
+  line-height: 1.2;
+  text-align: center;
+  border: 2px solid transparent;
   border-radius: var(--radius-lg);
   cursor: pointer;
-  transition: all var(--duration-medium) var(--ease-smooth);
   position: relative;
+  isolation: isolate;
   overflow: hidden;
-  white-space: nowrap;
   user-select: none;
-  transform: translateY(0);
-}
+  -webkit-tap-highlight-color: transparent;
 
-.btn::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  border-radius: var(--radius-full);
-  background: rgba(255, 255, 255, 0.3);
-  transform: translate(-50%, -50%);
-  transition: width var(--duration-slow) var(--ease-out),
-              height var(--duration-slow) var(--ease-out);
-}
-
-.btn:hover::before {
-  width: 300px;
-  height: 300px;
-}
-
-.btn:active {
-  transform: translateY(1px);
-}
-
-/* Основная кнопка */
-.btn-primary {
-  background: var(--btn-primary);
-  color: var(--white);
-  box-shadow: var(--shadow-base);
-}
-
-.btn-primary:hover {
-  background: var(--btn-primary-hover);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
-}
-
-.btn-primary:active {
-  transform: translateY(0);
-}
-
-/* Градиентная кнопка */
-.btn-gradient {
   background: var(--gradient);
-  color: var(--white);
+  background-size: 140% 140%;
+  background-position: 0% 50%;
+  color: var(--text-inverse);
   box-shadow: var(--shadow-primary);
-  position: relative;
-  z-index: 1;
+
+  transition:
+    transform var(--duration-medium) var(--ease-smooth),
+    box-shadow var(--duration-medium) var(--ease-smooth),
+    background-position var(--duration-slow) var(--ease-smooth),
+    background-color var(--duration-base) var(--ease-out),
+    color var(--duration-base) var(--ease-out),
+    border-color var(--duration-base) var(--ease-out);
 }
 
-.btn-gradient::after {
+/* Мягкий блик вместо «расползающегося круга»: работает на любом фоне
+   и не конфликтует с оформлением кнопок на отдельных страницах */
+.btn::after {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--gradient-hover);
-  border-radius: var(--radius-lg);
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.28), transparent 60%);
   opacity: 0;
   transition: opacity var(--duration-medium) var(--ease-smooth);
-  z-index: -1;
 }
 
-.btn-gradient:hover::after {
+.btn:hover {
+  transform: translateY(-2px);
+  background-position: 100% 50%;
+  box-shadow: var(--shadow-lg), 0 18px 34px -14px rgba(44, 173, 229, 0.45);
+}
+
+.btn:hover::after {
   opacity: 1;
 }
 
-.btn-gradient:hover {
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-2px);
+.btn:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-base);
 }
 
-/* Акцентная кнопка */
+.btn:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* ---- Модификаторы (поддержаны оба нейминга: .btn-x и .btn--x) ---- */
+
+/* Сплошная синяя — основной CTA на цветных подложках */
+.btn-primary,
+.btn--primary {
+  background: var(--btn-primary);
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-secondary);
+}
+
+.btn-primary:hover,
+.btn--primary:hover {
+  background: var(--btn-primary-hover);
+  box-shadow: var(--shadow-lg), 0 18px 34px -14px rgba(77, 122, 188, 0.45);
+}
+
+/* Градиентная — то же, что базовая .btn; оставлена для явности в разметке */
+.btn-gradient {
+  background: var(--gradient);
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-primary);
+}
+
+/* Акцентная — жёлтая, для «пожертвувати» */
 .btn-accent {
   background: var(--btn-accent);
   color: var(--dark-900);
   box-shadow: var(--shadow-accent);
-  font-weight: var(--font-semibold);
 }
 
 .btn-accent:hover {
   background: var(--btn-accent-hover);
-  transform: translateY(-2px) scale(1.02);
+  box-shadow: var(--shadow-lg), 0 18px 34px -14px rgba(255, 217, 0, 0.5);
 }
 
-/* Вторичная кнопка */
-.btn-secondary {
-  background: transparent;
+.btn-accent::after {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.5), transparent 60%);
+}
+
+/* Контурная — вторичное действие */
+.btn-secondary,
+.btn--secondary,
+.btn-outline {
+  background: var(--white);
   color: var(--primary);
-  border: 2px solid var(--primary);
+  border-color: var(--primary-lighter);
+  box-shadow: var(--shadow-xs);
 }
 
-.btn-secondary:hover {
+.btn-secondary:hover,
+.btn--secondary:hover,
+.btn-outline:hover {
   background: var(--primary-lightest);
-  border-color: var(--primary-hover);
+  color: var(--primary-hover);
+  border-color: var(--primary);
+  box-shadow: var(--shadow-sm);
 }
 
-/* Кнопка-призрак */
-.btn-ghost {
+.btn-secondary::after,
+.btn--secondary::after,
+.btn-outline::after {
+  content: none;
+}
+
+/* Призрачная — третичное действие */
+.btn-ghost,
+.btn--ghost {
   background: transparent;
   color: var(--dark-700);
+  border-color: transparent;
+  box-shadow: none;
 }
 
-.btn-ghost:hover {
+.btn-ghost:hover,
+.btn--ghost:hover {
   background: var(--light-100);
   color: var(--dark-900);
+  box-shadow: none;
 }
 
-/* Размеры кнопок */
-.btn-sm {
+.btn-ghost::after,
+.btn--ghost::after {
+  content: none;
+}
+
+/* ---- Размеры ---- */
+
+.btn-sm,
+.btn--small {
+  min-height: 2.25rem;
   padding: var(--space-2) var(--space-4);
   font-size: var(--text-sm);
   border-radius: var(--radius-base);
 }
 
 .btn-lg {
+  min-height: 3.25rem;
   padding: var(--space-4) var(--space-8);
   font-size: var(--text-lg);
   border-radius: var(--radius-xl);
 }
 
-/* Заблокированная кнопка */
-.btn:disabled,
-.btn[disabled] {
-  opacity: var(--disabled-opacity);
-  cursor: var(--disabled-cursor);
-  transform: none !important;
+.btn--full,
+.btn-block {
+  display: flex;
+  width: 100%;
 }
 
-.btn:disabled:hover,
-.btn[disabled]:hover {
+/* ---- Заблокированная кнопка ---- */
+
+.btn:disabled,
+.btn[disabled],
+.btn[aria-disabled="true"] {
+  opacity: var(--disabled-opacity);
+  cursor: var(--disabled-cursor);
+  pointer-events: none;
   transform: none;
-  box-shadow: var(--shadow-base);
+  box-shadow: none;
+}
+
+/* Ряд кнопок — единый отступ вместо инлайновых стилей в разметке */
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.btn-row-center {
+  justify-content: center;
 }
 
 
@@ -383,13 +477,15 @@ input,
 textarea,
 select {
   font-family: var(--font-primary);
+  /* Ровно 16px: меньше — и Safari на iOS зумит страницу при фокусе */
   font-size: var(--text-base);
   width: 100%;
+  min-height: 2.75rem;
   padding: var(--space-3) var(--space-4);
   border: 2px solid var(--border-color);
   border-radius: var(--radius-base);
-  background: var(--white);
-  color: var(--dark-900);
+  background: var(--surface);
+  color: var(--text-strong);
   transition: var(--transition-colors), var(--transition-shadow);
   outline: none;
 }
@@ -400,16 +496,20 @@ select:hover {
   border-color: var(--border-color-hover);
 }
 
-input:focus,
-textarea:focus,
-select:focus {
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
   border-color: var(--primary);
   box-shadow: 0 0 0 4px var(--primary-lightest);
 }
 
+/* --dark-400 не был определён ни в одном файле: свойство отбрасывалось,
+   и плейсхолдер наследовал цвет основного текста — его нельзя было
+   отличить от заполненного значения. */
 input::placeholder,
 textarea::placeholder {
-  color: var(--dark-400);
+  color: var(--text-subtle);
+  opacity: 1;
   transition: color var(--duration-base) var(--ease-out);
 }
 
@@ -437,11 +537,16 @@ label {
   margin-bottom: var(--space-5);
 }
 
-/* Чекбоксы и радио */
+/* Чекбоксы и радио — сбрасываем габариты текстовых полей,
+   иначе они наследуют min-height: 2.75rem и width: 100% */
 input[type="checkbox"],
 input[type="radio"] {
   width: auto;
+  min-height: 0;
+  min-width: 0;
+  padding: 0;
   margin-right: var(--space-2);
+  accent-color: var(--primary);
   cursor: pointer;
 }
 
@@ -506,6 +611,197 @@ input[type="radio"] {
 
 .card-gradient p {
   color: rgba(255, 255, 255, 0.9);
+}
+
+
+/* ========== ТЕКСТУРЫ, УЗОРЫ И ФОНЫ ==========
+   Единый набор подложек. Раньше каждый page-файл рисовал свои
+   radial-gradient «пятна» с разной прозрачностью и радиусом, из-за чего
+   страницы выглядели как разные сайты. Здесь — общие классы, которые
+   кладутся на секцию и дают одинаковую фактуру везде.
+
+   Все узоры живут в ::before, не перехватывают клики и уходят из потока. */
+
+.has-pattern {
+  position: relative;
+  isolation: isolate;
+}
+
+.has-pattern > * {
+  position: relative;
+  z-index: 1;
+}
+
+.has-pattern::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Сетка — крупные вводные экраны */
+.pattern-grid::before {
+  background-image: var(--pattern-grid);
+  background-size: var(--pattern-size) var(--pattern-size);
+  /* Узор гаснет к краям, чтобы не спорить с текстом */
+  -webkit-mask-image: radial-gradient(ellipse 80% 65% at 50% 40%, #000 20%, transparent 78%);
+  mask-image: radial-gradient(ellipse 80% 65% at 50% 40%, #000 20%, transparent 78%);
+  opacity: 0.7;
+}
+
+/* Точки — блоки показателей, футер, вставки */
+.pattern-dots::before {
+  background-image: var(--pattern-dots);
+  background-size: var(--pattern-size) var(--pattern-size);
+  -webkit-mask-image: radial-gradient(ellipse 75% 75% at 50% 50%, #000 10%, transparent 75%);
+  mask-image: radial-gradient(ellipse 75% 75% at 50% 50%, #000 10%, transparent 75%);
+  opacity: 0.6;
+}
+
+/* Диагональ — узкие акцентные полосы */
+.pattern-diagonal::before {
+  background-image: var(--pattern-diagonal);
+  opacity: 0.5;
+}
+
+/* Мягкое световое пятно поверх узора */
+.has-glow {
+  position: relative;
+  isolation: isolate;
+}
+
+.has-glow::after {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  inset: -25% -15% auto auto;
+  width: min(48rem, 70%);
+  aspect-ratio: 1;
+  background: var(--glow-primary);
+  pointer-events: none;
+}
+
+/* Светлая подложка секции */
+.surface-sunken {
+  background: linear-gradient(180deg, var(--white) 0%, var(--light-50) 100%);
+}
+
+.surface-plain {
+  background: var(--surface);
+}
+
+
+/* ========== КАРТОЧКИ ПОКАЗАТЕЛЕЙ ==========
+
+   Было: три числа без разделителей в одной общей рамке — это читалось
+   как один абзац текста, а не как отдельные результаты. Сами цифры
+   заливались градиентом через background-clip:text, и контраст падал
+   примерно до 2.4:1 при норме WCAG AA 4.5:1; в режиме принудительных
+   цветов Windows они пропадали совсем, а в печать уходили пустыми.
+
+   Стало: настоящие карточки с фактурой, границей и подъёмом при
+   наведении; цифра — сплошным цветом. Одно определение на весь сайт:
+   .counter-item — имена из текущей разметки главной, .stat-card —
+   для новых блоков. */
+
+.stat-grid,
+.counters-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr));
+  gap: var(--space-5);
+}
+
+.stat-card,
+.counter-item {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  text-align: center;
+  padding: var(--space-8) var(--space-6);
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xs);
+  transition:
+    transform var(--duration-medium) var(--ease-smooth),
+    box-shadow var(--duration-medium) var(--ease-smooth),
+    border-color var(--duration-medium) var(--ease-smooth);
+}
+
+/* Фактура внутри карточки — та же система точек, что и в секциях */
+.stat-card::before,
+.counter-item::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: var(--pattern-dots);
+  background-size: 18px 18px;
+  opacity: 0.5;
+  -webkit-mask-image: linear-gradient(215deg, #000, transparent 62%);
+  mask-image: linear-gradient(215deg, #000, transparent 62%);
+  transition: opacity var(--duration-medium) var(--ease-smooth);
+}
+
+/* Акцентная полоса сверху — тот же приём, что у остальных карточек сайта */
+.stat-card::after,
+.counter-item::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--gradient);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--duration-medium) var(--ease-smooth);
+}
+
+.stat-card:hover,
+.counter-item:hover {
+  transform: translateY(-4px);
+  border-color: var(--primary-lighter);
+  box-shadow: var(--shadow-md);
+}
+
+.stat-card:hover::before,
+.counter-item:hover::before {
+  opacity: 0.85;
+}
+
+.stat-card:hover::after,
+.counter-item:hover::after {
+  transform: scaleX(1);
+}
+
+.stat-value,
+.counter {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 5vw, 3.5rem);
+  font-weight: var(--font-extrabold);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--secondary);
+  display: block;
+  /* Табличные цифры: при анимации счётчика ширина числа не дёргается */
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+.stat-label,
+.counter-label {
+  font-size: var(--text-base);
+  font-weight: var(--font-medium);
+  line-height: var(--leading-snug);
+  color: var(--text-body);
+  margin: 0;
+  text-wrap: balance;
 }
 
 
@@ -600,157 +896,72 @@ section {
   position: relative;
 }
 
+/* Вложенная секция не должна удваивать вертикальный ритм */
+section section {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
 .section-hero {
   padding-top: calc(var(--navbar-height) + var(--space-16));
   padding-bottom: var(--space-24);
-  min-height: 100vh;
+  /* svh вместо vh: на мобильных 100vh считается без учёта адресной строки,
+     из-за чего первый экран «прыгает» при скролле и обрезается снизу */
+  min-height: 100svh;
   display: flex;
   align-items: center;
 }
 
 
-/* ========== НАВИГАЦИЯ ========== */
+/* ========== НАВИГАЦИЯ ==========
 
-.navbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: var(--navbar-height);
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: var(--backdrop-blur-lg);
-  -webkit-backdrop-filter: var(--backdrop-blur-lg);
-  border-bottom: 1px solid var(--border-color-light);
-  box-shadow: var(--shadow-sm);
-  z-index: var(--z-fixed);
-  transition: all var(--duration-medium) var(--ease-smooth);
-}
+   Здесь лежал полный набор .navbar / .navbar-menu / .navbar-link / .navbar-toggle
+   от прежней вёрстки. Актуальный хедер (Header.astro + Header.module.css)
+   использует другие имена, поэтому весь набор был мёртвым кодом — кроме
+   одного совпадения: внутренний <nav class="navbar"> получал отсюда
+   position:fixed + собственный фон, blur, border и тень. В результате
+   поверх зафиксированного .header лежал второй зафиксированный слой:
+   шапка выглядела плотнее задуманного, с двойной тенью и границей,
+   а флекс-раскладка навбара ломалась.
 
-.navbar.scrolled {
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: var(--shadow-md);
-  height: 4.5rem;
-}
-
-.navbar-container {
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.navbar-logo {
-  font-size: var(--text-xl);
-  font-weight: var(--font-bold);
-  color: var(--dark-900);
-  transition: var(--transition-colors);
-}
-
-.navbar-logo:hover {
-  color: var(--primary);
-}
-
-.navbar-menu {
-  display: flex;
-  align-items: center;
-  gap: var(--space-8);
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.navbar-link {
-  font-size: var(--text-base);
-  font-weight: var(--font-medium);
-  color: var(--dark-700);
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-base);
-  position: relative;
-  transition: var(--transition-colors);
-}
-
-.navbar-link:hover {
-  color: var(--primary);
-  background: var(--primary-lightest);
-}
-
-.navbar-link.active {
-  color: var(--primary);
-}
-
-.navbar-link.active::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: var(--space-3);
-  right: var(--space-3);
-  height: 2px;
-  background: var(--gradient);
-  border-radius: var(--radius-full);
-}
-
-/* Активная кнопка выбора языка (класс .active добавляется через app.js) */
-.lang-btn.active {
-  background: var(--gradient);
-  color: var(--white);
-  font-weight: var(--font-semibold);
-}
-
-/* Мобильное меню */
-.navbar-toggle {
-  display: none;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: var(--space-2);
-  color: var(--dark-900);
-}
-
-@media (max-width: 768px) {
-  .navbar-toggle {
-    display: block;
-  }
-  
-  .navbar-menu {
-    position: fixed;
-    top: var(--navbar-height);
-    left: 0;
-    right: 0;
-    flex-direction: column;
-    gap: 0;
-    background: rgba(255, 255, 255, 0.98);
-    backdrop-filter: var(--backdrop-blur-xl);
-    padding: var(--space-6);
-    box-shadow: var(--shadow-xl);
-    transform: translateY(-100%);
-    opacity: 0;
-    visibility: hidden;
-    transition: all var(--duration-medium) var(--ease-smooth);
-  }
-  
-  .navbar-menu.active {
-    transform: translateY(0);
-    opacity: 1;
-    visibility: visible;
-  }
-  
-  .navbar-link {
-    width: 100%;
-    padding: var(--space-4);
-    text-align: left;
-  }
-}
+   Стили шапки живут только в Header.module.css. */
 
 
 /* ========== УТИЛИТЫ ========== */
 
-/* Отступы */
+/* Отступы.
+   Раньше на страницах «Події», «Новини» и «Долучитися» вертикальные
+   отступы задавались инлайново значениями вроде 6px, 10px, 14px, 22px,
+   30px — мимо шкалы кратной 4px. Из-за этого одинаковые по смыслу
+   блоки на разных страницах стояли по-разному. Эти утилиты покрывают
+   те же случаи, но значениями из шкалы. */
 .m-0 { margin: 0; }
+.mt-2 { margin-top: var(--space-2); }
+.mt-3 { margin-top: var(--space-3); }
 .mt-4 { margin-top: var(--space-4); }
+.mt-6 { margin-top: var(--space-6); }
 .mt-8 { margin-top: var(--space-8); }
+.mb-2 { margin-bottom: var(--space-2); }
+.mb-3 { margin-bottom: var(--space-3); }
 .mb-4 { margin-bottom: var(--space-4); }
+.mb-6 { margin-bottom: var(--space-6); }
 .mb-8 { margin-bottom: var(--space-8); }
 .my-8 { margin-top: var(--space-8); margin-bottom: var(--space-8); }
+
+/* Вертикальная стопка с ритмом из шкалы */
+.stack {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.stack-sm { gap: var(--space-3); }
+.stack-lg { gap: var(--space-6); }
+
+/* Приглушённый текст — вместо inline opacity: .8/.9/.95,
+   которая гасит и текст, и фон, и границы разом */
+.text-muted {
+  color: var(--text-muted);
+}
 
 .p-0 { padding: 0; }
 .pt-4 { padding-top: var(--space-4); }
@@ -808,7 +1019,7 @@ section {
 
 /* Height */
 .h-full { height: 100%; }
-.h-screen { height: 100vh; }
+.h-screen { height: 100svh; }
 
 
 /* ========== АНИМАЦИИ И ВЗАИМОДЕЙСТВИЯ ========== */
@@ -869,12 +1080,7 @@ section {
 
 /* Shimmer эффект */
 .shimmer {
-  background: linear-gradient(
-    90deg,
-    var(--light-200) 0%,
-    var(--light-100) 50%,
-    var(--light-200) 100%
-  );
+  background: var(--shimmer);
   background-size: 200% 100%;
   animation: shimmer 2s linear infinite;
 }
@@ -900,14 +1106,9 @@ img {
   object-fit: contain;
 }
 
-/* Изображения с плавным появлением */
-img {
-  opacity: 1;
-  transition: opacity var(--duration-medium) var(--ease-out);
-}
-
-img.loaded {
-  opacity: 1;
+/* Плейсхолдер-фон, пока картинка не загрузилась: вместо «дыры» — мягкая подложка */
+img[loading="lazy"] {
+  background-color: var(--light-100);
 }
 
 
@@ -1070,25 +1271,23 @@ hr {
 
 /* ========== АДАПТИВНОСТЬ ========== */
 
+/* Базовый кегль раньше падал до 14px на мобильных и прыгал до 18px на
+   широких экранах — из-за скачка менялся весь ритм страницы, а мелкий
+   текст на телефоне читался хуже всего. Теперь размер растёт плавно
+   и никогда не опускается ниже 16px. */
+body {
+  font-size: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+}
+
 @media (max-width: 640px) {
-  body {
-    font-size: var(--text-sm);
-  }
-  
   .container {
     padding-left: var(--space-4);
     padding-right: var(--space-4);
   }
-  
+
   section {
     padding-top: var(--section-padding-y-sm);
     padding-bottom: var(--section-padding-y-sm);
-  }
-}
-
-@media (min-width: 1280px) {
-  body {
-    font-size: var(--text-lg);
   }
 }
 
@@ -1122,10 +1321,18 @@ hr {
 
 /* ========== ACCESSIBILITY ========== */
 
-/* Focus visible для клавиатурной навигации */
+/* Focus visible для клавиатурной навигации.
+   Раньше кольцо рисовалось через box-shadow — и обрезалось у любого
+   родителя с overflow:hidden (а это все карточки и кнопки на сайте).
+   outline не обрезается никогда. */
 *:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Цель якорной ссылки не должна прятаться под фиксированной шапкой */
+.anchor-offset {
+  scroll-margin-top: calc(var(--navbar-height) + var(--space-4));
 }
 
 /* Скрытие элементов для скринридеров */

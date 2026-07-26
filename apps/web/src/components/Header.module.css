@@ -20,47 +20,40 @@
   border-bottom: 1px solid transparent;
 
   transition:
-    transform var(--duration-medium, 0.35s) var(--ease-smooth, cubic-bezier(0.16, 1, 0.3, 1)),
     background-color var(--duration-medium, 0.35s) var(--ease-smooth, cubic-bezier(0.16, 1, 0.3, 1)),
     box-shadow var(--duration-medium, 0.35s) var(--ease-smooth, cubic-bezier(0.16, 1, 0.3, 1)),
     border-color var(--duration-medium, 0.35s) var(--ease-smooth, cubic-bezier(0.16, 1, 0.3, 1));
 
-  will-change: transform, background-color, box-shadow;
-  isolation: isolate; /* помогает стабильнее управлять слоями */
+  /* will-change: transform здесь убран намеренно.
+     Комментарий ниже верно предупреждал: если header становится
+     containing block, position:fixed у мобильного меню начинает
+     отсчитываться от шапки, а не от вьюпорта. Но containing block
+     создаёт не только сам transform — will-change: transform даёт
+     ровно тот же эффект, причём постоянно. Заодно шапка держала
+     отдельный слой композитора всё время жизни страницы. */
+  isolation: isolate;
 }
 
-/* Состояние при скролле */
-.header.scrolled {
-  background: rgba(255, 255, 255, 0.95);
+/* Состояния переключаются из скрипта в Header.astro обычными именами
+   классов, поэтому оборачиваем их в :global() — иначе CSS-модуль
+   захешировал бы имена, и правила никогда бы не сработали.
+   Раньше так и было: .scrolled / .menu-open в разметку попадали
+   как есть, а в стилях превращались в .scrolled_a1b2c3 — весь блок
+   состояний был мёртвым. */
+
+.header:global(.scrolled) {
+  background: rgba(255, 255, 255, 0.96);
   border-bottom-color: var(--border-color-light, #e5e7eb);
   box-shadow: var(--shadow-md, 0 8px 24px rgba(0, 0, 0, 0.08));
 }
 
-/* ВАЖНО:
-   Не держим transform на header в "обычном" состоянии.
-   Иначе position:fixed у моб. меню может стать "фиксированным относительно header"
-   (если header трансформируется, он становится containing block). */
-.header.hide {
-  transform: translateY(-100%);
-}
-
-.header.show {
-  transform: none;
-}
-
-/* Когда меню открыто: отключаем любые сдвиги header, чтобы оверлей не "уезжал" */
-.header.menu-open {
-  transform: none !important;
+/* Когда меню открыто, фон берёт на себя само меню */
+.header:global(.menu-open) {
   border-bottom-color: transparent;
   box-shadow: none;
-  background: transparent; /* фон берёт на себя мобильное меню */
+  background: transparent;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-}
-
-/* (Опционально) если ты добавляешь класс на body при открытом меню */
-body.menu-open {
-  overflow: hidden;
 }
 
 /* ========== NAVBAR CONTAINER ========== */
@@ -81,7 +74,7 @@ body.menu-open {
   transition: height var(--duration-medium, 0.35s) var(--ease-smooth, cubic-bezier(0.16, 1, 0.3, 1));
 }
 
-.header.scrolled .navbar {
+.header:global(.scrolled) .navbar {
   height: 4.5rem;
 }
 
@@ -138,8 +131,8 @@ body.menu-open {
 }
 
 .logoLink:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring, 0 0 0 4px rgba(44, 173, 229, 0.25));
+  outline: var(--focus-ring-width, 3px) solid var(--focus-ring-color, #2cade5);
+  outline-offset: var(--focus-ring-offset, 2px);
 }
 
 /* ========== NAVIGATION LINKS ========== */
@@ -255,8 +248,8 @@ body.menu-open {
 
 /* Focus состояние */
 .navLink:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring, 0 0 0 4px rgba(44, 173, 229, 0.25));
+  outline: var(--focus-ring-width, 3px) solid var(--focus-ring-color, #2cade5);
+  outline-offset: var(--focus-ring-offset, 2px);
 }
 
 /* ========== LANGUAGE SELECTOR ========== */
@@ -331,8 +324,8 @@ body.menu-open {
 }
 
 .langBtn:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring, 0 0 0 4px rgba(44, 173, 229, 0.25));
+  outline: var(--focus-ring-width, 3px) solid var(--focus-ring-color, #2cade5);
+  outline-offset: var(--focus-ring-offset, 2px);
 }
 
 /* ========== MOBILE CONTROLS (hamburger + язык справа ровно) ========== */
@@ -369,8 +362,8 @@ body.menu-open {
 }
 
 .hamburger:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring, 0 0 0 4px rgba(44, 173, 229, 0.25));
+  outline: var(--focus-ring-width, 3px) solid var(--focus-ring-color, #2cade5);
+  outline-offset: var(--focus-ring-offset, 2px);
   border-radius: var(--radius-sm, 0.5rem);
 }
 
@@ -481,10 +474,15 @@ body.menu-open {
     bottom: var(--space-2, 0.5rem);
   }
 
+  /* Переключатель языка раньше вырывался в position:fixed и позиционировался
+     от вьюпорта отдельными top/right под каждый брейкпоинт. Из-за этого он
+     не совпадал по вертикали с логотипом (шапка 4.5rem, а он был прижат
+     к 1rem от края) и «отклеивался» от шапки в любой нестандартной ситуации.
+     Он и так лежит в .mobileControls рядом с бургером — flex справляется. */
   .languageSelector {
-    position: fixed;
-    top: var(--space-4, 1rem);
-    right: calc(var(--space-4, 1rem) + 48px);
+    position: relative;
+    top: auto;
+    right: auto;
     z-index: calc(var(--z-fixed, 1000) + 3);
   }
 }
@@ -499,26 +497,25 @@ body.menu-open {
     font-size: var(--text-lg, 1.125rem);
   }
 
-  .navLink {
-    font-size: var(--text-base, 1rem);
+  .mobileControls {
+    gap: var(--space-2, 0.5rem);
   }
 
-  .languageSelector {
-    top: var(--space-3, 0.75rem);
-    right: calc(var(--space-3, 0.75rem) + 42px);
+  .langBtn {
+    padding: var(--space-2, 0.5rem) var(--space-2, 0.5rem);
   }
 }
 
-/* ========== TABLET BREAKPOINT ========== */
+/* ========== TABLET BREAKPOINT ==========
+   До 1024px навигация — это полноэкранное меню, и размеры пунктов
+   задаются в блоке мобильного меню выше. Прежнее правило здесь
+   (font-size: 1.25rem + padding 1.25rem/2rem) применялось позже
+   по каскаду и раздувало пункты именно в мобильном оверлее.
+   Оставляем только то, что относится к самой шапке. */
 
 @media (min-width: 768px) and (max-width: 1024px) {
   .navbar {
     gap: var(--space-4, 1rem);
-  }
-
-  .navLink {
-    font-size: var(--text-xl, 1.25rem);
-    padding: var(--space-5, 1.25rem) var(--space-8, 2rem);
   }
 }
 
@@ -537,34 +534,19 @@ body.menu-open {
 
 /* ========== АНИМАЦИИ И ЭФФЕКТЫ ========== */
 
-/* Плавное появление header при загрузке */
-@keyframes slideDown {
-  from {
-    transform: translateY(-100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+/* Появление шапки при загрузке — только прозрачность.
+   Здесь была анимация slideDown с transform: translateY(-100%).
+   Пока она играла, шапка становилась containing block для
+   position:fixed — то есть ровно то, от чего предостерегает
+   комментарий в начале файла. Плюс она проигрывалась при каждом
+   переходе по сайту: шапка «падала» сверху на каждой странице. */
+@keyframes headerIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .header {
-  animation: slideDown var(--duration-slow, 0.7s) var(--ease-smooth, cubic-bezier(0.16, 1, 0.3, 1));
-}
-
-/* Пульсация для активной ссылки */
-@keyframes subtlePulse {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(44, 173, 229, 0.4);
-  }
-  50% {
-    box-shadow: 0 0 0 4px rgba(44, 173, 229, 0);
-  }
-}
-
-.navLink.active:hover {
-  animation: subtlePulse 2s var(--ease-in-out, ease-in-out) infinite;
+  animation: headerIn var(--duration-medium, 0.3s) var(--ease-out, ease-out);
 }
 
 /* Эффект волны при клике (мягко, без ломания слоёв) */
@@ -583,15 +565,9 @@ body.menu-open {
   animation: ripple 0.2s var(--ease-out, ease-out);
 }
 
-/* ========== ACCESSIBILITY ========== */
-
-.navLink:focus-visible,
-.langBtn:focus-visible,
-.logoLink:focus-visible {
-  outline: 3px solid var(--primary, #2cade5);
-  outline-offset: 2px;
-  border-radius: var(--radius-base, 0.75rem);
-}
+/* Раньше здесь висела subtlePulse: активная ссылка при наведении
+   бесконечно пульсировала кольцом. На странице, где ты уже находишься,
+   это лишний непрекращающийся раздражитель — убрано. */
 
 /* Skip to content link */
 .skipLink {
