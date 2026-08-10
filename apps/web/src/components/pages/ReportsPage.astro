@@ -2,7 +2,7 @@
 // src/components/pages/ReportsPage.astro
 import Base from "../../layouts/Base.astro";
 import "../../styles/pages/reports.css";
-import { getCollection } from "astro:content";
+import { getCollection, render } from "astro:content";
 import { localePath, useTranslations, type Lang } from "../../i18n/ui";
 
 interface Props {
@@ -38,23 +38,32 @@ const categories = [
 
 const reportEntries = await getCollection("reports", ({ data }) => data.draft !== true);
 
-const reports = reportEntries.map((entry) => {
+const reports = await Promise.all(reportEntries.map(async (entry) => {
   const id = entry.id.replace(/\/index$/, "");
   const data = entry.data;
+  const { Content } = await render(entry);
   return {
     id,
     titleFallback: data.titleFallback,
+    titleEn: data.titleEn,
     summaryFallback: data.summaryFallback,
+    summaryEn: data.summaryEn,
     dateISO: data.dateISO,
+    dateTimeISO: data.dateTimeISO || `${data.dateISO}T00:00:00+03:00`,
     category: data.category || "other",
     media: data.media || [],
     docs: data.docs || [],
     donation: data.donation,
     social: data.social,
+    bodyText: "body" in entry ? String(entry.body || "") : "",
+    Content,
   };
-});
+}));
 
-const reportsSorted = [...reports].sort((a, b) => (String(a.dateISO) < String(b.dateISO) ? 1 : -1));
+const reportsSorted = [...reports].sort((a, b) => {
+  const byTime = Date.parse(b.dateTimeISO) - Date.parse(a.dateTimeISO);
+  return byTime || a.id.localeCompare(b.id);
+});
 
 function formatDate(iso) {
   const s = String(iso ?? "");
@@ -86,6 +95,7 @@ const reportManualEn = {
 };
 
 const reportTitleEn = (report) => {
+  if (report.titleEn) return report.titleEn;
   const manual = reportManualEn[String(report.id ?? "")]?.title;
   if (manual) return manual;
   const date = formatDateEn(report.dateISO);
@@ -94,6 +104,7 @@ const reportTitleEn = (report) => {
 };
 
 const reportSummaryEn = (report) => {
+  if (report.summaryEn) return report.summaryEn;
   const manual = reportManualEn[String(report.id ?? "")]?.summary;
   if (manual) return manual;
   return `AVKU report on ${reportTopicEn(report.category)}. Photos, documents, and source links are included when available.`;
@@ -159,13 +170,14 @@ const reportDocLabelEn = (_doc, index) => `Document / confirmation${index > 0 ? 
         <section aria-label={pick("Список звітів", "Report list")}>
           <ul class="reports-list" id="reportsList">
             {reportsSorted.map((r) => {
+              const Content = r.Content;
               const titleUk = String(r.titleFallback ?? "");
               const summaryUk = String(r.summaryFallback ?? "");
               const titleEn = reportTitleEn(r);
               const summaryEn = reportSummaryEn(r);
               const catText = categoryLabel(String(r.category ?? "other"));
               const catTextEn = categoryLabelEn(String(r.category ?? "other"));
-              const searchText = `${titleUk} ${summaryUk} ${titleEn} ${summaryEn} ${catText} ${catTextEn}`.toLowerCase();
+              const searchText = `${titleUk} ${summaryUk} ${titleEn} ${summaryEn} ${catText} ${catTextEn} ${r.bodyText}`.toLowerCase();
 
               const reportId = String(r.id ?? "");
               const media = Array.isArray(r.media) ? r.media : [];
@@ -175,7 +187,7 @@ const reportDocLabelEn = (_doc, index) => `Document / confirmation${index > 0 ? 
                   <article>
                     <header class="report-card__header">
                       <div class="report-card__meta">
-                        <time datetime={String(r.dateISO ?? "")} class="muted">{formatDate(r.dateISO)}</time>
+                        <time datetime={String(r.dateTimeISO ?? r.dateISO ?? "")} class="muted">{formatDate(r.dateISO)}</time>
                         <span class="badge" aria-label={t("reports_categories")}>{pick(catText, catTextEn)}</span>
                       </div>
 
@@ -184,29 +196,40 @@ const reportDocLabelEn = (_doc, index) => `Document / confirmation${index > 0 ? 
                     </header>
 
                     {media.length ? (
-                      <section class="report-media report-media--inline" aria-label={pick("Фото", "Photos")}>
+                      <section class="report-media report-media--inline" aria-label={pick("Матеріали публікації", "Post media")}>
                         <ul class="report-media__grid">
                           {media.map((m, idx) => {
                             const altText = pick(String(m.alt ?? ""), reportMediaAltEn(r, idx));
                             const captionText = pick(String(m.caption ?? ""), reportMediaCaptionEn(r, idx));
+                            const isVideo = m.type === "video";
                             return (
                               <li class="report-media__item">
-                                <a
-                                  class="report-media__link"
-                                  href={url(m.src)}
-                                  data-media-thumb="1"
-                                  data-report={reportId}
-                                  data-index={String(idx)}
-                                  data-src={url(m.src)}
-                                  data-alt={altText}
-                                  data-caption={captionText}
-                                  data-title={pick(titleUk, titleEn)}
-                                >
-                                  <figure>
-                                    <img src={url(m.src)} alt={altText} loading="lazy" />
+                                {isVideo ? (
+                                  <figure class="report-media__video-figure">
+                                    <video controls preload="none" poster={m.poster ? url(m.poster) : undefined} aria-label={altText}>
+                                      <source src={url(m.src)} type="video/mp4" />
+                                    </video>
                                     {m.caption ? <figcaption class="muted">{captionText}</figcaption> : null}
+                                    {m.href ? <a class="report-media__source" href={url(m.href)} target="_blank" rel="noopener">{pick("Відео у Facebook", "Video on Facebook")}</a> : null}
                                   </figure>
-                                </a>
+                                ) : (
+                                  <a
+                                    class="report-media__link"
+                                    href={url(m.src)}
+                                    data-media-thumb="1"
+                                    data-report={reportId}
+                                    data-index={String(idx)}
+                                    data-src={url(m.src)}
+                                    data-alt={altText}
+                                    data-caption={captionText}
+                                    data-title={pick(titleUk, titleEn)}
+                                  >
+                                    <figure>
+                                      <img src={url(m.src)} alt={altText} loading="lazy" />
+                                      {m.caption ? <figcaption class="muted">{captionText}</figcaption> : null}
+                                    </figure>
+                                  </a>
+                                )}
                               </li>
                             );
                           })}
@@ -232,6 +255,13 @@ const reportDocLabelEn = (_doc, index) => `Document / confirmation${index > 0 ? 
 
                     <details class="report-card__details">
                       <summary class="report-card__summary-toggle" data-translate="reports_details_toggle">{t("reports_details_toggle")}</summary>
+
+                      {r.bodyText ? (
+                        <section class="report-card__body" aria-label={pick("Повний текст публікації", "Original post text")}>
+                          <strong>{pick("Повний текст публікації", "Original post text")}</strong>
+                          <div><Content /></div>
+                        </section>
+                      ) : null}
 
                       {r.docs?.length ? (
                         <div class="report-docs" aria-label={t("reports_docs_title")}>

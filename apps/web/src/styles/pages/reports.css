@@ -616,6 +616,31 @@
   transition: transform var(--duration-slow) var(--ease-smooth);
 }
 
+.report-media__item video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: var(--dark-900);
+}
+
+.report-media__video-figure figcaption {
+  pointer-events: none;
+}
+
+.report-media__source {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  z-index: 2;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-base);
+  background: rgb(0 0 0 / 72%);
+  color: var(--white);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+}
+
 .report-media__item figure:hover img {
   transform: scale(1.1);
 }
@@ -725,6 +750,24 @@ details[open] .report-card__summary-toggle::before {
 
 details[open] .report-card__summary-toggle {
   margin-bottom: var(--space-6);
+}
+
+.report-card__body {
+  margin-bottom: var(--space-6);
+  padding: var(--space-5);
+  border: 1px solid var(--border-color-light);
+  border-radius: var(--radius-lg);
+  background: var(--surface-subtle, var(--primary-lightest));
+}
+
+.report-card__body > div {
+  margin-top: var(--space-3);
+  color: var(--dark-700);
+  line-height: var(--leading-relaxed);
+}
+
+.report-card__body > div > :last-child {
+  margin-bottom: 0;
 }
 
 /* ========== REPORT DOCS ========== */
@@ -1335,7 +1378,8 @@ html {
 .report-media__link,
 .report-media__item,
 .report-media__item figure,
-.report-media__item img {
+.report-media__item img,
+.report-media__item video {
   max-width: 100%;
 }
   

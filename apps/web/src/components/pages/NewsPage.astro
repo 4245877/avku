@@ -2,7 +2,7 @@
 // src/components/pages/NewsPage.astro
 import Base from "../../layouts/Base.astro";
 import "../../styles/pages/news.css";
-import { getCollection } from "astro:content";
+import { getCollection, render } from "astro:content";
 import { SITE_URL, absoluteUrl, localePath, useTranslations, type Lang } from "../../i18n/ui";
 
 interface Props {
@@ -79,32 +79,42 @@ const newsTranslations = {
 
 const newsEntries = await getCollection("news", ({ data }) => data.draft !== true);
 
-const news = newsEntries
-  .map((entry) => {
+const news = await Promise.all(newsEntries
+  .map(async (entry) => {
     const id = entry.id.replace(/\/index$/, "");
     const data = entry.data;
     const tr = newsTranslations[id] || {};
+    const { Content } = await render(entry);
     return {
       id,
       title: data.title,
-      titleEn: tr.title || data.title,
+      titleEn: data.titleEn || tr.title || data.title,
       dateISO: data.dateISO,
+      dateTimeISO: data.dateTimeISO || `${data.dateISO}T00:00:00+03:00`,
       dateLabel: data.dateLabel || formatDateUk(data.dateISO),
       dateLabelEn: formatDateEn(data.dateISO),
       categoryKey: data.categoryKey || "zsu",
       categoryLabel: categoryMap[data.categoryKey] || "Новини",
       categoryLabelEn: categoryMapEn[data.categoryKey] || "News",
       excerpt: data.excerpt,
-      excerptEn: tr.excerpt || data.excerpt,
+      excerptEn: data.excerptEn || tr.excerpt || data.excerpt,
       href: data.href || "",
       img: data.img || "",
       imgAlt: data.imgAlt || data.title,
-      imgAltEn: tr.imgAlt || tr.title || data.imgAlt || data.title,
+      imgAltEn: data.imgAltEn || tr.imgAlt || data.titleEn || tr.title || data.imgAlt || data.title,
+      media: data.media || [],
       sourceLabel: data.sourceLabel || "Сайт АВКУ",
-      sourceLabelEn: tr.sourceLabel || "AVKU website",
+      sourceLabelEn: data.sourceLabelEn || tr.sourceLabel || "AVKU website",
+      bodyText: "body" in entry ? String(entry.body || "") : "",
+      Content,
     };
   })
-  .sort((a, b) => Date.parse(b?.dateISO || "") - Date.parse(a?.dateISO || ""));
+);
+
+news.sort((a, b) => {
+  const byTime = Date.parse(b.dateTimeISO) - Date.parse(a.dateTimeISO);
+  return byTime || a.id.localeCompare(b.id);
+});
 
 const featured = news[0] ?? null;
 
@@ -217,13 +227,15 @@ const orgJsonLd = {
         </div>
 
         <div class="news-items stack" id="newsList">
-          {news.map((n) => (
-            <article
+          {news.map((n) => {
+            const Content = n.Content;
+            return (
+              <article
               id={n.id}
               class="news-card" data-news-card="1" data-cat={n.categoryKey || ""}
-              data-date={n.dateISO || ""}
+              data-date={n.dateTimeISO || n.dateISO || ""}
               data-title={`${n.title || ""} ${n.titleEn || ""}`.toLowerCase()}
-              data-text={`${n.excerpt || ""} ${n.excerptEn || ""}`.toLowerCase()}
+              data-text={`${n.excerpt || ""} ${n.excerptEn || ""} ${n.bodyText || ""}`.toLowerCase()}
             >
               {n.img ? (
                 <a href={detailsHref(n)} aria-label={pick(n.title, n.titleEn)}>
@@ -241,6 +253,43 @@ const orgJsonLd = {
                 <h3>{pick(n.title, n.titleEn)}</h3>
                 <p class="text-muted">{pick(n.excerpt, n.excerptEn)}</p>
 
+                {n.media.length ? (
+                  <section class="news-card__media" aria-label={pick("Матеріали публікації", "Post media")}>
+                    <ul>
+                      {n.media.map((m, idx) => {
+                        const altText = String(m.alt || `${n.title} — матеріал ${idx + 1}`);
+                        return (
+                          <li>
+                            {m.type === "video" ? (
+                              <figure>
+                                <video controls preload="none" poster={m.poster ? url(m.poster) : undefined} aria-label={altText}>
+                                  <source src={url(m.src)} type="video/mp4" />
+                                </video>
+                                {m.caption ? <figcaption>{m.caption}</figcaption> : null}
+                                {m.href ? <a class="news-card__media-source" href={m.href} target="_blank" rel="noopener">{pick("Відео у Facebook", "Video on Facebook")}</a> : null}
+                              </figure>
+                            ) : (
+                              <a href={url(m.src)} target="_blank" rel="noopener">
+                                <figure>
+                                  <img src={url(m.src)} alt={altText} loading="lazy" decoding="async" />
+                                  {m.caption ? <figcaption>{m.caption}</figcaption> : null}
+                                </figure>
+                              </a>
+                            )}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </section>
+                ) : null}
+
+                {n.bodyText ? (
+                  <details class="news-card__original">
+                    <summary>{pick("Повний текст публікації", "Original post text")}</summary>
+                    <div class="news-card__original-body"><Content /></div>
+                  </details>
+                ) : null}
+
                 <div class="btn-row mt-3">
                   <a href={detailsHref(n)} aria-label={pick(n.title, n.titleEn)} data-translate="cta_details">{t("cta_details")}</a>
                   {n.img ? (
@@ -250,7 +299,8 @@ const orgJsonLd = {
                 </div>
               </div>
             </article>
-          ))}
+            );
+          })}
         </div>
 
         <div class="view-more-container mt-4">

@@ -65,6 +65,17 @@ const formatDate = (iso) => {
   }).format(d);
 };
 
+const formatNewsDate = (iso, locale) => {
+  if (!iso) return "";
+  const d = new Date(`${String(iso).slice(0, 10)}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return String(iso);
+  return new Intl.DateTimeFormat(locale, {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(d);
+};
+
 const reportEntries = await getCollection("reports", ({ data }) =>
   data.draft !== true && Array.isArray(data.media) && data.media.length > 0
 );
@@ -73,12 +84,14 @@ const reports = reportEntries.map((entry) => ({
   id: entry.id.replace(/\/index$/, ""),
   titleFallback: entry.data.titleFallback,
   dateISO: entry.data.dateISO,
+  dateTimeISO: entry.data.dateTimeISO || `${entry.data.dateISO}T00:00:00+03:00`,
   media: entry.data.media || [],
 }));
 
-const reportsSorted = [...reports].sort((a, b) =>
-  String(a.dateISO) < String(b.dateISO) ? 1 : -1
-);
+const reportsSorted = [...reports].sort((a, b) => {
+  const byTime = Date.parse(b.dateTimeISO) - Date.parse(a.dateTimeISO);
+  return byTime || a.id.localeCompare(b.id);
+});
 
 const featuredReportIds = [
   "report-2026-solomianskyi-charity-fair",
@@ -208,29 +221,28 @@ const partners = [
   return { ...p, logo };
 });
 
-// Останні оновлення (2 картки)
-const latestNews = [
-  {
-    title: "АВКУ долучилася до благодійного ярмарку на підтримку батальйону «Свобода»",
-    titleEn: "AVKU joined a charity fair supporting the Svoboda battalion",
-    dateISO: "2026-06-14",
-    dateLabel: "14 червня 2026",
-    dateLabelEn: "June 14, 2026",
-    text: "У парку «Відрадний» збирали кошти на FPV-дрони для батальйону «Свобода» бригади НГУ «Рубіж».",
-    textEn: "In Vidradnyi Park, funds were raised for FPV drones for the Svoboda battalion of the Rubizh National Guard brigade.",
-    anchor: "2026-06-14-solomianskyi-charity-fair",
-  },
-  {
-    title: "Передали EcoFlow для 34-ї окремої бригади морської піхоти",
-    titleEn: "EcoFlow delivered for the 34th Separate Marine Brigade",
-    dateISO: "2026-05-15",
-    dateLabel: "15 травня 2026",
-    dateLabelEn: "May 15, 2026",
-    text: "Потужна підзарядна станція забезпечить безперебійну роботу та зв'язок мінометного батальйону.",
-    textEn: "The high-capacity charging station will help keep the mortar battalion’s work and communications running without interruption.",
-    anchor: "2026-05-15-34-marine-brigade-ecoflow",
-  },
-];
+// Картки головної беруться з колекції новин, тому новий матеріал не треба
+// дублювати вручну в цьому компоненті.
+const homeNewsEntries = await getCollection("news", ({ data }) =>
+  data.draft !== true && data.showOnHome === true
+);
+
+const latestNews = homeNewsEntries
+  .map((entry) => ({
+    title: entry.data.title,
+    titleEn: entry.data.titleEn || entry.data.title,
+    dateISO: entry.data.dateISO,
+    dateTimeISO: entry.data.dateTimeISO || `${entry.data.dateISO}T00:00:00+03:00`,
+    dateLabel: entry.data.dateLabel || formatNewsDate(entry.data.dateISO, "uk-UA"),
+    dateLabelEn: formatNewsDate(entry.data.dateISO, "en"),
+    text: entry.data.excerpt,
+    textEn: entry.data.excerptEn || entry.data.excerpt,
+    anchor: entry.id.replace(/\/index$/, ""),
+  }))
+  .sort((a, b) => {
+    const byTime = Date.parse(b.dateTimeISO) - Date.parse(a.dateTimeISO);
+    return byTime || a.anchor.localeCompare(b.anchor);
+  });
 
 // JSON-LD
 const orgName = en

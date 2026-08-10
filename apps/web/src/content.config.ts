@@ -9,7 +9,9 @@ const news = defineCollection({
   }),
   schema: z.object({
     title: z.string(),
+    titleEn: z.string().optional(),
     dateISO: z.string(),
+    dateTimeISO: z.string().optional(),
     dateLabel: z.string().optional(),
     categoryKey: z.enum([
       "zsu",
@@ -20,10 +22,24 @@ const news = defineCollection({
       "events",
     ]).default("zsu"),
     excerpt: z.string(),
+    excerptEn: z.string().optional(),
     href: z.string().optional(),
     img: z.string().optional(),
     imgAlt: z.string().optional(),
+    imgAltEn: z.string().optional(),
+    media: z.array(
+      z.object({
+        src: z.string(),
+        type: z.enum(["image", "video"]).optional().default("image"),
+        poster: z.string().optional(),
+        href: z.string().optional(),
+        alt: z.string().optional(),
+        caption: z.string().optional(),
+      })
+    ).optional().default([]),
     sourceLabel: z.string().optional(),
+    sourceLabelEn: z.string().optional(),
+    showOnHome: z.boolean().optional().default(false),
     draft: z.boolean().optional().default(false),
   }),
 });
@@ -35,10 +51,13 @@ const reports = defineCollection({
   }),
   schema: z.object({
     titleFallback: z.string(),
+    titleEn: z.string().optional(),
     titleKey: z.string().optional(),
     summaryFallback: z.string(),
+    summaryEn: z.string().optional(),
     summaryKey: z.string().optional(),
     dateISO: z.string(),
+    dateTimeISO: z.string().optional(),
     category: z.enum([
       "zsu",
       "repair",
@@ -50,6 +69,9 @@ const reports = defineCollection({
     media: z.array(
       z.object({
         src: z.string(),
+        type: z.enum(["image", "video"]).optional().default("image"),
+        poster: z.string().optional(),
+        href: z.string().optional(),
         alt: z.string().optional(),
         caption: z.string().optional(),
       })
