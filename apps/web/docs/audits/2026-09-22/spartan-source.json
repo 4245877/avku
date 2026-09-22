@@ -1,0 +1,59 @@
+{
+  "checked_at": "2026-09-22",
+  "verification_method": "Public Facebook group loaded in an isolated browser without signing in; original message and timestamps read from the page data.",
+  "group_post_url": "https://www.facebook.com/groups/555103805361838/posts/2193681244837411/",
+  "group_post_id": "2193681244837411",
+  "group_published_at": "2026-09-22T00:47:39+03:00",
+  "group_author": "Сергій Козлов",
+  "original_post_url": "https://www.facebook.com/reel/1997766547575968/",
+  "original_published_at": "2026-09-21T20:53:13+03:00",
+  "original_author": "Любов Плетньова",
+  "event_date": null,
+  "event_date_note": "Дата фактической передачи и получения в тексте не указана; даты публикаций не считаются датой события.",
+  "recipient": "5-та бригада оперативного призначення «Спартан»",
+  "aid": [
+    "маскувальні сітки",
+    "смаколики"
+  ],
+  "quantities": null,
+  "named_partner_organizations": [],
+  "original_text": "💙💛 Зворотний зв’язок від наших захисників — 5-ї бригади оперативного призначення «Спартан».\n\nМаскувальні сітки та смаколики, які ми передавали хлопцям, уже дісталися за призначенням. 🙏\n\nДля нас кожен такий відгук — це підтвердження, що наша спільна робота потрібна. Що кожна сплетена стрічка, кожен донат, кожна коробка допомоги — це частинка підтримки наших захисників.\n\nМи не зупиняємося й надалі будемо допомагати фронту, працювати для наших воїнів і тримати міцний тил. 🇺🇦\n\nЩиро дякую кожному, хто долучається, плете маскувальні сітки, допомагає матеріалами, підтримує донатами та просто поширює інформацію.\n\nРазом ми сильніші!\nРазом тримаємо тил!\nРазом — до перемоги! 🇺🇦",
+  "media": [
+    {
+      "type": "video",
+      "id": "1997766547575968",
+      "source_url": "https://www.facebook.com/reel/1997766547575968/",
+      "duration_ms": 28641,
+      "local_path": "/videos/reports/2026/1997766547575968.mp4",
+      "poster": "/images/reports/video-posters/2026/1997766547575968.jpg"
+    }
+  ],
+  "files": [
+    {
+      "file": "apps/web/public/videos/reports/2026/1997766547575968.mp4",
+      "bytes": 8626708,
+      "sha256": "7f62e4ece15ba57bf743aa7f9a5da653f2a8d673461f2edda57d0cefe7007063",
+      "content_type": "video/mp4"
+    },
+    {
+      "file": "apps/web/public/images/reports/video-posters/2026/1997766547575968.jpg",
+      "bytes": 73231,
+      "sha256": "8f8906fad4f558f4802a15c6137cd2ba187f89bb6725a66e2b9c7a5a46692062",
+      "content_type": "image/jpeg"
+    }
+  ],
+  "deduplication": {
+    "source_ids_present_before": false,
+    "recipient_name_present_before": false,
+    "checked_collections": [
+      "news",
+      "reports"
+    ],
+    "also_checked": [
+      "events",
+      "publications"
+    ],
+    "decision": "One report for the original video and its group repost."
+  },
+  "site_content_file": "apps/web/src/content/reports/report-2026-09-21-spartan-aid-feedback.md"
+}

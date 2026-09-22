@@ -1,0 +1,43 @@
+{
+  "checked_at": "2026-09-22",
+  "git_commit_before": "d1e2402",
+  "published_news": 12,
+  "published_reports": 248,
+  "drafts_excluded": 1,
+  "local_media_references_checked": 1096,
+  "missing_local_media": 0,
+  "pages": [
+    {
+      "url": "https://avku.org/news/",
+      "checked_at": "2026-09-22",
+      "http_status": 200,
+      "bytes": 99085,
+      "sha256": "cd1f59df4c3189aea8a15450d729793ff1869277888aa02a101dbe8f647e9ee5",
+      "matched_published_ids": 12
+    },
+    {
+      "url": "https://avku.org/reports/",
+      "checked_at": "2026-09-22",
+      "http_status": 200,
+      "bytes": 1884485,
+      "sha256": "5f5f6c1f64c1ee0cad3305b44e3737662f11d0dad1d3c18c2e39665dd70c21db",
+      "matched_published_ids": 248
+    },
+    {
+      "url": "https://avku.org/events/",
+      "checked_at": "2026-09-22",
+      "http_status": 200,
+      "bytes": 39686,
+      "sha256": "cba96157512dc996e1c15a294a137b2e0c26fb5114b698ec1a60c71d619c44a6",
+      "matched_published_ids": null
+    },
+    {
+      "url": "https://avku.org/publications/",
+      "checked_at": "2026-09-22",
+      "http_status": 200,
+      "bytes": 17735,
+      "sha256": "463013ca6b52aa2105ee5845c6d545d7a582c8afcd99e3370cd9bc51d144a01b",
+      "matched_published_ids": null
+    }
+  ]
+}
